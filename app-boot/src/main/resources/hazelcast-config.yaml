@@ -1,0 +1,31 @@
+hazelcast:
+  cluster-name: ams-ai-dev
+  network:
+    join:
+      multicast:
+        enabled: true
+      tcp-ip:
+        enabled: false
+    port:
+      port: 5701
+      port-count: 100
+  map:
+    default:
+      backup-count: 1
+      time-to-live-seconds: 0
+      max-idle-seconds: 0
+      eviction:
+        size: 1000
+        max-size-policy: PER_NODE
+        eviction-policy: LRU
+    tenant-cache:
+      backup-count: 1
+      time-to-live-seconds: 3600
+      max-idle-seconds: 1800
+  cache:
+    default:
+      backup-count: 1
+  executor-service:
+    default:
+      pool-size: 4
+      queue-capacity: 1000

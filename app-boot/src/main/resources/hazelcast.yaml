@@ -1,0 +1,19 @@
+hazelcast:
+  cluster-name: ams-ai-cluster
+  network:
+    port:
+      auto-increment: true
+      port-count: 100
+  map:
+    LabelMappingCache:
+      time-to-live-seconds: 300
+      time-to-idle-seconds: 60
+      max-size: 1000
+    NotificationConfig:
+      time-to-live-seconds: 600
+      time-to-idle-seconds: 120
+      max-size: 500
+    TenantConfig:
+      time-to-live-seconds: 1800
+      time-to-idle-seconds: 300
+      max-size: 100

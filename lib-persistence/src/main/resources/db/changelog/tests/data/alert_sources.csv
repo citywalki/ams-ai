@@ -1,0 +1,7 @@
+id,tenant_id,name,protocol,is_enabled,created_at
+1,1,Main Sensor Network,HTTP,true,2024-01-01 00:00:00
+2,1,System Monitor,AGENT,true,2024-01-01 00:00:00
+3,2,Fab 1 Equipment Sensors,SNMP,true,2024-01-01 00:00:00
+4,2,Fab 1 Quality Control,HTTP,true,2024-01-01 00:00:00
+5,3,Fab 2 Production Monitors,AGENT,true,2024-01-01 00:00:00
+6,3,Fab 2 Environmental Sensors,MODBUS,false,2024-01-01 00:00:00

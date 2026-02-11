@@ -1,0 +1,4 @@
+id,code,name,status,created_at
+1,DEFAULT,default tenant,ACTIVE,2024-01-01 00:00:00
+2,FAB1,Fab 1 Tenant,ACTIVE,2024-01-01 00:00:00
+3,FAB2,Fab 2 Tenant,ACTIVE,2024-01-01 00:00:00

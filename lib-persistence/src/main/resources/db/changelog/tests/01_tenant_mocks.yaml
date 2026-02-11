@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-tenant-test-data
+      author: walkin
+      contextFilter: test or dev
+      changes:
+        - loadData:
+            tableName: tenants
+            file: data/tenants.csv
+            relativeToChangelogFile: true
+            columns:
+              - column:
+                  name: id
+                  type: numeric
+              - column:
+                  name: code
+                  type: string
+              - column:
+                  name: name
+                  type: string
+              - column:
+                  name: status
+                  type: string
+              - column:
+                  name: created_at
+                  type: timestamp

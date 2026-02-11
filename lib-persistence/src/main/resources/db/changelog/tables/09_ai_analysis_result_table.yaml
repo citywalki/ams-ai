@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-ai-analysis-result-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: ai_analysis_results
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: alarm_id
+                  type: bigint
+              - column:
+                  name: analysis_type
+                  type: varchar(64)
+              - column:
+                  name: result
+                  type: jsonb
+              - column:
+                  name: confidence
+                  type: decimal(5,4)
+              - column:
+                  name: model_name
+                  type: varchar(128)
+              - column:
+                  name: processing_time_ms
+                  type: integer
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP

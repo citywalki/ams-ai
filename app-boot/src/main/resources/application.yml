@@ -1,0 +1,83 @@
+"%dev":
+  quarkus:
+    console:
+      color: true
+
+quarkus:
+  application:
+    name: ams-ai
+  http:
+    port: 8080
+    auth:
+      proactive: false
+
+  # Liquibase 配置
+  liquibase:
+    migrate-at-start: true
+    change-log: db/changelog/db.changelog-master.yaml
+
+  # 监控配置
+  micrometer:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+        path: /metrics
+
+mp:
+  jwt:
+    verify:
+      issuer: "ams-ai-auth-service"
+      publickey:
+        location: public-key.pem
+
+smallrye:
+  jwt:
+    sign:
+      key:
+        location: private-key.pem
+
+  hibernate-orm:
+    unsupported-properties:
+      "hibernate.cache.use_second_level_cache": true
+      "hibernate.cache.region.factory_class": com.hazelcast.hibernate.HazelcastCacheRegionFactory
+    schema-management:
+      strategy: none
+
+# 租户配置
+ams:
+  tenant:
+    enabled: true
+    filter-enabled: true
+    header-name: X-Tenant-Id
+  # 认证配置
+  auth:
+    init-default-data: true
+    jwt:
+      access-token-expiration: 15M
+      refresh-token-expiration: 7D
+      secret: "secret-key-for-development-only-change-in-production"
+      issuer: "ams-ai-auth-service"
+      algorithm: "RS256"
+  alert:
+    ingestion:
+      deduplication-time-window-ms: 300000
+      deduplication-max-count: 10
+      queue-offer-timeout-ms: 100
+
+# 告警事件消费者配置
+app:
+  alert:
+    consumer:
+      threads: 4
+      poll:
+        timeout:
+          ms: 1000
+      retry:
+        max: 3
+        delay:
+          ms: 1000
+
+shedlock:
+  defaults:
+    lock-at-most-for: PT30S

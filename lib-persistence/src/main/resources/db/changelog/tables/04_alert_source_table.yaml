@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-alert-source-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: alert_source
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+              - column:
+                  name: protocol
+                  type: varchar(32)
+              - column:
+                  name: is_enabled
+                  type: boolean
+                  defaultValue: true
+              - column:
+                  name: connection_config
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP

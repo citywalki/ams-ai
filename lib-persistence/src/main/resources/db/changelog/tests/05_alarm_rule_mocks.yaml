@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-alarm-rule-test-data
+      author: walkin
+      contextFilter: test or dev
+      changes:
+        - loadData:
+            tableName: alarm_rules
+            file: data/alarm_rules.csv
+            relativeToChangelogFile: true
+            columns:
+              - column:
+                  name: id
+                  type: numeric
+              - column:
+                  name: name
+                  type: string
+              - column:
+                  name: rule_type
+                  type: string
+              - column:
+                  name: description
+                  type: string
+              - column:
+                  name: priority
+                  type: numeric
+              - column:
+                  name: enabled
+                  type: boolean
+              - column:
+                  name: tenant_id
+                  type: numeric
+              - column:
+                  name: created_at
+                  type: timestamp

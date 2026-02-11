@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-alarm-comment-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: alarm_comments
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: alarm_id
+                  type: bigint
+              - column:
+                  name: user_id
+                  type: bigint
+              - column:
+                  name: content
+                  type: text
+              - column:
+                  name: is_internal
+                  type: boolean
+                  defaultValue: false
+              - column:
+                  name: metadata
+                  type: jsonb
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP

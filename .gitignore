@@ -1,0 +1,111 @@
+# Gradle
+.gradle
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+bin/
+.settings/
+.classpath
+.project
+
+# VSCode
+.vscode/
+
+# Mac
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Maven
+target/
+
+# Gradle
+.gradle/
+build/
+
+# Generated files
+**/generated/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Secrets
+*.pem
+*.key
+*.cert
+
+# Frontend build artifacts
+app-web/dist/
+app-web/node_modules/
+
+# Backend build artifacts
+app-boot/build/
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Native image
+**/native/
+
+# Test reports
+**/test-results/
+**/reports/
+
+# Temp files
+*.tmp
+*.temp
+
+# Liquibase
+**/db/changelog/*.sql
+!**/db/changelog/*.yaml
+
+# IDE specific
+.idea/
+*.swp
+*.swo
+
+# System files
+*.orig
+*~
+
+# Project specific
+docs/database/erd.md
+!docs/database/erd.md
+
+.trae
+.sisyphus
+.vite/.factorypath
+
+# Eclipse .factorypath files
+.factorypath
+
+# Vite
+.vite/

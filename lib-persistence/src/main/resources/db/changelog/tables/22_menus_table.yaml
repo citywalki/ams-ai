@@ -1,0 +1,111 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-menus-table
+      author: sisyphus
+      preConditions:
+        - not:
+            tableExists:
+              tableName: menus
+      changes:
+        - createTable:
+            tableName: menus
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: key
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: label
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: route
+                  type: varchar(256)
+              - column:
+                  name: parent_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: icon
+                  type: varchar(64)
+              - column:
+                  name: sort_order
+                  type: integer
+                  defaultValueNumeric: 0
+              - column:
+                  name: is_visible
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: permissions_required
+                  type: jsonb
+              - column:
+                  name: metadata
+                  type: jsonb
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: menus
+            baseColumnNames: tenant_id
+            referencedTableName: tenants
+            referencedColumnNames: id
+            constraintName: fk_menus_tenant_id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: menus
+            baseColumnNames: parent_id
+            referencedTableName: menus
+            referencedColumnNames: id
+            constraintName: fk_menus_parent_id
+            onDelete: CASCADE
+        - createIndex:
+            indexName: idx_menus_tenant_key
+            tableName: menus
+            columns:
+              - column:
+                  name: tenant_id
+              - column:
+                  name: key
+            unique: false
+        - createIndex:
+            indexName: idx_menus_tenant_parent
+            tableName: menus
+            columns:
+              - column:
+                  name: tenant_id
+              - column:
+                  name: parent_id
+            unique: false
+        - createIndex:
+            indexName: idx_menus_sort_order
+            tableName: menus
+            columns:
+              - column:
+                  name: sort_order
+            unique: false

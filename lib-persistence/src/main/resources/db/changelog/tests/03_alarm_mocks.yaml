@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-alarm-test-data
+      author: walkin
+      changes:
+        - loadData:
+            tableName: alarms
+            file: data/alarms.csv
+            relativeToChangelogFile: true
+            columns:
+              - column:
+                  name: id
+                  type: numeric
+              - column:
+                  name: tenant_id
+                  type: numeric
+              - column:
+                  name: title
+                  type: string
+              - column:
+                  name: description
+                  type: string
+              - column:
+                  name: severity
+                  type: string
+              - column:
+                  name: status
+                  type: string
+              - column:
+                  name: source
+                  type: string
+              - column:
+                  name: source_id
+                  type: string
+              - column:
+                  name: fingerprint
+                  type: string
+              - column:
+                  name: occurred_at
+                  type: timestamp
+              - column:
+                  name: created_at
+                  type: timestamp

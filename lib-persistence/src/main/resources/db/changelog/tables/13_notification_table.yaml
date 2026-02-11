@@ -1,0 +1,67 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-notification-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: notifications
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: alarm_id
+                  type: bigint
+              - column:
+                  name: channel_id
+                  type: bigint
+              - column:
+                  name: template_id
+                  type: bigint
+              - column:
+                  name: recipient
+                  type: varchar(255)
+              - column:
+                  name: subject
+                  type: varchar(500)
+              - column:
+                  name: content
+                  type: text
+              - column:
+                  name: status
+                  type: varchar(32)
+                  defaultValue: PENDING
+              - column:
+                  name: priority
+                  type: integer
+                  defaultValue: 0
+              - column:
+                  name: sent_at
+                  type: timestamp
+              - column:
+                  name: delivered_at
+                  type: timestamp
+              - column:
+                  name: error_message
+                  type: text
+              - column:
+                  name: metadata
+                  type: jsonb
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP

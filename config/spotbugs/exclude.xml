@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- 排除Panache实体类中的序列化相关警告 -->
+    <Match>
+        <Class name="~.*\.entity\..*"/>
+        <Bug code="SE_BAD_FIELD,SE_BAD_FIELD_INNER_CLASS,SE_BAD_FIELD_STATIC,SE_TRANSIENT_FIELD_NOT_RESTORED"/>
+    </Match>
+
+    <!-- 排除Quarkus相关的动态代理警告 -->
+    <Match>
+        <Class name="~.*\.repository\..*"/>
+        <Bug code="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE"/>
+    </Match>
+
+    <!-- 排除测试类中的警告 -->
+    <Match>
+        <Class name="~.*\.test\..*"/>
+        <Bug code="REC_CATCH_EXCEPTION,TESTING,DMI_HARDCODED_LOG_OBJECTS"/>
+    </Match>
+
+    <!-- 排除Lombok生成代码（如果项目将来使用） -->
+    <Match>
+        <Class name="~.*\$.*"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- 排除常量类中的公共静态字段 -->
+    <Match>
+        <Class name="~.*\.Constants\$.*"/>
+        <Bug pattern="MS_PKGPROTECT,MS_FINAL_PKGPROTECT"/>
+    </Match>
+
+    <!-- 排除异常处理中的样板代码 -->
+    <Match>
+        <Class name="~.*\.exception\..*"/>
+        <Bug code="REC_CATCH_EXCEPTION,DE_MIGHT_IGNORE,RI_REDUNDANT_INTERFACES"/>
+    </Match>
+
+    <!-- 排除DTO和Response类中的公共字段警告 -->
+    <Match>
+        <Class name="~.*\.dto\..*"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,MS_MUTABLE_ARRAY,MS_MUTABLE_COLLECTION"/>
+    </Match>
+
+    <!-- 排除Hazelcast序列化相关的警告 -->
+    <Match>
+        <Class name="~.*\.cluster\..*"/>
+        <Bug code="SE_BAD_FIELD,SE_NO_SERIALVERSIONID,SE_TRANSIENT_FIELD_NOT_RESTORED"/>
+    </Match>
+
+    <!-- 排除Quarkus配置类中的CDI相关警告 -->
+    <Match>
+        <Class name="~.*\.config\..*"/>
+        <Bug pattern="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE,UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+</FindBugsFilter>

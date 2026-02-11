@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-alert-source-test-data
+      author: walkin
+      changes:
+        - loadData:
+            tableName: alert_source
+            file: data/alert_sources.csv
+            relativeToChangelogFile: true
+            columns:
+              - column:
+                  name: id
+                  type: numeric
+              - column:
+                  name: tenant_id
+                  type: numeric
+              - column:
+                  name: name
+                  type: string
+              - column:
+                  name: protocol
+                  type: string
+              - column:
+                  name: is_enabled
+                  type: boolean
+              - column:
+                  name: created_at
+                  type: timestamp

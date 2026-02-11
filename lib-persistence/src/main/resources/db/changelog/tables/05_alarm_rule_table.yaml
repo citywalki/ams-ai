@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-alarm-rule-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: alarm_rules
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+              - column:
+                  name: rule_type
+                  type: varchar(64)
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: conditions
+                  type: jsonb
+              - column:
+                  name: actions
+                  type: jsonb
+              - column:
+                  name: priority
+                  type: integer
+              - column:
+                  name: enabled
+                  type: boolean
+                  defaultValue: true
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValue: 0
+              - column:
+                  name: effective_from
+                  type: timestamp
+              - column:
+                  name: effective_until
+                  type: timestamp
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP

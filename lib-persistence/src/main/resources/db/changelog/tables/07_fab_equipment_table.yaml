@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-fab-equipment-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: fab_equipments
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: equipment_id
+                  type: varchar(128)
+              - column:
+                  name: equipment_name
+                  type: varchar(255)
+              - column:
+                  name: equipment_type
+                  type: varchar(64)
+              - column:
+                  name: fab_area
+                  type: varchar(64)
+              - column:
+                  name: bay
+                  type: varchar(32)
+              - column:
+                  name: status
+                  type: varchar(32)
+              - column:
+                  name: metadata
+                  type: jsonb
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP

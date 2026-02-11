@@ -1,0 +1,7 @@
+id,name,rule_type,description,priority,enabled,tenant_id,created_at
+1,Critical Temp Threshold,HIGH_TEMP,Alert when temperature exceeds 80°C,1,true,1,2024-01-01 00:00:00
+2,High Pressure Alert,PRESSURE_ANOMALY,Alert for pressure deviations above 15%,2,true,1,2024-01-01 00:00:00
+3,Maintenance Schedule,SCHEDULED_ALERT,Alert for upcoming scheduled maintenance,3,true,2,2024-01-01 00:00:00
+4,Production Efficiency,PRODUCTION_BOTTLENECK,Alert when production rate drops below 80%,4,true,2,2024-01-01 00:00:00
+5,Quality Control Threshold,DEFECT_RATE,Alert when defect rate exceeds 2%,2,true,3,2024-01-01 00:00:00
+6,Environmental Monitor,ENVIRONMENTAL,Monitor environmental conditions in clean room,3,true,3,2024-01-01 00:00:00

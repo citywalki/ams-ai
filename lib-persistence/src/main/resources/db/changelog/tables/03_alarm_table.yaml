@@ -1,0 +1,67 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-alarm-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: alarms
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: severity
+                  type: varchar(32)
+                  defaultValue: WARNING
+              - column:
+                  name: status
+                  type: varchar(32)
+                  defaultValue: NEW
+              - column:
+                  name: source
+                  type: varchar(64)
+              - column:
+                  name: source_id
+                  type: varchar(128)
+              - column:
+                  name: fingerprint
+                  type: varchar(128)
+                  constraints:
+                    unique: true
+              - column:
+                  name: metadata
+                  type: jsonb
+              - column:
+                  name: occurred_at
+                  type: timestamp
+              - column:
+                  name: acknowledged_at
+                  type: timestamp
+              - column:
+                  name: resolved_at
+                  type: timestamp
+              - column:
+                  name: closed_at
+                  type: timestamp
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp

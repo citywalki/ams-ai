@@ -1,0 +1,143 @@
+[versions]
+# 构建工具和插件
+quarkus = "3.31.2"
+quarkus-plugin = "3.31.2"
+kotlin = "1.9.22"
+jackson = "2.15.2"
+
+# 运行时
+jdk = "21"
+jakarta-persistence = "3.1.0"
+
+# 测试
+junit = "5.10.2"
+testcontainers = "2.0.3"
+assertj = "3.25.3"
+mockk = "1.13.10"
+
+# 数据库和持久化
+postgresql = "42.7.3"
+oracle-jdbc = "23.3.0.23.09"
+liquibase = "4.27.0"
+hikaricp = "5.1.0"
+
+# 缓存和分布式
+hazelcast = "5.4.0"
+
+# AI集成
+langchain4j = "0.29.1"
+langchain4j-ollama = "0.29.1"
+
+# 消息队列（可选）
+kafka-client = "3.6.1"
+
+# 监控和可观测性
+micrometer = "1.12.5"
+micrometer-tracing = "1.2.5"
+zipkin-reporter-brave = "2.17.0"
+
+jsonPath = "2.9.0"
+commonsCodec = "1.17.0"
+
+# 前端相关
+react = "18.2.0"
+typescript = "5.5.0"
+vite = "5.2.0"
+antd = "5.18.1"
+zustand = "4.5.2"
+react-router = "6.23.1"
+pnpm = "9.0.0"
+
+[libraries]
+# Quarkus BOM 和平台
+quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
+quarkus-jackson = { module = "io.quarkus:quarkus-jackson", version.ref = "quarkus" }
+quarkus-arc = { module = "io.quarkus:quarkus-arc", version.ref = "quarkus" }
+quarkus-rest = { module = "io.quarkus:quarkus-rest", version.ref = "quarkus" }
+quarkus-rest-jackson = { module = "io.quarkus:quarkus-rest-jackson", version.ref = "quarkus" }
+quarkus-config-yaml = { module = "io.quarkus:quarkus-config-yaml", version.ref = "quarkus" }
+quarkus-hibernate-orm-panache = { module = "io.quarkus:quarkus-hibernate-orm-panache", version.ref = "quarkus" }
+
+# 安全
+quarkus-oidc = { module = "io.quarkus:quarkus-oidc", version.ref = "quarkus" }
+quarkus-smallrye-jwt = { module = "io.quarkus:quarkus-smallrye-jwt", version.ref = "quarkus" }
+quarkus-smallrye-jwt-build = { module = "io.quarkus:quarkus-smallrye-jwt-build", version.ref = "quarkus" }
+quarkus-elytron-security-common = { module = "io.quarkus:quarkus-elytron-security-common", version.ref = "quarkus" }
+
+# Jackson
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+
+# 数据库
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+oracle-jdbc = { module = "com.oracle.database.jdbc:ojdbc11", version.ref = "oracle-jdbc" }
+hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
+quarkus-liquibase = { module = "io.quarkus:quarkus-liquibase", version.ref = "quarkus" }
+hibernate-processor = { module = "org.hibernate.orm:hibernate-processor", version = "6.6.1.Final" }
+
+# 缓存
+hazelcast = { module = "com.hazelcast:hazelcast", version.ref = "hazelcast" }
+quarkus-hazelcast-client = { module = "io.github.flynndi:quarkus-hazelcast-client", version = "3.0.5" }
+
+# AI集成
+langchain4j-core = { module = "dev.langchain4j:langchain4j-core", version.ref = "langchain4j" }
+langchain4j-ollama = { module = "dev.langchain4j:langchain4j-ollama", version.ref = "langchain4j-ollama" }
+
+# 消息队列（可选）
+kafka-client = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-client" }
+quarkus-kafka = { module = "io.quarkus:quarkus-kafka", version.ref = "quarkus" }
+
+# 监控和可观测性
+micrometer-core = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+quarkus-micrometer = { module = "io.quarkus:quarkus-micrometer", version.ref = "quarkus" }
+quarkus-micrometer-registry-prometheus = { module = "io.quarkus:quarkus-micrometer-registry-prometheus", version.ref = "quarkus" }
+zipkin-reporter-brave = { module = "io.zipkin.reporter2:zipkin-reporter-brave", version.ref = "zipkin-reporter-brave" }
+
+# 测试
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+quarkus-junit5 = { module = "io.quarkus:quarkus-junit5", version.ref = "quarkus" }
+quarkus-junit5-component = { module = "io.quarkus:quarkus-junit5-component", version.ref = "quarkus" }
+quarkus-junit5-mockito = { module = "io.quarkus:quarkus-junit5-mockito", version.ref = "quarkus" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+testcontainers-oracle-xe = { module = "org.testcontainers:testcontainers-oracle-xe", version.ref = "testcontainers" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockito-core = { module = "org.mockito:mockito-core", version = "5.10.0" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version = "5.10.0" }
+
+# 日志
+slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.13" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.6" }
+
+# 工具类
+jakarta-inject-api = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version = "2.1.1" }
+javax-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
+jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence" }
+json-path = { group = "com.jayway.jsonpath", name = "json-path", version.ref = "jsonPath" }
+commons-codec = { group = "commons-codec", name = "commons-codec", version.ref = "commonsCodec" }
+
+[plugins]
+# 构建插件
+quarkus = { id = "io.quarkus", version.ref = "quarkus-plugin" }
+gradle-jandex = { id = "org.kordamp.gradle.jandex", version = "2.3.0" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
+
+# 质量检查
+spotbugs = { id = "com.github.spotbugs", version = "6.4.8" }
+jacoco = { id = "org.jacoco", version = "0.8.12" }
+
+# 前端构建插件（如果需要）
+node = { id = "com.github.node-gradle.node", version = "7.0.2" }
+
+[bundles]
+ingestion-tools = [
+    "json-path",
+    "commons-codec",
+    "quarkus-jackson"
+]

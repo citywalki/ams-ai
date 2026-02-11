@@ -1,0 +1,7 @@
+id,tenant_id,title,description,severity,status,source,source_id,fingerprint,occurred_at,created_at
+1,1,Critical Equipment Failure,Etching machine temperature exceeded safe limits,CRITICAL,NEW,SENSOR,EQ001,fingerprint1,2024-01-15 10:30:00,2024-01-15 10:30:00
+2,1,High Temperature Warning,Chemical mixing station showing elevated temperature,HIGH,ACKNOWLEDGED,SENSOR,EQ002,fingerprint2,2024-01-15 11:00:00,2024-01-15 11:00:00
+3,2,Pressure Anomaly Detected,Vacuum chamber pressure outside normal range,MEDIUM,RESOLVED,SENSOR,EQ003,fingerprint3,2024-01-15 12:00:00,2024-01-15 12:00:00
+4,2,Maintenance Due,Scheduled maintenance window approaching,LOW,CLOSED,SYSTEM,SCHED001,fingerprint4,2024-01-15 13:00:00,2024-01-15 13:00:00
+5,3,Production Bottleneck,Assembly line experiencing slowdown,WARNING,NEW,MONITOR,LINE001,fingerprint5,2024-01-15 14:00:00,2024-01-15 14:00:00
+6,3,Quality Control Alert,Defect rate above threshold levels,HIGH,ACKNOWLEDGED,QUALITY,QC001,fingerprint6,2024-01-15 15:00:00,2024-01-15 15:00:00

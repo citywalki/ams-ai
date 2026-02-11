@@ -1,0 +1,115 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-menu-button-hierarchy
+      author: system
+      comment: "菜单-按钮层级权限系统：为permissions表添加menu_id等字段，为menus表添加roles_allowed字段"
+      changes:
+        # 1. 为permissions表添加menu_id字段
+        - addColumn:
+            tableName: permissions
+            columns:
+              - column:
+                  name: menu_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_permissions_menu_id
+                    references: menus(id)
+        
+        # 2. 为permissions表添加sort_order字段
+        - addColumn:
+            tableName: permissions
+            columns:
+              - column:
+                  name: sort_order
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: true
+        
+        # 3. 为permissions表添加button_type字段
+        - addColumn:
+            tableName: permissions
+            columns:
+              - column:
+                  name: button_type
+                  type: varchar(20)
+                  defaultValue: 'DEFAULT'
+                  constraints:
+                    nullable: true
+        
+        # 4. 为menus表添加roles_allowed字段
+        - addColumn:
+            tableName: menus
+            columns:
+              - column:
+                  name: roles_allowed
+                  type: jsonb
+                  constraints:
+                    nullable: true
+        
+        # 5. 为permissions表的menu_id字段创建索引
+        - createIndex:
+            indexName: idx_permissions_menu_id
+            tableName: permissions
+            columns:
+              - column:
+                  name: menu_id
+        
+        # 6. 初始化menus表的roles_allowed字段
+        # 将所有现有菜单默认设置为ADMIN角色可访问
+        - sql:
+            dbms: postgresql
+            sql: |
+              UPDATE menus 
+              SET roles_allowed = '["ADMIN"]'::jsonb
+              WHERE roles_allowed IS NULL;
+        
+        # 7. 迁移现有权限：尝试将权限关联到对应的菜单
+        # 基于权限码前缀匹配菜单的key
+        - sql:
+            dbms: postgresql
+            sql: |
+              UPDATE permissions p
+              SET menu_id = m.id,
+                  button_type = CASE
+                    WHEN p.code LIKE '%:create' THEN 'PRIMARY'
+                    WHEN p.code LIKE '%:delete' THEN 'DANGER'
+                    WHEN p.code LIKE '%:edit' OR p.code LIKE '%:update' THEN 'DEFAULT'
+                    ELSE 'DEFAULT'
+                  END,
+                  sort_order = CASE
+                    WHEN p.code LIKE '%:create' THEN 1
+                    WHEN p.code LIKE '%:edit' OR p.code LIKE '%:update' THEN 2
+                    WHEN p.code LIKE '%:delete' THEN 3
+                    ELSE 0
+                  END
+              FROM menus m
+              WHERE p.menu_id IS NULL
+                AND m.key = SPLIT_PART(p.code, ':', 1)
+                AND p.tenant_id = m.tenant_id
+                AND p.code LIKE '%:%';
+        
+        # 8. 为button_type和sort_order字段设置非空约束（迁移完成后）
+        - addNotNullConstraint:
+            tableName: permissions
+            columnName: button_type
+            defaultNullValue: 'DEFAULT'
+        - addNotNullConstraint:
+            tableName: permissions
+            columnName: sort_order
+            defaultNullValue: '0'
+
+      rollback:
+        - dropColumn:
+            tableName: permissions
+            columnName: menu_id
+        - dropColumn:
+            tableName: permissions
+            columnName: sort_order
+        - dropColumn:
+            tableName: permissions
+            columnName: button_type
+        - dropColumn:
+            tableName: menus
+            columnName: roles_allowed

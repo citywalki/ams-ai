@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-label-mapping-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: label_mapping
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: source_id
+                  type: varchar(128)
+              - column:
+                  name: source_key
+                  type: varchar(128)
+              - column:
+                  name: target_key
+                  type: varchar(128)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP

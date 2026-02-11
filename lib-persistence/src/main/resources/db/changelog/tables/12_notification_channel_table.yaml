@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-notification-channel-table
+      author: sisyphus
+      changes:
+        - createTable:
+            tableName: notification_channels
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+              - column:
+                  name: type
+                  type: varchar(64)
+              - column:
+                  name: config
+                  type: jsonb
+              - column:
+                  name: enabled
+                  type: boolean
+                  defaultValue: true
+              - column:
+                  name: priority
+                  type: integer
+                  defaultValue: 0
+              - column:
+                  name: rate_limit
+                  type: integer
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP

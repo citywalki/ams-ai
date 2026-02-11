@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/tests/01_tenant_mocks.yaml
+  - include:
+      file: db/changelog/tests/03_alarm_mocks.yaml
+  - include:
+      file: db/changelog/tests/04_alert_source_mocks.yaml
+  - include:
+      file: db/changelog/tests/05_alarm_rule_mocks.yaml
