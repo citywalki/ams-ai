@@ -281,6 +281,7 @@ public final class Constants {
     public static final String PERMISSION_USER_READ = "USER_READ";
     public static final String PERMISSION_USER_WRITE = "USER_WRITE";
     public static final String PERMISSION_TENANT_MANAGE = "TENANT_MANAGE";
+    public static final String PERMISSION_ADMIN_USERS = "admin:users";
     
     // JWT声明字段
     public static final String CLAIM_ROLES = "groups";

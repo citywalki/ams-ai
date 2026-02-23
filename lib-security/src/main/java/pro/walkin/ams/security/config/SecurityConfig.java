@@ -264,6 +264,16 @@ public class SecurityConfig {
         60,
         Arrays.asList("USER", "MANAGER", "ADMIN"));
 
+    // 用户管理 - 仅管理员
+    createMenuIfNotExists(
+        tenant,
+        "admin:users",
+        "用户管理",
+        "/admin/users",
+        "UserOutlined",
+        35,
+        List.of("ADMIN"));
+
     LOG.info("Default menus initialization completed.");
   }
 
