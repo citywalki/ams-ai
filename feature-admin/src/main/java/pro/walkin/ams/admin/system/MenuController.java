@@ -33,24 +33,36 @@ public class MenuController {
   @RequireRole("ADMIN")
   public Response findAll(
       @QueryParam("page") @DefaultValue("0") int page,
-      @QueryParam("size") @DefaultValue("20") int size) {
+      @QueryParam("size") @DefaultValue("20") int size,
+      @QueryParam("parentId") Long parentId) {
 
-        // 获取租户ID
         Long tenantId = TenantContext.getCurrentTenantId();
 
-        // 获取菜单数据
-        List<MenuResponseDto> menus = menuService.getAllMenus(tenantId);
+        List<MenuResponseDto> menus;
+        if (parentId != null) {
+          menus = menuService.getMenusByParentId(parentId, tenantId);
+        } else {
+          menus = menuService.getAllMenus(tenantId);
+        }
 
-        // 计算总数和总页数（模拟分页行为，实际这里返回全部）
         long totalCount = menus.size();
         long totalPages = Math.max(1, (totalCount + size - 1) / size);
 
-        // 返回指定页面的数据
         int startIndex = page * size;
         int endIndex = Math.min(startIndex + size, menus.size());
         List<MenuResponseDto> pagedMenus = menus.subList(startIndex, endIndex);
 
         return ResponseBuilder.page(pagedMenus, totalCount, totalPages, page, size);
+    }
+
+  /** 获取所有文件夹 */
+  @Path("/folders")
+  @GET
+  @RequireRole("ADMIN")
+  public Response getFolders() {
+        Long tenantId = TenantContext.getCurrentTenantId();
+        List<MenuResponseDto> folders = menuService.getFolders(tenantId);
+        return ResponseBuilder.of(folders);
     }
 
   /** 获取单个菜单 */
