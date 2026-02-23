@@ -244,16 +244,6 @@ public class SecurityConfig {
     createMenuIfNotExists(
         tenant, "roles", "角色管理", "/admin/roles", "TeamOutlined", 40, Arrays.asList("ADMIN"));
 
-    // 权限管理 - 仅管理员
-    createMenuIfNotExists(
-        tenant,
-        "permissions",
-        "权限管理",
-        "/admin/permissions",
-        "SafetyOutlined",
-        50,
-        List.of("ADMIN"));
-
     // 设置 - 所有角色可访问
     createMenuIfNotExists(
         tenant,
@@ -272,6 +262,16 @@ public class SecurityConfig {
         "/admin/users",
         "UserOutlined",
         35,
+        List.of("ADMIN"));
+
+    // 数据字典 - 仅管理员
+    createMenuIfNotExists(
+        tenant,
+        "admin:dict",
+        "数据字典",
+        "/admin/dict",
+        "BookOutlined",
+        50,
         List.of("ADMIN"));
 
     LOG.info("Default menus initialization completed.");

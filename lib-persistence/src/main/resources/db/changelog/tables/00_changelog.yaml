@@ -45,3 +45,5 @@ databaseChangeLog:
       file: db/changelog/tables/22_menus_table.yaml
   - include:
       file: db/changelog/tables/23_menu_button_hierarchy.yaml
+  - include:
+      file: db/changelog/tables/25_dict_tables.yaml

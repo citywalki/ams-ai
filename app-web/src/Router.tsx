@@ -12,6 +12,7 @@ import Login from './pages/Login'
 import MenuManagement from './pages/admin/menu-management'
 import RoleManagement from './pages/admin/role-management'
 import UserManagement from './pages/admin/user-management'
+import DictManagement from './pages/admin/dict-management'
 
 function ProtectedRouteWrapper() {
   const { isAuthenticated, loading } = useAuthStore()
@@ -70,6 +71,11 @@ export default function Router() {
             <Route path="/admin/users" element={
                 <AppLayout>
                     <UserManagement/>
+                </AppLayout>
+            }/>
+            <Route path="/admin/dict" element={
+                <AppLayout>
+                    <DictManagement/>
                 </AppLayout>
             }/>
         </Route>

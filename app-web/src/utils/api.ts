@@ -235,3 +235,95 @@ export const systemApi = {
     resetUserPassword: (id: number, password: string) =>
         apiClient.put(`/system/users/${id}/reset-password`, {password}),
 }
+
+export interface DictCategory {
+    id: number
+    code: string
+    name: string
+    description?: string
+    sort: number
+    status: number
+    tenant?: number
+    createdAt?: string
+    updatedAt?: string
+    itemCount?: number
+}
+
+export interface DictItem {
+    id: number
+    categoryId: number
+    parentId?: number | null
+    code: string
+    name: string
+    value?: string
+    sort: number
+    status: number
+    remark?: string
+    tenant?: number
+    createdAt?: string
+    updatedAt?: string
+    children?: DictItem[]
+}
+
+export interface DictCategoryDto {
+    code: string
+    name: string
+    description?: string
+    sort?: number
+    status?: number
+}
+
+export interface DictItemDto {
+    categoryId: number
+    parentId?: number | null
+    code: string
+    name: string
+    value?: string
+    sort?: number
+    status?: number
+    remark?: string
+}
+
+export const dictApi = {
+    getCategories: () =>
+        apiClient.get<DictCategory[]>('/system/dict/categories'),
+
+    getCategoryById: (id: number) =>
+        apiClient.get<DictCategory>(`/system/dict/categories/${id}`),
+
+    createCategory: (data: DictCategoryDto) =>
+        apiClient.post<DictCategory>('/system/dict/categories', data),
+
+    updateCategory: (id: number, data: DictCategoryDto) =>
+        apiClient.put<DictCategory>(`/system/dict/categories/${id}`, data),
+
+    deleteCategory: (id: number) =>
+        apiClient.delete(`/system/dict/categories/${id}`),
+
+    getCategoryItems: (categoryId: number) =>
+        apiClient.get<DictItem[]>(`/system/dict/categories/${categoryId}/items`),
+
+    getCategoryItemsTree: (categoryId: number) =>
+        apiClient.get<DictItem[]>(`/system/dict/categories/${categoryId}/items/tree`),
+
+    getItemById: (id: number) =>
+        apiClient.get<DictItem>(`/system/dict/items/${id}`),
+
+    createItem: (categoryId: number, data: DictItemDto) =>
+        apiClient.post<DictItem>(`/system/dict/categories/${categoryId}/items`, data),
+
+    updateItem: (id: number, data: DictItemDto) =>
+        apiClient.put<DictItem>(`/system/dict/items/${id}`, data),
+
+    deleteItem: (id: number) =>
+        apiClient.delete(`/system/dict/items/${id}`),
+
+    getByCode: (categoryCode: string) =>
+        apiClient.get<DictItem[]>(`/dict/${categoryCode}`),
+
+    getTreeByCode: (categoryCode: string) =>
+        apiClient.get<DictItem[]>(`/dict/${categoryCode}/tree`),
+
+    getItemValue: (categoryCode: string, itemCode: string) =>
+        apiClient.get<string>(`/dict/${categoryCode}/${itemCode}`),
+}

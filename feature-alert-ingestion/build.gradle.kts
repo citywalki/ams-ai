@@ -33,7 +33,6 @@ dependencies {
     testImplementation(libs.quarkus.junit5.mockito)
     testImplementation(libs.assertj.core)
     testImplementation(libs.junit.jupiter.api)
-    testImplementation("com.hazelcast:hazelcast:${libs.versions.hazelcast.get()}")
 }
 
 tasks.withType<Test> {
