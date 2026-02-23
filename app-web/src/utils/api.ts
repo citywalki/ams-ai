@@ -122,6 +122,43 @@ export interface Permission {
     updatedAt?: string
 }
 
+export interface User {
+    id: number
+    username: string
+    email?: string
+    status: string
+    roles: Array<{
+        id: number
+        code: string
+        name: string
+    }>
+    createdAt?: string
+    updatedAt?: string
+}
+
+export interface UserCreateRequest {
+    username: string
+    email?: string
+    password: string
+    roleIds?: number[]
+    status: string
+}
+
+export interface UserUpdateRequest {
+    username?: string
+    email?: string
+    roleIds?: number[]
+    status?: string
+}
+
+export interface UserQueryParams {
+    page?: number
+    size?: number
+    username?: string
+    email?: string
+    status?: string
+}
+
 export const systemApi = {
     getMenus: (params?: any) =>
         apiClient.get<Menu[]>('/system/menus', {params}),
@@ -176,4 +213,25 @@ export const systemApi = {
 
     getUserMenus: () =>
         apiClient.get<Menu[]>('/system/menus/user'),
+
+    getUsers: (params?: UserQueryParams) =>
+        apiClient.get<User[]>('/system/users', {params}),
+
+    getUserById: (id: number) =>
+        apiClient.get<User>(`/system/users/${id}`),
+
+    createUser: (data: UserCreateRequest) =>
+        apiClient.post<User>('/system/users', data),
+
+    updateUser: (id: number, data: UserUpdateRequest) =>
+        apiClient.put<User>(`/system/users/${id}`, data),
+
+    deleteUser: (id: number) =>
+        apiClient.delete(`/system/users/${id}`),
+
+    updateUserStatus: (id: number, status: string) =>
+        apiClient.put(`/system/users/${id}/status`, {status}),
+
+    resetUserPassword: (id: number, password: string) =>
+        apiClient.put(`/system/users/${id}/reset-password`, {password}),
 }

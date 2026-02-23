@@ -106,9 +106,54 @@ public class User extends BaseEntity {
   public interface Repo extends PanacheRepository<User> {
     @Find
     Optional<User> findByUsername(String username);
-    
+
+    @Find
+    Optional<User> findByEmail(String email);
+
     default List<User> listByTenant(Long tenantId, int page, int size) {
         return find("tenant", tenantId).page(page, size).list();
+    }
+
+    default List<User> findByFilters(Long tenantId, String username, String email, String status, int page, int size) {
+        StringBuilder query = new StringBuilder("tenant = :tenantId");
+        java.util.HashMap<String, Object> params = new java.util.HashMap<>();
+        params.put("tenantId", tenantId);
+
+        if (username != null && !username.isBlank()) {
+            query.append(" and lower(username) like lower(:username)");
+            params.put("username", "%" + username + "%");
+        }
+        if (email != null && !email.isBlank()) {
+            query.append(" and lower(email) like lower(:email)");
+            params.put("email", "%" + email + "%");
+        }
+        if (status != null && !status.isBlank()) {
+            query.append(" and status = :status");
+            params.put("status", status);
+        }
+
+        return find(query.toString(), params).page(page, size).list();
+    }
+
+    default long countByFilters(Long tenantId, String username, String email, String status) {
+        StringBuilder query = new StringBuilder("tenant = :tenantId");
+        java.util.HashMap<String, Object> params = new java.util.HashMap<>();
+        params.put("tenantId", tenantId);
+
+        if (username != null && !username.isBlank()) {
+            query.append(" and lower(username) like lower(:username)");
+            params.put("username", "%" + username + "%");
+        }
+        if (email != null && !email.isBlank()) {
+            query.append(" and lower(email) like lower(:email)");
+            params.put("email", "%" + email + "%");
+        }
+        if (status != null && !status.isBlank()) {
+            query.append(" and status = :status");
+            params.put("status", status);
+        }
+
+        return count(query.toString(), params);
     }
   }
 }
