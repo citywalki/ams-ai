@@ -4,6 +4,7 @@ import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
@@ -66,5 +67,13 @@ public class Role extends BaseEntity {
 
     @Find
     Optional<Role> findByCode(String code);
+    
+    default List<Role> listByTenant(Long tenantId, int page, int size) {
+        return find("tenant", tenantId).page(page, size).list();
+    }
+    
+    default long countByTenant(Long tenantId) {
+        return count("tenant", tenantId);
+    }
   }
 }

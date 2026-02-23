@@ -80,5 +80,13 @@ public class Permission extends BaseEntity {
     default List<Permission> listByMenuId(Long menuId) {
       return list("menu.id", menuId);
     }
+    
+    default List<Permission> listByTenant(Long tenantId, int page, int size) {
+        return find("tenant", tenantId).page(page, size).list();
+    }
+    
+    default long countByTenant(Long tenantId) {
+        return count("tenant", tenantId);
+    }
   }
 }

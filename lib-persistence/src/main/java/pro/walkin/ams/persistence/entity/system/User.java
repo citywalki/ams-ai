@@ -4,6 +4,7 @@ import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Optional;
@@ -105,5 +106,9 @@ public class User extends BaseEntity {
   public interface Repo extends PanacheRepository<User> {
     @Find
     Optional<User> findByUsername(String username);
+    
+    default List<User> listByTenant(Long tenantId, int page, int size) {
+        return find("tenant", tenantId).page(page, size).list();
+    }
   }
 }

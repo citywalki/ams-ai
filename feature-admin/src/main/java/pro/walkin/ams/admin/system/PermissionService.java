@@ -1,15 +1,17 @@
 package pro.walkin.ams.admin.system;
 
-import io.quarkus.hibernate.panache.blocking.PanacheBlockingQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
-import pro.walkin.ams.persistence.entity.system.*;
+import pro.walkin.ams.persistence.entity.system.Permission;
 import pro.walkin.ams.security.TenantContext;
 
 @ApplicationScoped
 public class PermissionService {
+
+    @Inject Permission.Repo permissionRepo;
 
     @Transactional
     public Permission createPermission(Permission permission) {
@@ -18,7 +20,7 @@ public class PermissionService {
     }
 
     public Optional<Permission> findById(Long id) {
-        return Permission_.managedBlocking().findByIdOptional(id);
+        return permissionRepo.findByIdOptional(id);
     }
 
     public List<Permission> findAll(int page, int size) {
@@ -26,8 +28,7 @@ public class PermissionService {
         if (tenantId == null) {
             return List.of();
         }
-        PanacheBlockingQuery<Permission> query = Permission_.managedBlocking().find("tenant", tenantId);
-        return query.page(page, size).list();
+        return permissionRepo.listByTenant(tenantId, page, size);
     }
 
     public long count() {
@@ -35,12 +36,12 @@ public class PermissionService {
         if (tenantId == null) {
             return 0;
         }
-        return Permission_.managedBlocking().count("tenant", tenantId);
+        return permissionRepo.countByTenant(tenantId);
     }
 
     @Transactional
     public Permission updatePermission(Long id, Permission updatedPermission) {
-        Permission existingPermission = Permission_.managedBlocking().findById(id);
+        Permission existingPermission = permissionRepo.findById(id);
         if (existingPermission != null) {
             existingPermission.code = updatedPermission.code;
             existingPermission.name = updatedPermission.name;
@@ -51,10 +52,10 @@ public class PermissionService {
 
     @Transactional
     public void deletePermission(Long id) {
-        Permission_.managedBlocking().deleteById(id);
+        permissionRepo.deleteById(id);
     }
 
     public Optional<Permission> findByCode(String code) {
-        return Permission_.managedBlocking().find("code", code).firstResultOptional();
+        return permissionRepo.findByCode(code);
     }
 }
