@@ -53,6 +53,12 @@ databaseChangeLog:
                   type: boolean
                   defaultValueBoolean: true
               - column:
+                  name: menu_type
+                  type: varchar(10)
+                  defaultValue: 'MENU'
+                  constraints:
+                    nullable: false
+              - column:
                   name: permissions_required
                   type: jsonb
               - column:
