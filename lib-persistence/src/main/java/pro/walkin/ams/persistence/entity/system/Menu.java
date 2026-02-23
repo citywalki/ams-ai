@@ -23,6 +23,8 @@ import pro.walkin.ams.persistence.entity.BaseEntity;
 @Table(name = "menus")
 public class Menu extends BaseEntity {
 
+  public enum MenuType { FOLDER, MENU }
+
   /*
    * 菜单标识符
    */
@@ -64,6 +66,12 @@ public class Menu extends BaseEntity {
    */
   @Column(name = "is_visible")
   public Boolean isVisible = true;
+
+  /*
+   * 菜单类型
+   */
+  @Column(name = "menu_type", nullable = false)
+  public MenuType menuType = MenuType.MENU;
 
   /*
    * 允许访问的角色列表 (JSONB)
