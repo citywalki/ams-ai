@@ -168,6 +168,23 @@ public class MenuService {
     return menus.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
   }
 
+  public List<MenuResponseDto> getFolders(Long tenantId) {
+    Objects.requireNonNull(tenantId, "租户ID不能为空");
+    List<Menu> folders = menuRepo.list("tenant = ?1 and menuType = ?2", tenantId, Menu.MenuType.FOLDER);
+    return folders.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
+  }
+
+  public List<MenuResponseDto> getMenusByParentId(Long parentId, Long tenantId) {
+    Objects.requireNonNull(tenantId, "租户ID不能为空");
+    List<Menu> menus;
+    if (parentId == null) {
+      menus = menuRepo.list("tenant = ?1 and parentId is null", tenantId);
+    } else {
+      menus = menuRepo.list("tenant = ?1 and parentId = ?2", tenantId, parentId);
+    }
+    return menus.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
+  }
+
   @CacheResult(cacheName = USER_MENUS_CACHE)
   public List<MenuResponseDto> getUserMenus(Long userId, Long tenantId) {
     Objects.requireNonNull(userId, "用户ID不能为空");
@@ -210,6 +227,9 @@ public class MenuService {
     entity.icon = dto.icon();
     entity.sortOrder = dto.sortOrder();
     entity.isVisible = dto.isVisible();
+    if (dto.menuType() != null && !dto.menuType().isBlank()) {
+      entity.menuType = Menu.MenuType.valueOf(dto.menuType());
+    }
     entity.rolesAllowed = new ArrayList<>(dto.rolesAllowed());
     entity.metadata = new HashMap<>(dto.metadata());
   }
@@ -224,12 +244,13 @@ public class MenuService {
         entity.icon,
         entity.sortOrder,
         entity.isVisible,
+        entity.menuType != null ? entity.menuType.name() : "MENU",
         new ArrayList<>(entity.rolesAllowed),
         new HashMap<>(entity.metadata),
         entity.tenant,
         entity.createdAt,
         entity.updatedAt,
-        new ArrayList<>() // 子菜单在构建树时填充
+        new ArrayList<>()
         );
   }
 
@@ -280,6 +301,7 @@ public class MenuService {
             dto.icon(),
             dto.sortOrder(),
             dto.isVisible(),
+            dto.menuType(),
             dto.rolesAllowed(),
             dto.metadata(),
             dto.tenant(),
