@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import pro.walkin.ams.persistence.entity.system.*;
+import pro.walkin.ams.security.TenantContext;
 
 @ApplicationScoped
 public class PermissionService {
@@ -21,12 +22,20 @@ public class PermissionService {
     }
 
     public List<Permission> findAll(int page, int size) {
-        PanacheBlockingQuery<Permission> query = Permission_.managedBlocking().findAll();
+        Long tenantId = TenantContext.getCurrentTenantId();
+        if (tenantId == null) {
+            return List.of();
+        }
+        PanacheBlockingQuery<Permission> query = Permission_.managedBlocking().find("tenant", tenantId);
         return query.page(page, size).list();
     }
 
     public long count() {
-        return Permission_.managedBlocking().count();
+        Long tenantId = TenantContext.getCurrentTenantId();
+        if (tenantId == null) {
+            return 0;
+        }
+        return Permission_.managedBlocking().count("tenant", tenantId);
     }
 
     @Transactional

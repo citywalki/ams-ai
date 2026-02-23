@@ -11,7 +11,6 @@ import Settings from './pages/Settings'
 import Login from './pages/Login'
 import MenuManagement from './pages/admin/menu-management'
 import RoleManagement from './pages/admin/role-management'
-import PermissionManagement from './pages/admin/permission-management'
 
 function ProtectedRouteWrapper() {
   const { isAuthenticated, loading } = useAuthStore()
@@ -67,11 +66,6 @@ export default function Router() {
                     <RoleManagement/>
                 </AppLayout>
             }/>
-            <Route path="/admin/permissions" element={
-                <AppLayout>
-                    <PermissionManagement/>
-                </AppLayout>
-          } />
         </Route>
             </Routes>
                 </MenuProvider>

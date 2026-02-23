@@ -15,7 +15,7 @@ export default function RoleManagement() {
     setLoading(true)
     try {
       const response = await systemApi.getRoles()
-      setRoles(response.data.data || [])
+      setRoles(response.data || [])
     } catch (error) {
       message.error('加载角色失败')
     } finally {
@@ -66,14 +66,8 @@ export default function RoleManagement() {
   }
 
   const columns: TableProps<Role>['columns'] = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-        width: 80,
-    },
-      {
-          title: '角色代码',
+       {
+           title: '角色代码',
           dataIndex: 'code',
           key: 'code',
           width: 150,

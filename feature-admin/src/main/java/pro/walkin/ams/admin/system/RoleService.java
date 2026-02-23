@@ -2,11 +2,13 @@ package pro.walkin.ams.admin.system;
 
 import io.quarkus.hibernate.panache.blocking.PanacheBlockingQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import pro.walkin.ams.persistence.entity.system.*;
+import pro.walkin.ams.security.TenantContext;
 
 @ApplicationScoped
 public class RoleService {
@@ -22,12 +24,20 @@ public class RoleService {
     }
 
     public List<Role> findAll(int page, int size) {
-        PanacheBlockingQuery<Role> query = Role_.managedBlocking().findAll();
+        Long tenantId = TenantContext.getCurrentTenantId();
+        if (tenantId == null) {
+            return List.of();
+        }
+        PanacheBlockingQuery<Role> query = Role_.managedBlocking().find("tenant", tenantId);
         return query.page(page, size).list();
     }
 
     public long count() {
-        return Role_.managedBlocking().count();
+        Long tenantId = TenantContext.getCurrentTenantId();
+        if (tenantId == null) {
+            return 0;
+        }
+        return Role_.managedBlocking().count("tenant", tenantId);
     }
 
     @Transactional

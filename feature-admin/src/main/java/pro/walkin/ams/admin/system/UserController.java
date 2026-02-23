@@ -7,6 +7,7 @@ import java.util.List;
 import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.persistence.entity.system.User;
 import pro.walkin.ams.persistence.entity.system.User_;
+import pro.walkin.ams.security.TenantContext;
 
 @Path("/api/system/users")
 public class UserController {
@@ -16,7 +17,12 @@ public class UserController {
       @QueryParam("page") @DefaultValue("0") int page,
       @QueryParam("size") @DefaultValue("20") int size) {
 
-    PanacheBlockingQuery<User> query = User_.managedBlocking().findAll();
+    Long tenantId = TenantContext.getCurrentTenantId();
+    if (tenantId == null) {
+        return ResponseBuilder.page(List.of(), 0, 0, page, size);
+    }
+
+    PanacheBlockingQuery<User> query = User_.managedBlocking().find("tenant", tenantId);
     // 获取数据和总数
     long totalCount = query.count();
     long totalPages = query.pageCount();
