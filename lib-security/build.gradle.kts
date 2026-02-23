@@ -29,4 +29,16 @@ dependencies {
 
     implementation("io.quarkus:quarkus-cache")
     implementation("io.quarkus:quarkus-hibernate-panache-next")
+
+    testImplementation(enforcedPlatform(libs.quarkus.bom))
+    testImplementation(libs.quarkus.junit5)
+    testImplementation(libs.quarkus.junit5.component)
+    testImplementation(libs.quarkus.junit5.mockito)
+    testImplementation(libs.assertj.core)
+    testImplementation(libs.junit.jupiter.api)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
 }

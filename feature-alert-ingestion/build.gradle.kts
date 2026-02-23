@@ -26,4 +26,17 @@ dependencies {
     implementation(libs.jakarta.annotation.api)
 
     implementation(libs.slf4j.api)
+
+    testImplementation(enforcedPlatform(libs.quarkus.bom))
+    testImplementation(libs.quarkus.junit5)
+    testImplementation(libs.quarkus.junit5.component)
+    testImplementation(libs.quarkus.junit5.mockito)
+    testImplementation(libs.assertj.core)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation("com.hazelcast:hazelcast:${libs.versions.hazelcast.get()}")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
 }

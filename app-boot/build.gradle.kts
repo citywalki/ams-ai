@@ -35,6 +35,23 @@ dependencies {
     implementation("io.quarkus:quarkus-micrometer-registry-prometheus")
     implementation("io.quarkus:quarkus-jackson")
     implementation("io.quarkus:quarkus-smallrye-openapi")
+
+    testImplementation(enforcedPlatform(libs.quarkus.bom))
+    testImplementation(libs.quarkus.junit5)
+    testImplementation(libs.quarkus.junit5.component)
+    testImplementation(libs.quarkus.junit5.mockito)
+    testImplementation(libs.assertj.core)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.testcontainers.postgresql)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+    if (System.getenv("DOCKER_HOST") == null && !project.hasProperty("runIntegrationTests")) {
+        exclude("**/it/**")
+    }
 }
 
 
