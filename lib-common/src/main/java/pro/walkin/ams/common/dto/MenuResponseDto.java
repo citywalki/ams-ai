@@ -49,6 +49,11 @@ public record MenuResponseDto(
     Boolean isVisible,
 
     /*
+     * 菜单类型
+     */
+    String menuType,
+
+    /*
      * 允许访问的角色列表
      */
     List<String> rolesAllowed,
@@ -84,6 +89,9 @@ public record MenuResponseDto(
     }
     if (isVisible == null) {
       isVisible = true;
+    }
+    if (menuType == null || menuType.isBlank()) {
+      menuType = "MENU";
     }
     if (rolesAllowed == null) {
       rolesAllowed = new ArrayList<>();
