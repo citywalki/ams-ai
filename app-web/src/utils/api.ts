@@ -90,6 +90,7 @@ export interface Menu {
     icon?: string
     sortOrder?: number
     isVisible?: boolean
+    menuType?: 'FOLDER' | 'MENU'
     rolesAllowed: string[]
     metadata?: Record<string, any>
     tenant?: number
@@ -125,6 +126,9 @@ export const systemApi = {
     getMenus: (params?: any) =>
         apiClient.get<Menu[]>('/system/menus', {params}),
 
+    getMenuFolders: () =>
+        apiClient.get<Menu[]>('/system/menus/folders'),
+
     getMenuById: (id: number) => apiClient.get<Menu>(`/system/menus/${id}`),
 
     createMenu: (data: Partial<Menu>) => apiClient.post<Menu>('/system/menus', data),
@@ -135,7 +139,7 @@ export const systemApi = {
     deleteMenu: (id: number) => apiClient.delete(`/system/menus/${id}`),
 
     getRoles: (params?: any) =>
-        apiClient.get<{ data: Role[]; total: number }>('/system/roles', {params}),
+        apiClient.get<Role[]>('/system/roles', {params}),
 
     getRoleById: (id: number) => apiClient.get<Role>(`/system/roles/${id}`),
 
@@ -147,7 +151,7 @@ export const systemApi = {
     deleteRole: (id: number) => apiClient.delete(`/system/roles/${id}`),
 
     getPermissions: (params?: any) =>
-        apiClient.get<{ data: Permission[]; total: number }>('/system/permissions', {params}),
+        apiClient.get<Permission[]>('/system/permissions', {params}),
 
     getPermissionById: (id: number) =>
         apiClient.get<Permission>(`/system/permissions/${id}`),
