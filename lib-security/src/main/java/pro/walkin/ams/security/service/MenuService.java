@@ -170,7 +170,7 @@ public class MenuService {
 
   public List<MenuResponseDto> getFolders(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
-    List<Menu> folders = menuRepo.list("tenant = ?1 and menuType = ?2", tenantId, Menu.MenuType.FOLDER);
+    List<Menu> folders = menuRepo.list(" menuType = ?1", Menu.MenuType.FOLDER);
     return folders.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
   }
 
@@ -178,9 +178,9 @@ public class MenuService {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
     List<Menu> menus;
     if (parentId == null) {
-      menus = menuRepo.list("tenant = ?1 and parentId is null", tenantId);
+      menus = menuRepo.list(" parentId is null");
     } else {
-      menus = menuRepo.list("tenant = ?1 and parentId = ?2", tenantId, parentId);
+      menus = menuRepo.list(" parentId = ?1", parentId);
     }
     return menus.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
   }

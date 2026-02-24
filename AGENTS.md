@@ -19,7 +19,7 @@ ams-ai/
 ├── feature-core/                    # 告警流水线
 ├── feature-admin/                   # 管理后台
 ├── feature-alert-ingestion/         # Webhook/API接入
-├──-feature-ai-analysis/             # LLM集成
+├── feature-ai-analysis/             # LLM集成
 ├── feature-notification/            # 通知渠道
 ├── feature-multi-tenant/            # 多租户扩展
 ├── app-web/                         # React前端
@@ -147,7 +147,7 @@ public class Alarm extends BaseEntity {
 ### 前端规范
 
 - **框架**: React 18 + TypeScript 5 + Vite
-- **UI库**: Ant Design 6
+- **UI库**: @ui5/webcomponents-react
 - **状态管理**: Zustand
 - **路由**: React Router 7
 - **路径别名**: `@/*` → `src/*`
@@ -167,4 +167,30 @@ public class Alarm extends BaseEntity {
 - **文档更新**: 修改代码时同步更新相关文档
 
 ---
-*最后更新: 2026年2月12日*
+*最后更新: 2026年2月24日
+
+## AGENTS.md 子目录索引
+
+### lib-common/
+
+- 异常处理框架：BaseException、BusinessException、ValidationException、NotFoundException
+- 权限常量定义：前端权限码、错误码常量
+- DTO：用户、角色、权限相关数据传输对象
+
+### lib-persistence/
+
+- Hibernate实体层：Panache Repository模式实现
+- 多租户数据访问：Entity_.*managedBlocking()调用模式
+- Liquibase数据库迁移：表结构和默认数据定义
+
+### feature-admin/
+
+- 管理后台：用户、角色、权限、菜单CRUD功能
+- 权限过滤：手动租户过滤实现
+- 前端页面：React组件与API集成
+
+### lib-security/
+
+- JWT认证：TokenService、AuthenticationService
+- 租户上下文：TenantContext管理
+- RBAC权限：RbacService、SecurityConfig初始化*

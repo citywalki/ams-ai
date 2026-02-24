@@ -70,6 +70,7 @@ public class Menu extends BaseEntity {
   /*
    * 菜单类型
    */
+  @Enumerated(EnumType.STRING)
   @Column(name = "menu_type", nullable = false)
   public MenuType menuType = MenuType.MENU;
 

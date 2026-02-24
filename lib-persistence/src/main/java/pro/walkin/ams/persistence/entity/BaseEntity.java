@@ -6,7 +6,7 @@ import org.hibernate.annotations.FilterDef;
 import pro.walkin.ams.persistence.generator.SnowflakeIdGeneratorType;
 
 @MappedSuperclass
-@FilterDef(name = "tenant-filter", defaultCondition = "tenant = :tenant")
+@FilterDef(name = "tenant-filter", defaultCondition = "tenant_id = :tenant")
 public abstract class BaseEntity extends PanacheEntityBase {
 
   @Id @SnowflakeIdGeneratorType public Long id;
