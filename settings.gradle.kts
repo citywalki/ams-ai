@@ -31,6 +31,5 @@ include(
     "feature-ai-analysis",
     "feature-notification",
 
-    "app-web",
     "app-boot"
 )
