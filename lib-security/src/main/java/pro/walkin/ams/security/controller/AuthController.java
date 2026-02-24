@@ -5,13 +5,18 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.common.Constants.ErrorCode;
 import pro.walkin.ams.common.dto.ErrorResponse;
 import pro.walkin.ams.security.service.AuthenticationService;
+import pro.walkin.ams.security.util.SecurityUtils;
 
 /** 认证控制器 */
 @Path("/api/auth")
@@ -95,6 +100,41 @@ public class AuthController {
     }
   }
 
+  /** 获取当前用户信息 */
+  @GET
+  @Path("/me")
+  public Response me(@Context SecurityContext securityContext) {
+    Long userId = SecurityUtils.getUserIdFromSecurityContext(securityContext);
+    var user = authenticationService.getUserWithRolesAndPermissions(userId);
+    if (user == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity(new ErrorResponse(ErrorCode.NOT_FOUND, "User not found"))
+          .build();
+    }
+
+    Set<String> roles =
+        user.roles == null
+            ? Set.of()
+            : user.roles.stream().map(role -> role.code).collect(Collectors.toSet());
+    Set<String> permissions =
+        user.roles == null
+            ? Set.of()
+            : user.roles.stream()
+                .flatMap(role -> role.permissions == null ? java.util.stream.Stream.empty() : role.permissions.stream())
+                .map(permission -> permission.code)
+                .collect(Collectors.toSet());
+
+    return Response.ok(
+            new CurrentUserResponse(
+                user.id,
+                user.username,
+                user.email,
+                roles,
+                permissions,
+                user.tenant))
+        .build();
+  }
+
   // 请求/响应 DTO 类
   public static class LoginRequest {
     @NotBlank(message = "Username is required")
@@ -131,6 +171,30 @@ public class AuthController {
 
     public AccessTokenResponse(String accessToken) {
       this.accessToken = accessToken;
+    }
+  }
+
+  public static class CurrentUserResponse {
+    public final Long id;
+    public final String username;
+    public final String email;
+    public final Set<String> roles;
+    public final Set<String> permissions;
+    public final Long tenantId;
+
+    public CurrentUserResponse(
+        Long id,
+        String username,
+        String email,
+        Set<String> roles,
+        Set<String> permissions,
+        Long tenantId) {
+      this.id = id;
+      this.username = username;
+      this.email = email;
+      this.roles = roles;
+      this.permissions = permissions;
+      this.tenantId = tenantId;
     }
   }
 

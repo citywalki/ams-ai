@@ -110,3 +110,4 @@ docs/database/erd.md
 # Vite
 .vite/
 /docs/plans
+.worktrees/

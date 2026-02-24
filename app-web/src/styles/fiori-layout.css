@@ -1,0 +1,16 @@
+.fiori-page-root {
+  min-height: 100vh;
+  background: var(--sapBackgroundColor, #f7f8fa);
+}
+
+.fiori-page-content {
+  width: min(960px, 92vw);
+  margin: 0 auto;
+}
+
+.fiori-status-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
