@@ -127,6 +127,54 @@ export interface PageResponse<T> {
     totalCount?: number;
 }
 
+export interface DictCategory {
+    id: number;
+    code: string;
+    name: string;
+    description?: string;
+    sort: number;
+    status: number;
+    tenant?: number;
+    createdAt?: string;
+    updatedAt?: string;
+    itemCount: number;
+}
+
+export interface DictItem {
+    id: number;
+    categoryId: number;
+    parentId?: number;
+    code: string;
+    name: string;
+    value?: string;
+    sort: number;
+    status: number;
+    remark?: string;
+    tenant?: number;
+    createdAt?: string;
+    updatedAt?: string;
+    children?: DictItem[];
+}
+
+export interface DictCategoryPayload {
+    code: string;
+    name: string;
+    description?: string;
+    sort?: number;
+    status?: number;
+}
+
+export interface DictItemPayload {
+    categoryId: number;
+    parentId?: number;
+    code: string;
+    name: string;
+    value?: string;
+    sort?: number;
+    status?: number;
+    remark?: string;
+}
+
 export const systemApi = {
     getUsers: (params?: UserQueryParams) => apiClient.get<PageResponse<UserItem>>('/system/users', {params}),
     getUserById: (id: number) => apiClient.get<UserItem>(`/system/users/${id}`),
@@ -141,4 +189,19 @@ export const systemApi = {
     deleteRole: (id: number) => apiClient.delete(`/system/roles/${id}`),
     getPermissions: (params?: { page?: number; size?: number }) =>
         apiClient.get<PageResponse<PermissionItem> | PermissionItem[]>('/system/permissions', {params})
+};
+
+export const dictApi = {
+    getCategories: () => apiClient.get<DictCategory[]>('/system/dict/categories'),
+    getCategoryById: (id: number) => apiClient.get<DictCategory>(`/system/dict/categories/${id}`),
+    createCategory: (payload: DictCategoryPayload) => apiClient.post<DictCategory>('/system/dict/categories', payload),
+    updateCategory: (id: number, payload: DictCategoryPayload) => apiClient.put<DictCategory>(`/system/dict/categories/${id}`, payload),
+    deleteCategory: (id: number) => apiClient.delete(`/system/dict/categories/${id}`),
+
+    getItems: (categoryId: number) => apiClient.get<DictItem[]>(`/system/dict/categories/${categoryId}/items`),
+    getItemsTree: (categoryId: number) => apiClient.get<DictItem[]>(`/system/dict/categories/${categoryId}/items/tree`),
+    getItemById: (id: number) => apiClient.get<DictItem>(`/system/dict/items/${id}`),
+    createItem: (categoryId: number, payload: DictItemPayload) => apiClient.post<DictItem>(`/system/dict/categories/${categoryId}/items`, payload),
+    updateItem: (id: number, payload: DictItemPayload) => apiClient.put<DictItem>(`/system/dict/items/${id}`, payload),
+    deleteItem: (id: number) => apiClient.delete(`/system/dict/items/${id}`),
 };

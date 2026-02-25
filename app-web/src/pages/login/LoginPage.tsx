@@ -117,7 +117,7 @@ export default function LoginPage() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <Checkbox
                         id="remember"
                         checked={rememberMe}
@@ -134,12 +134,12 @@ export default function LoginPage() {
                         if (value) changeLanguage(value);
                       }}
                       variant="outline"
-                      size="sm"
+                      size="xs"
                     >
-                      <ToggleGroupItem value="zh-CN" className="px-3">
+                      <ToggleGroupItem value="zh-CN">
                         中文
                       </ToggleGroupItem>
-                      <ToggleGroupItem value="en-US" className="px-3">
+                      <ToggleGroupItem value="en-US">
                         EN
                       </ToggleGroupItem>
                     </ToggleGroup>

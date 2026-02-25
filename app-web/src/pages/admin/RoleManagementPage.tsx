@@ -219,17 +219,17 @@ export default function RoleManagementPage() {
               <RotateCcw className="h-4 w-4 mr-2" />
               重置
             </Button>
-            <Button onClick={openCreateDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              添加角色
-            </Button>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>角色列表</CardTitle>
+          <Button onClick={openCreateDialog}>
+            <Plus className="h-4 w-4 mr-2" />
+            添加角色
+          </Button>
         </CardHeader>
         <CardContent>
           {error && (
@@ -246,7 +246,7 @@ export default function RoleManagementPage() {
           ) : roles.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">暂无数据</div>
           ) : (
-            <Table>
+            <Table className="border">
               <TableHeader>
                 <TableRow>
                   <TableHead>编码</TableHead>
@@ -257,8 +257,8 @@ export default function RoleManagementPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {roles.map((role) => (
-                  <TableRow key={role.id}>
+                {roles.map((role, index) => (
+                  <TableRow key={role.id} className={index % 2 === 1 ? 'bg-muted/30' : ''}>
                     <TableCell className="font-mono">{role.code}</TableCell>
                     <TableCell className="font-medium">{role.name}</TableCell>
                     <TableCell className="text-muted-foreground">
