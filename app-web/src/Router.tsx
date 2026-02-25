@@ -1,11 +1,12 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { BusyIndicator } from '@ui5/webcomponents-react';
-import { useAuthStore } from '@/stores/authStore';
+import {Navigate, Route, Routes} from 'react-router-dom';
+import {BusyIndicator} from '@ui5/webcomponents-react';
+import {useAuthStore} from '@/stores/authStore';
 import DashboardPage from '@/pages/DashboardPage';
 import FeatureHostPage from '@/pages/FeatureHostPage';
 import LoginPage from '@/pages/LoginPage';
+import UserManagementPage from '@/pages/admin/UserManagementPage';
 import MainLayout from '@/layouts/MainLayout';
-import { MenuProvider } from '@/contexts/MenuContext';
+import {MenuProvider} from '@/contexts/MenuContext';
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -31,6 +32,7 @@ export default function AppRouter() {
         <Route path='/' element={<ProtectedRoute />}>
           <Route index element={<Navigate to='dashboard' replace />} />
           <Route path='dashboard' element={<DashboardPage />} />
+            <Route path='admin/users' element={<UserManagementPage/>}/>
           <Route path='*' element={<FeatureHostPage />} />
         </Route>
         <Route path='*' element={<Navigate to='/' replace />} />

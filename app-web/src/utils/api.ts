@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, {AxiosError, InternalAxiosRequestConfig} from 'axios';
 
 // API基础配置
 const apiClient = axios.create({
@@ -54,3 +54,60 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+
+export interface RoleOption {
+    id: number;
+    code: string;
+    name: string;
+}
+
+export interface UserItem {
+    id: number;
+    username: string;
+    email?: string;
+    status: string;
+    roles: RoleOption[];
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface UserQueryParams {
+    page?: number;
+    size?: number;
+    username?: string;
+    email?: string;
+    status?: string;
+}
+
+export interface UserCreatePayload {
+    username: string;
+    email?: string;
+    password: string;
+    roleIds?: number[];
+    status: string;
+}
+
+export interface UserUpdatePayload {
+    username?: string;
+    email?: string;
+    roleIds?: number[];
+    status?: string;
+}
+
+export interface PageResponse<T> {
+    content?: T[];
+    items?: T[];
+    totalElements?: number;
+    totalCount?: number;
+}
+
+export const systemApi = {
+    getUsers: (params?: UserQueryParams) => apiClient.get<PageResponse<UserItem>>('/system/users', {params}),
+    getUserById: (id: number) => apiClient.get<UserItem>(`/system/users/${id}`),
+    createUser: (payload: UserCreatePayload) => apiClient.post<UserItem>('/system/users', payload),
+    updateUser: (id: number, payload: UserUpdatePayload) => apiClient.put<UserItem>(`/system/users/${id}`, payload),
+    deleteUser: (id: number) => apiClient.delete(`/system/users/${id}`),
+    updateUserStatus: (id: number, status: string) => apiClient.put(`/system/users/${id}/status`, {status}),
+    resetUserPassword: (id: number, password: string) => apiClient.put(`/system/users/${id}/reset-password`, {password}),
+    getRoles: () => apiClient.get<RoleOption[]>('/system/roles')
+};

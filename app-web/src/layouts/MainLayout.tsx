@@ -1,18 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import {useEffect, useMemo, useState} from 'react';
+import {Outlet, useLocation, useNavigate} from 'react-router-dom';
 import {
-  Avatar,
-  BusyIndicator,
-  Button,
-  MessageStrip,
-  ShellBar,
-  ShellBarItem,
-  SideNavigation,
-  SideNavigationItem
+    Avatar,
+    BusyIndicator,
+    Button,
+    MessageStrip,
+    ShellBar,
+    ShellBarItem,
+    SideNavigation,
+    SideNavigationItem
 } from '@ui5/webcomponents-react';
-import { useAuthStore } from '@/stores/authStore';
-import { useMenus } from '@/contexts/MenuContext';
-import type { MenuItem } from '@/services';
+import {useAuthStore} from '@/stores/authStore';
+import {useMenus} from '@/contexts/MenuContext';
+import type {MenuItem} from '@/services';
 import './MainLayout.css';
 
 function flattenMenus(items: MenuItem[]): MenuItem[] {
@@ -20,13 +20,73 @@ function flattenMenus(items: MenuItem[]): MenuItem[] {
 }
 
 function getMenuLabel(item: MenuItem): string {
+    const routeLabelMap: Record<string, string> = {
+        '/dashboard': 'Home',
+        '/alerts': 'Alerts',
+        '/admin/menus': 'Menus',
+        '/admin/users': 'Users',
+        '/admin/roles': 'Roles',
+        '/admin/dict': 'Dictionary',
+        '/settings': 'Settings'
+    };
+
   if (item.name && item.name.trim().length > 0) {
     return item.name;
   }
+    if (item.route && routeLabelMap[item.route]) {
+        return routeLabelMap[item.route];
+    }
   if (item.route && item.route !== '/') {
-    return item.route.replace(/^\//, '');
+      const normalized = item.route.replace(/^\//, '').split('/').pop() ?? item.route;
+      return normalized
+          .split(/[-_]/)
+          .map((part) => (part ? `${part.charAt(0).toUpperCase()}${part.slice(1)}` : part))
+          .join(' ');
   }
   return '首页';
+}
+
+function getMenuIcon(item: MenuItem): string {
+    const iconAliasMap: Record<string, string> = {
+        DashboardOutlined: 'home',
+        AlertOutlined: 'bell',
+        MenuOutlined: 'menu2',
+        UserOutlined: 'employee',
+        TeamOutlined: 'group',
+        BookOutlined: 'document-text',
+        SettingOutlined: 'settings'
+    };
+
+    if (item.icon && item.icon.trim().length > 0) {
+        if (iconAliasMap[item.icon]) {
+            return iconAliasMap[item.icon];
+        }
+        return item.icon;
+    }
+
+    const route = item.route ?? '';
+    if (route === '/dashboard') {
+        return 'home';
+    }
+    if (route === '/alerts') {
+        return 'bell';
+    }
+    if (route === '/admin/users') {
+        return 'group';
+    }
+    if (route === '/admin/roles') {
+        return 'employee';
+    }
+    if (route === '/admin/menus') {
+        return 'menu2';
+    }
+    if (route === '/admin/dict') {
+        return 'document-text';
+    }
+    if (route === '/settings') {
+        return 'settings';
+    }
+    return 'folder';
 }
 
 function isActivePath(currentPath: string, itemPath: string): boolean {
@@ -59,13 +119,13 @@ function renderNavigationItems(
   isCollapsed: boolean
 ): JSX.Element[] {
   return items.map((item) => (
-    <SideNavigationItem
-      key={item.id}
-      text={getMenuLabel(item)}
-      icon={item.icon || 'folder'}
-      selected={item.route === activeRoute}
-      expanded={!isCollapsed && hasActiveDescendant(item, activeRoute)}
-      onClick={() => onClick(item.route)}
+      <SideNavigationItem
+          key={item.id}
+          text={getMenuLabel(item)}
+          icon={getMenuIcon(item)}
+          selected={item.route === activeRoute}
+          expanded={!isCollapsed && hasActiveDescendant(item, activeRoute)}
+          onClick={() => onClick(item.route)}
     >
       {item.children ? renderNavigationItems(item.children, activeRoute, onClick, isCollapsed) : null}
     </SideNavigationItem>
@@ -130,17 +190,17 @@ export default function MainLayout() {
 
   return (
     <div className='fiori-page-root main-layout-root'>
-      <ShellBar className='main-layout-shellbar' primaryTitle='Product Name' secondaryTitle={user?.username ?? '用户'}>
+        <ShellBar className='main-layout-shellbar' primaryTitle='Product Name'>
         <div slot='logo' className='main-layout-logo'>
           <span className='main-layout-logo-dot' />
         </div>
         <Button slot='startButton' icon='menu2' design='Transparent' onClick={handleMenuToggle} />
-        <ShellBarItem icon='search' text='Search' />
-        <ShellBarItem icon='process' text='Actions' />
-        <ShellBarItem icon='picture' text='Gallery' />
-        <ShellBarItem icon='camera' text='Capture' />
-        <ShellBarItem icon='settings' text='Settings' />
-        <ShellBarItem icon='bell' text='Notifications' />
+            <ShellBarItem className='main-layout-action-item' icon='search'/>
+            <ShellBarItem className='main-layout-action-item' icon='process'/>
+            <ShellBarItem className='main-layout-action-item' icon='picture'/>
+            <ShellBarItem className='main-layout-action-item' icon='camera'/>
+            <ShellBarItem className='main-layout-action-item' icon='settings'/>
+            <ShellBarItem className='main-layout-action-item main-layout-notification-item' icon='bell'/>
         <Avatar slot='profile' className='main-layout-profile' icon='employee' onClick={() => setMenuOpen((value) => !value)} />
       </ShellBar>
 
@@ -176,6 +236,7 @@ export default function MainLayout() {
           {error ? <MessageStrip design='Negative'>{error}</MessageStrip> : null}
           {!isLoading ? (
             <SideNavigation
+                className='main-layout-side-navigation'
               collapsed={isMobile ? false : isNavCollapsed}
               fixedItems={[
                 <SideNavigationItem key='quick-links' icon='chain-link' text='Useful Links' onClick={() => handleNavigate('/dashboard')} />,
