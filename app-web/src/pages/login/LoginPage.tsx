@@ -49,13 +49,8 @@ export default function LoginPage() {
   const currentLang = getCurrentLanguage();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <header className="h-12 bg-slate-700 flex items-center px-5">
-        <span className="text-white font-bold tracking-wider text-sm">AMS</span>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-5xl grid md:grid-cols-5 gap-8 items-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-4">
+      <div className="w-full max-w-5xl grid md:grid-cols-5 gap-8 items-center">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -169,7 +164,6 @@ export default function LoginPage() {
             </Card>
           </motion.div>
         </div>
-      </main>
-    </div>
-  );
-}
+      </div>
+    );
+  }
