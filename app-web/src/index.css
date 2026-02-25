@@ -2,15 +2,25 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100vh;
+}
+
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
+  overflow: hidden;
   font-family: '72', '72full', 'Segoe UI', Tahoma, Arial, sans-serif;
   color: var(--sapTextColor, #1d2d3e);
   background: var(--sapBackgroundColor, #f7f8fa);
-}
-
-#root {
-  min-height: 100vh;
 }

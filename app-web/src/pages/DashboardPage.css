@@ -1,5 +1,7 @@
 .dashboard-page-content {
-  padding: 16px 0 24px;
+  min-height: 0;
+  overflow: auto;
+  padding: 0;
   display: grid;
   gap: 12px;
 }
@@ -8,17 +10,12 @@
   padding: 16px;
 }
 
-.dashboard-card-actions {
-  margin-top: 8px;
-}
-
 .dashboard-loading {
   margin: 8px 0;
 }
 
 @media (max-width: 767px) {
   .dashboard-page-content {
-    width: calc(100vw - 24px);
-    padding: 12px 0 16px;
+    gap: 10px;
   }
 }

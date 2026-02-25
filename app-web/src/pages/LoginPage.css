@@ -3,6 +3,9 @@
 }
 
 .login-page-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
   width: min(1200px, 94vw);
   padding: 28px 0 48px;
 }
@@ -23,7 +26,7 @@
 }
 
 .login-layout {
-  min-height: calc(100vh - 96px);
+  min-height: 100%;
   display: grid;
   grid-template-columns: 6fr 4fr;
   align-items: center;
