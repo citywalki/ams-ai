@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Link2, History } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Link2, History, Home, Bell, Menu, Users, Settings, BookOpen, Folder } from 'lucide-react';
 import { useMenus } from '@/contexts/MenuContext';
 import type { MenuItem } from '@/services';
 import { Button } from '@/components/ui/button';
@@ -12,37 +12,39 @@ interface SidebarProps {
 }
 
 const iconMap: Record<string, React.ElementType> = {
-  home: ChevronRight,
-  bell: Link2,
-  menu2: History,
-  employee: ChevronRight,
-  group: Link2,
-  'document-text': History,
-  settings: Link2,
-  folder: ChevronRight,
-  DashboardOutlined: ChevronRight,
-  AlertOutlined: Link2,
-  MenuOutlined: History,
-  UserOutlined: ChevronRight,
-  TeamOutlined: Link2,
-  BookOutlined: History,
-  SettingOutlined: Link2,
+  home: Home,
+  bell: Bell,
+  menu2: Menu,
+  employee: Users,
+  group: Users,
+  'document-text': BookOpen,
+  settings: Settings,
+  folder: Folder,
+  DashboardOutlined: Home,
+  AlertOutlined: Bell,
+  MenuOutlined: Menu,
+  UserOutlined: Users,
+  TeamOutlined: Users,
+  BookOutlined: BookOpen,
+  SettingOutlined: Settings,
+  'chain-link': Link2,
+  history: History,
 };
 
 function getMenuIcon(iconName?: string): React.ElementType {
   if (!iconName) return ChevronRight;
-  return iconMap[iconName] || ChevronRight;
+  return iconMap[iconName] || Folder;
 }
 
 function getMenuLabel(item: MenuItem): string {
   const routeLabelMap: Record<string, string> = {
-    '/dashboard': 'Home',
-    '/alerts': 'Alerts',
-    '/admin/menus': 'Menus',
-    '/admin/users': 'Users',
-    '/admin/roles': 'Roles',
-    '/admin/dict': 'Dictionary',
-    '/settings': 'Settings'
+    '/dashboard': '首页',
+    '/alerts': '告警列表',
+    '/admin/menus': '菜单管理',
+    '/admin/users': '用户管理',
+    '/admin/roles': '角色管理',
+    '/admin/dict': '字典管理',
+    '/settings': '设置'
   };
 
   if (item.name && item.name.trim().length > 0) {
@@ -58,7 +60,7 @@ function getMenuLabel(item: MenuItem): string {
       .map((part) => (part ? `${part.charAt(0).toUpperCase()}${part.slice(1)}` : part))
       .join(' ');
   }
-  return 'Home';
+  return '首页';
 }
 
 interface MenuItemProps {
@@ -75,13 +77,13 @@ function MenuItemComponent({ item, isCollapsed, isActive, onClick }: MenuItemPro
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors",
-        "hover:bg-accent hover:text-accent-foreground",
-        isActive && "bg-accent text-accent-foreground font-medium",
+        "w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200",
+        "text-slate-600 hover:bg-sky-50 hover:text-sky-700",
+        isActive && "bg-sky-100 text-sky-700 font-medium shadow-sm",
         isCollapsed && "justify-center px-2"
       )}
     >
-      <Icon className="h-4 w-4 shrink-0" />
+      <Icon className="h-5 w-5 shrink-0" />
       {!isCollapsed && <span className="truncate">{getMenuLabel(item)}</span>}
     </button>
   );
@@ -103,16 +105,30 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col border-r bg-white transition-all duration-300",
+        "h-full flex flex-col bg-white rounded-lg shadow-sm border transition-all duration-300",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
+      <div className="p-3 border-b">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg flex items-center justify-center shadow-sm">
+            <span className="text-white font-bold text-sm">A</span>
+          </div>
+          {!isCollapsed && (
+            <div>
+              <div className="font-semibold text-slate-800">AMS</div>
+              <div className="text-xs text-slate-400">告警管理系统</div>
+            </div>
+          )}
+        </div>
+      </div>
+
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {isLoading ? (
           <div className="space-y-2 p-2">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
           </div>
         ) : error ? (
           <div className="p-2 text-sm text-red-500">{error}</div>
@@ -131,13 +147,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       <div className="border-t p-2 space-y-1">
         <MenuItemComponent
-          item={{ id: 'links', name: 'Useful Links', icon: 'chain-link' } as MenuItem}
+          item={{ id: 'links', name: '常用链接', icon: 'chain-link' } as MenuItem}
           isCollapsed={isCollapsed}
           isActive={false}
           onClick={() => navigate('/dashboard')}
         />
         <MenuItemComponent
-          item={{ id: 'history', name: 'History', icon: 'history' } as MenuItem}
+          item={{ id: 'history', name: '历史记录', icon: 'history' } as MenuItem}
           isCollapsed={isCollapsed}
           isActive={false}
           onClick={() => navigate('/dashboard')}
@@ -148,7 +164,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-center"
+          className="w-full justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100"
           onClick={onToggle}
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}

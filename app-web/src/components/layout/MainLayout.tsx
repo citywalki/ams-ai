@@ -32,10 +32,10 @@ export default function MainLayout() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50">
+    <div className="h-screen flex flex-col bg-slate-100">
       <Header onMenuToggle={handleMenuToggle} />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden p-3 gap-3">
         <AnimatePresence>
           {isMobile && isMobileMenuOpen && (
             <motion.div
@@ -56,8 +56,8 @@ export default function MainLayout() {
               exit={isMobile ? { x: -256 } : undefined}
               transition={{ duration: 0.3 }}
               className={cn(
-                "z-40",
-                isMobile && "fixed inset-y-0 left-0 top-14"
+                "z-40 h-full",
+                isMobile && "fixed inset-y-0 left-0 top-14 p-3"
               )}
             >
               <Sidebar
@@ -68,11 +68,12 @@ export default function MainLayout() {
           )}
         </AnimatePresence>
 
-        <main className="flex-1 overflow-auto p-4 md:p-6">
+        <main className="flex-1 overflow-auto bg-white rounded-lg shadow-sm border">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
+            className="h-full"
           >
             <Outlet />
           </motion.div>
