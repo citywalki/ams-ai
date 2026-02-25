@@ -57,7 +57,7 @@ export default function MainLayout() {
               transition={{ duration: 0.3 }}
               className={cn(
                 "z-40 h-full",
-                isMobile && "fixed inset-y-0 left-0 top-14 p-3"
+                isMobile && "fixed inset-y-0 left-0 p-3"
               )}
             >
               <Sidebar
@@ -68,12 +68,11 @@ export default function MainLayout() {
           )}
         </AnimatePresence>
 
-        <main className="flex-1 overflow-auto bg-white rounded-lg shadow-sm border">
+        <main className="flex-1 overflow-auto bg-white rounded-lg shadow-sm border p-6">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="h-full"
           >
             <Outlet />
           </motion.div>
