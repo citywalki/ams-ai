@@ -50,12 +50,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-4">
-      <div className="w-full max-w-5xl grid md:grid-cols-5 gap-8 items-center">
+      <div className="w-full max-w-5xl flex gap-8 items-stretch">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="md:col-span-3 hidden md:block"
+            className="flex-1 hidden md:flex flex-col justify-center"
           >
             <h1 className="text-3xl font-bold text-sky-600 mb-4">
               {t('login.welcomeTitle')}
@@ -81,9 +81,9 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="md:col-span-2 w-full max-w-md mx-auto md:mx-0"
+            className="w-full max-w-md flex items-center"
           >
-            <Card className="shadow-lg">
+            <Card className="shadow-xl w-full bg-white/90 backdrop-blur">
               <CardHeader>
                 <CardTitle>{t('login.title')}</CardTitle>
                 <CardDescription>{t('login.subtitle')}</CardDescription>
