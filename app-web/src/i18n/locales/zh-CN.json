@@ -1,0 +1,52 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "submit": "提交",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "search": "搜索",
+    "more": "更多"
+  },
+  "login": {
+    "title": "AMS 登录",
+    "subtitle": "设备告警管理系统",
+    "username": "用户名",
+    "password": "密码",
+    "rememberMe": "记住我",
+    "submit": "登录",
+    "loggingIn": "登录中...",
+    "welcomeTitle": "欢迎使用 AMS 告警管理平台",
+    "welcomeSubtitle": "统一处理设备告警、状态追踪与运维协同",
+    "feature1": "告警集中监控",
+    "feature2": "告警生命周期管理",
+    "feature3": "通知与权限协同",
+    "error": {
+      "required": "请输入用户名和密码"
+    }
+  },
+  "dashboard": {
+    "welcome": "欢迎回来",
+    "totalAlarms": "总告警数",
+    "pending": "待处理",
+    "resolved": "已解决",
+    "todayNew": "今日新增",
+    "recentAlarms": "最近告警",
+    "viewAll": "查看全部"
+  },
+  "layout": {
+    "notifications": "通知",
+    "profile": "个人中心",
+    "logout": "退出登录",
+    "search": "搜索..."
+  },
+  "alarm": {
+    "title": "标题",
+    "severity": "级别",
+    "status": "状态",
+    "createdAt": "创建时间"
+  }
+}

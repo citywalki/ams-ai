@@ -1,24 +1,23 @@
-import '@ui5/webcomponents-react/dist/Assets.js';
-import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
-import { ThemeProvider } from '@ui5/webcomponents-react';
-import App from './App';
-import { useAuthStore } from '@/stores/authStore';
-import './index.css';
-import './styles/fiori-layout.css';
+import React, { useEffect } from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import AppRouter from './Router'
+import { useAuthStore } from '@/stores/authStore'
+import './i18n'
+import './styles/globals.css'
 
 function Bootstrapper() {
   useEffect(() => {
-    void useAuthStore.getState().bootstrap();
-  }, []);
+    void useAuthStore.getState().bootstrap()
+  }, [])
 
-  return <App />;
+  return <AppRouter />
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider>
+    <BrowserRouter>
       <Bootstrapper />
-    </ThemeProvider>
-  </React.StrictMode>
-);
+    </BrowserRouter>
+  </React.StrictMode>,
+)

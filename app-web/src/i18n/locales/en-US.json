@@ -1,0 +1,52 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "more": "More"
+  },
+  "login": {
+    "title": "AMS Login",
+    "subtitle": "Alarm Management System",
+    "username": "Username",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "submit": "Login",
+    "loggingIn": "Logging in...",
+    "welcomeTitle": "Welcome to AMS Alarm Management Platform",
+    "welcomeSubtitle": "Unified device alarm, status tracking and operations collaboration",
+    "feature1": "Centralized alarm monitoring",
+    "feature2": "Alarm lifecycle management",
+    "feature3": "Notification and permission collaboration",
+    "error": {
+      "required": "Please enter username and password"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "totalAlarms": "Total Alarms",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "todayNew": "Today New",
+    "recentAlarms": "Recent Alarms",
+    "viewAll": "View All"
+  },
+  "layout": {
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "logout": "Logout",
+    "search": "Search..."
+  },
+  "alarm": {
+    "title": "Title",
+    "severity": "Severity",
+    "status": "Status",
+    "createdAt": "Created At"
+  }
+}

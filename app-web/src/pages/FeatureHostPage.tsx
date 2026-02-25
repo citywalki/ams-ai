@@ -1,7 +1,7 @@
-import { Card, Title } from '@ui5/webcomponents-react';
 import { useLocation } from 'react-router-dom';
 import { useMenus } from '@/contexts/MenuContext';
 import type { MenuItem } from '@/services';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function flattenMenus(items: MenuItem[]): { name: string; route: string }[] {
   return items.flatMap((item) => [
@@ -17,10 +17,14 @@ export default function FeatureHostPage() {
   const current = allMenus.find((item) => item.route === location.pathname);
 
   return (
-    <Card className='dashboard-card'>
-      <Title level='H4'>{current?.name ?? '功能页面'}</Title>
-      <div>当前路由：{location.pathname}</div>
-      <div>该页面已纳入 MainLayout 壳层，可按需接入实际功能组件。</div>
+    <Card>
+      <CardHeader>
+        <CardTitle>{current?.name ?? '功能页面'}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <p className="text-muted-foreground">当前路由：{location.pathname}</p>
+        <p className="text-muted-foreground">该页面已纳入 MainLayout 壳层，可按需接入实际功能组件。</p>
+      </CardContent>
     </Card>
   );
 }
