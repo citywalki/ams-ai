@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { changeLanguage, getCurrentLanguage } from '@/i18n';
 
 const features = [
@@ -40,10 +41,6 @@ export default function LoginPage() {
     if (ok) {
       navigate('/');
     }
-  };
-
-  const handleLanguageChange = (lng: string) => {
-    changeLanguage(lng);
   };
 
   const currentLang = getCurrentLanguage();
@@ -119,15 +116,33 @@ export default function LoginPage() {
                     />
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="remember"
-                      checked={rememberMe}
-                      onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                    />
-                    <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
-                      {t('login.rememberMe')}
-                    </Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="remember"
+                        checked={rememberMe}
+                        onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                      />
+                      <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
+                        {t('login.rememberMe')}
+                      </Label>
+                    </div>
+                    <ToggleGroup
+                      type="single"
+                      value={currentLang}
+                      onValueChange={(value) => {
+                        if (value) changeLanguage(value);
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <ToggleGroupItem value="zh-CN" className="px-3">
+                        中文
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="en-US" className="px-3">
+                        EN
+                      </ToggleGroupItem>
+                    </ToggleGroup>
                   </div>
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
@@ -140,25 +155,6 @@ export default function LoginPage() {
                       </>
                     )}
                   </Button>
-
-                  <div className="flex justify-center gap-2 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant={currentLang === 'zh-CN' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handleLanguageChange('zh-CN')}
-                    >
-                      中文
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={currentLang === 'en-US' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handleLanguageChange('en-US')}
-                    >
-                      English
-                    </Button>
-                  </div>
                 </form>
               </CardContent>
             </Card>
