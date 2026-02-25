@@ -68,7 +68,7 @@ export default function MainLayout() {
           )}
         </AnimatePresence>
 
-        <main className="flex-1 overflow-auto bg-white rounded-lg shadow-sm border p-6">
+        <main className="flex-1 overflow-auto">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
