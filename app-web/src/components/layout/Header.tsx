@@ -32,6 +32,15 @@ export function Header({ onMenuToggle }: HeaderProps) {
         <Button variant="ghost" size="icon" onClick={onMenuToggle} className="md:hidden">
           <Menu className="h-5 w-5" />
         </Button>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg flex items-center justify-center shadow-sm">
+            <span className="text-white font-bold text-sm">A</span>
+          </div>
+          <div className="hidden sm:block">
+            <div className="font-semibold text-slate-800">AMS</div>
+            <div className="text-xs text-slate-400 -mt-0.5">告警管理系统</div>
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 max-w-md mx-4 hidden md:block">

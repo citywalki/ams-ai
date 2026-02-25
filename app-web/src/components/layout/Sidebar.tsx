@@ -109,20 +109,6 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         isCollapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="p-3 border-b">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg flex items-center justify-center shadow-sm">
-            <span className="text-white font-bold text-sm">A</span>
-          </div>
-          {!isCollapsed && (
-            <div>
-              <div className="font-semibold text-slate-800">AMS</div>
-              <div className="text-xs text-slate-400">告警管理系统</div>
-            </div>
-          )}
-        </div>
-      </div>
-
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {isLoading ? (
           <div className="space-y-2 p-2">
