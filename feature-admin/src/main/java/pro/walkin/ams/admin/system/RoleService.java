@@ -6,8 +6,10 @@ import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import pro.walkin.ams.common.exception.BusinessException;
 import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.Permission;
+import pro.walkin.ams.persistence.entity.system.User;
 import pro.walkin.ams.security.TenantContext;
 
 @ApplicationScoped
@@ -15,10 +17,19 @@ public class RoleService {
 
     @Inject Role.Repo roleRepo;
     @Inject Permission.Repo permissionRepo;
+    @Inject User.Repo userRepo;
 
     @Transactional
     public Role createRole(Role role) {
-        role.persist();
+        Long tenantId = role.tenant != null ? role.tenant : TenantContext.getCurrentTenantId();
+        Optional<Role> existingRole = roleRepo.findByCode(role.code);
+        if (existingRole.isPresent() && tenantId != null && tenantId.equals(existingRole.get().tenant)) {
+            throw new BusinessException("Role code already exists in current tenant");
+        }
+        if (role.tenant == null) {
+            role.tenant = tenantId;
+        }
+        roleRepo.persist(role);
         return role;
     }
 
@@ -27,19 +38,27 @@ public class RoleService {
     }
 
     public List<Role> findAll(int page, int size) {
+        return findAll(page, size, null);
+    }
+
+    public List<Role> findAll(int page, int size, String keyword) {
         Long tenantId = TenantContext.getCurrentTenantId();
         if (tenantId == null) {
             return List.of();
         }
-        return roleRepo.listByTenant(tenantId, page, size);
+        return roleRepo.listByTenantAndKeyword(tenantId, keyword, page, size);
     }
 
     public long count() {
+        return count(null);
+    }
+
+    public long count(String keyword) {
         Long tenantId = TenantContext.getCurrentTenantId();
         if (tenantId == null) {
             return 0;
         }
-        return roleRepo.countByTenant(tenantId);
+        return roleRepo.countByTenantAndKeyword(tenantId, keyword);
     }
 
     @Transactional
@@ -56,6 +75,10 @@ public class RoleService {
 
     @Transactional
     public void deleteRole(Long id) {
+        long assignedUserCount = userRepo.count("roles.id", id);
+        if (assignedUserCount > 0) {
+            throw new BusinessException("Role is assigned to users and cannot be deleted");
+        }
         roleRepo.deleteById(id);
     }
 
@@ -103,5 +126,27 @@ public class RoleService {
             return new java.util.ArrayList<>(role.permissions);
         }
         return List.of();
+    }
+
+    @Transactional
+    public void assignPermissions(Long roleId, List<Long> permissionIds) {
+        Role role = roleRepo.findById(roleId);
+        if (role == null) {
+            return;
+        }
+
+        role.permissions.clear();
+        if (permissionIds == null || permissionIds.isEmpty()) {
+            role.updatedAt = java.time.Instant.now();
+            return;
+        }
+
+        for (Long permissionId : permissionIds) {
+            Permission permission = permissionRepo.findById(permissionId);
+            if (permission != null) {
+                role.permissions.add(permission);
+            }
+        }
+        role.updatedAt = java.time.Instant.now();
     }
 }

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import pro.walkin.ams.persistence.entity.BaseEntity;
@@ -19,6 +20,7 @@ import pro.walkin.ams.persistence.entity.BaseEntity;
  */
 @Entity
 @Table(name = "permissions")
+@Filter(name = "tenant-filter")
 public class Permission extends BaseEntity {
 
   /*

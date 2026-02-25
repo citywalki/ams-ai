@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
@@ -21,6 +22,7 @@ import pro.walkin.ams.persistence.entity.BaseEntity;
  */
 @Entity
 @Table(name = "menus")
+@Filter(name = "tenant-filter")
 public class Menu extends BaseEntity {
 
   public enum MenuType { FOLDER, MENU }

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Optional;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
@@ -22,6 +23,7 @@ import pro.walkin.ams.persistence.entity.BaseEntity;
  */
 @Entity
 @Table(name = "users")
+@Filter(name = "tenant-filter")
 public class User extends BaseEntity {
 
   /*

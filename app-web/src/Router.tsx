@@ -5,6 +5,7 @@ import DashboardPage from '@/pages/DashboardPage';
 import FeatureHostPage from '@/pages/FeatureHostPage';
 import LoginPage from '@/pages/LoginPage';
 import UserManagementPage from '@/pages/admin/UserManagementPage';
+import RoleManagementPage from '@/pages/admin/RoleManagementPage';
 import MainLayout from '@/layouts/MainLayout';
 import {MenuProvider} from '@/contexts/MenuContext';
 
@@ -32,7 +33,8 @@ export default function AppRouter() {
         <Route path='/' element={<ProtectedRoute />}>
           <Route index element={<Navigate to='dashboard' replace />} />
           <Route path='dashboard' element={<DashboardPage />} />
-            <Route path='admin/users' element={<UserManagementPage/>}/>
+          <Route path='admin/users' element={<UserManagementPage />} />
+          <Route path='admin/roles' element={<RoleManagementPage />} />
           <Route path='*' element={<FeatureHostPage />} />
         </Route>
         <Route path='*' element={<Navigate to='/' replace />} />

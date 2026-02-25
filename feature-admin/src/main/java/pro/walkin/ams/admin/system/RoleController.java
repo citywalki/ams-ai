@@ -30,11 +30,12 @@ public class RoleController {
   @RequireRole("ADMIN")
   public Response findAll(
       @QueryParam("page") @DefaultValue("0") int page,
-      @QueryParam("size") @DefaultValue("20") int size) {
+      @QueryParam("size") @DefaultValue("20") int size,
+      @QueryParam("keyword") String keyword) {
 
-        List<Role> roles = roleService.findAll(page, size);
+        List<Role> roles = roleService.findAll(page, size, keyword);
         List<RoleResponseDto> roleDtos = roles.stream().map(this::convertToResponseDto).collect(Collectors.toList());
-        long totalCount = roleService.count();
+        long totalCount = roleService.count(keyword);
         long totalPages = (long) Math.ceil((double) totalCount / size);
 
         return ResponseBuilder.page(roleDtos, totalCount, totalPages, page, size);
@@ -89,8 +90,9 @@ public class RoleController {
         role.code = roleDto.getCode();
         role.name = roleDto.getName();
         role.description = roleDto.getDescription();
-        
+
         Role updatedRole = roleService.updateRole(id, role);
+        roleService.assignPermissions(id, roleDto.getPermissionIds());
         return Response.ok(convertToResponseDto(updatedRole)).build();
     }
 
@@ -161,6 +163,7 @@ public class RoleController {
                 .map(this::convertToPermissionResponseDto)
                 .collect(Collectors.toList());
             dto.setPermissions(permissionDtos);
+            dto.setPermissionIds(role.permissions.stream().map(permission -> permission.id).collect(Collectors.toList()));
         }
         
         return dto;

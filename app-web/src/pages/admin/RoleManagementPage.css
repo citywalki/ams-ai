@@ -1,0 +1,137 @@
+.role-management-page {
+    min-height: 100%;
+    padding: 0 0 0.75rem;
+    background: transparent;
+}
+
+.role-management-message {
+    margin: 0.5rem 0;
+}
+
+.role-management-loading {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 0;
+}
+
+.role-management-content-area {
+    margin-top: 0.5rem;
+}
+
+.role-management-list-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.5rem;
+    padding: 0 0.5rem 0.25rem;
+}
+
+.role-management-list-title {
+    color: #1f2d3d;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.role-management-list-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+}
+
+.role-management-table-shell {
+    margin-top: 0;
+    border: 1px solid #d9d9d9;
+    background: #fff;
+}
+
+.role-management-row-actions {
+    display: flex;
+    gap: 0.125rem;
+    white-space: nowrap;
+}
+
+.role-management-pagination {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.role-management-table [role='columnheader'] {
+    background: #f3f4f5;
+    color: #243746;
+}
+
+.role-management-table [role='row'] {
+    min-height: 2.5rem;
+}
+
+.role-management-table [role='gridcell'] {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+}
+
+.role-management-dialog::part(content) {
+    min-width: 28rem;
+}
+
+.role-management-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.role-management-dialog-message {
+    margin: 0;
+}
+
+.role-management-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: var(--sapTextColor);
+    font-size: 0.875rem;
+}
+
+.role-management-permission-picker {
+    border: 1px solid var(--sapList_BorderColor);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    max-height: 16rem;
+    overflow: auto;
+}
+
+.role-management-permission-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.role-management-permission-empty {
+    color: var(--sapContent_LabelColor);
+    font-size: 0.875rem;
+}
+
+.role-management-dialog-actions {
+    margin-top: 0.25rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+@media (max-width: 960px) {
+    .role-management-list-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .role-management-dialog::part(content) {
+        min-width: auto;
+        width: 100%;
+    }
+}

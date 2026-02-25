@@ -61,6 +61,32 @@ export interface RoleOption {
     name: string;
 }
 
+export interface PermissionItem {
+    id: number;
+    code: string;
+    name: string;
+    description?: string;
+}
+
+export interface RoleItem extends RoleOption {
+    description?: string;
+    permissionIds?: number[];
+    permissions?: PermissionItem[];
+}
+
+export interface RoleQueryParams {
+    page?: number;
+    size?: number;
+    keyword?: string;
+}
+
+export interface RolePayload {
+    code: string;
+    name: string;
+    description?: string;
+    permissionIds?: number[];
+}
+
 export interface UserItem {
     id: number;
     username: string;
@@ -109,5 +135,10 @@ export const systemApi = {
     deleteUser: (id: number) => apiClient.delete(`/system/users/${id}`),
     updateUserStatus: (id: number, status: string) => apiClient.put(`/system/users/${id}/status`, {status}),
     resetUserPassword: (id: number, password: string) => apiClient.put(`/system/users/${id}/reset-password`, {password}),
-    getRoles: () => apiClient.get<RoleOption[]>('/system/roles')
+    getRoles: (params?: RoleQueryParams) => apiClient.get<PageResponse<RoleItem> | RoleItem[]>('/system/roles', {params}),
+    createRole: (payload: RolePayload) => apiClient.post<RoleItem>('/system/roles', payload),
+    updateRole: (id: number, payload: RolePayload) => apiClient.put<RoleItem>(`/system/roles/${id}`, payload),
+    deleteRole: (id: number) => apiClient.delete(`/system/roles/${id}`),
+    getPermissions: (params?: { page?: number; size?: number }) =>
+        apiClient.get<PageResponse<PermissionItem> | PermissionItem[]>('/system/permissions', {params})
 };

@@ -3,10 +3,14 @@ package pro.walkin.ams.persistence.entity;
 import io.quarkus.hibernate.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import pro.walkin.ams.persistence.generator.SnowflakeIdGeneratorType;
 
 @MappedSuperclass
-@FilterDef(name = "tenant-filter", defaultCondition = "tenant_id = :tenant")
+@FilterDef(
+    name = "tenant-filter",
+    parameters = @ParamDef(name = "tenant", type = Long.class),
+    defaultCondition = "tenant_id = :tenant")
 public abstract class BaseEntity extends PanacheEntityBase {
 
   @Id @SnowflakeIdGeneratorType public Long id;

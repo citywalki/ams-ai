@@ -11,6 +11,7 @@ public class RoleResponseDto {
     private String code;
     private String name;
     private String description;
+    private List<Long> permissionIds;
     private List<PermissionResponseDto> permissions;
     private Instant createdAt;
     private Instant updatedAt;
@@ -53,6 +54,14 @@ public class RoleResponseDto {
 
     public void setPermissions(List<PermissionResponseDto> permissions) {
         this.permissions = permissions;
+    }
+
+    public List<Long> getPermissionIds() {
+        return permissionIds;
+    }
+
+    public void setPermissionIds(List<Long> permissionIds) {
+        this.permissionIds = permissionIds;
     }
 
     public Instant getCreatedAt() {

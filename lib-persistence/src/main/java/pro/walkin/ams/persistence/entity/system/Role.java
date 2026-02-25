@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import pro.walkin.ams.persistence.entity.BaseEntity;
@@ -19,6 +20,7 @@ import pro.walkin.ams.persistence.entity.BaseEntity;
  */
 @Entity
 @Table(name = "roles")
+@Filter(name = "tenant-filter")
 public class Role extends BaseEntity {
 
   /*
@@ -71,9 +73,31 @@ public class Role extends BaseEntity {
     default List<Role> listByTenant(Long tenantId, int page, int size) {
         return find("tenant", tenantId).page(page, size).list();
     }
+
+    default List<Role> listByTenantAndKeyword(Long tenantId, String keyword, int page, int size) {
+      if (keyword == null || keyword.isBlank()) {
+        return listByTenant(tenantId, page, size);
+      }
+      String pattern = "%" + keyword.trim().toLowerCase() + "%";
+      return find(
+              "tenant = :tenant and (lower(code) like :pattern or lower(name) like :pattern)",
+              io.quarkus.panache.common.Parameters.with("tenant", tenantId).and("pattern", pattern))
+          .page(page, size)
+          .list();
+    }
     
     default long countByTenant(Long tenantId) {
         return count("tenant", tenantId);
+    }
+
+    default long countByTenantAndKeyword(Long tenantId, String keyword) {
+      if (keyword == null || keyword.isBlank()) {
+        return countByTenant(tenantId);
+      }
+      String pattern = "%" + keyword.trim().toLowerCase() + "%";
+      return count(
+          "tenant = :tenant and (lower(code) like :pattern or lower(name) like :pattern)",
+          io.quarkus.panache.common.Parameters.with("tenant", tenantId).and("pattern", pattern));
     }
   }
 }
