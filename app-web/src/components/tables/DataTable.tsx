@@ -75,7 +75,7 @@ export function DataTable<TData>({
 
   return (
     <div className="flex flex-col h-full gap-4">
-      <div className="flex-1 min-h-0 border rounded-lg overflow-auto">
+      <div className="flex-1 min-h-0 overflow-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
