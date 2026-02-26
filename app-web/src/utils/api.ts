@@ -56,7 +56,7 @@ apiClient.interceptors.response.use(
 export default apiClient;
 
 export interface RoleOption {
-    id: number;
+    id: string;
     code: string;
     name: string;
 }
@@ -91,7 +91,7 @@ export interface RolePayload {
 }
 
 export interface UserItem {
-    id: number;
+    id: string;
     username: string;
     email?: string;
     status: string;
@@ -112,14 +112,14 @@ export interface UserCreatePayload {
     username: string;
     email?: string;
     password: string;
-    roleIds?: number[];
+    roleIds?: string[];
     status: string;
 }
 
 export interface UserUpdatePayload {
     username?: string;
     email?: string;
-    roleIds?: number[];
+    roleIds?: string[];
     status?: string;
 }
 
@@ -218,19 +218,19 @@ export interface PermissionPayload {
 
 export const systemApi = {
     getUsers: (params?: UserQueryParams) => apiClient.get<PageResponse<UserItem> | UserItem[]>('/system/users', {params}),
-    getUserById: (id: number) => apiClient.get<UserItem>(`/system/users/${id}`),
+    getUserById: (id: string) => apiClient.get<UserItem>(`/system/users/${id}`),
     createUser: (payload: UserCreatePayload) => apiClient.post<UserItem>('/system/users', payload),
-    updateUser: (id: number, payload: UserUpdatePayload) => apiClient.put<UserItem>(`/system/users/${id}`, payload),
-    deleteUser: (id: number) => apiClient.delete(`/system/users/${id}`),
-    updateUserStatus: (id: number, status: string) => apiClient.put(`/system/users/${id}/status`, {status}),
-    resetUserPassword: (id: number, password: string) => apiClient.put(`/system/users/${id}/reset-password`, {password}),
+    updateUser: (id: string, payload: UserUpdatePayload) => apiClient.put<UserItem>(`/system/users/${id}`, payload),
+    deleteUser: (id: string) => apiClient.delete(`/system/users/${id}`),
+    updateUserStatus: (id: string, status: string) => apiClient.put(`/system/users/${id}/status`, {status}),
+    resetUserPassword: (id: string, password: string) => apiClient.put(`/system/users/${id}/reset-password`, {password}),
     getRoles: (params?: RoleQueryParams) => apiClient.get<PageResponse<RoleItem> | RoleItem[]>('/system/roles', {params}),
     createRole: (payload: RolePayload) => apiClient.post<RoleItem>('/system/roles', payload),
-    updateRole: (id: number, payload: RolePayload) => apiClient.put<RoleItem>(`/system/roles/${id}`, payload),
-    deleteRole: (id: number | string) => apiClient.delete(`/system/roles/${id}`),
-    getRoleMenus: (roleId: number | string) =>
+    updateRole: (id: string, payload: RolePayload) => apiClient.put<RoleItem>(`/system/roles/${id}`, payload),
+    deleteRole: (id: string) => apiClient.delete(`/system/roles/${id}`),
+    getRoleMenus: (roleId: string) =>
         apiClient.get<{ menuIds: string[] }>(`/system/roles/${roleId}/menus`),
-    updateRoleMenus: (roleId: number | string, menuIds: string[]) =>
+    updateRoleMenus: (roleId: string, menuIds: string[]) =>
         apiClient.put(`/system/roles/${roleId}/menus`, { menuIds }),
     getPermissions: (params?: { page?: number; size?: number }) =>
         apiClient.get<PageResponse<PermissionItem> | PermissionItem[]>('/system/permissions', {params})

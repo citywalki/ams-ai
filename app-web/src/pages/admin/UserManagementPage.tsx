@@ -43,7 +43,7 @@ type UserFormState = {
   email: string;
   password: string;
   status: string;
-  roleIds: number[];
+  roleIds: string[];
 };
 
 const initialFormState: UserFormState = {
@@ -60,7 +60,12 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchUsername, setSearchUsername] = useState('');
+  const [queryUsername, setQueryUsername] = useState('');
   const [searchStatus, setSearchStatus] = useState<string>('all');
+  const [queryStatus, setQueryStatus] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [total, setTotal] = useState(0);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
@@ -78,21 +83,43 @@ export default function UserManagementPage() {
   const [deleteUser, setDeleteUser] = useState<UserItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (
+    targetPage = currentPage,
+    targetPageSize = pageSize,
+    targetUsername = queryUsername,
+    targetStatus = queryStatus,
+  ) => {
     setLoading(true);
     setError(null);
     try {
       const params: Record<string, string | number | undefined> = {};
-      if (searchUsername) params.username = searchUsername;
-      if (searchStatus !== 'all') params.status = searchStatus;
+      params.page = Math.max(targetPage - 1, 0);
+      params.size = targetPageSize;
+      if (targetUsername) params.username = targetUsername;
+      if (targetStatus !== 'all') params.status = targetStatus;
       const res = await systemApi.getUsers(params);
-      setUsers(res.data.content ?? res.data.items ?? []);
+      const userList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
+      const totalCountHeader =
+        (res.headers?.['x-total-count'] as string | number | undefined)
+        ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
+      let totalCount = Number(totalCountHeader);
+      if (Number.isNaN(totalCount)) {
+        totalCount = Number(
+          !Array.isArray(res.data)
+            ? (res.data.totalElements ?? res.data.totalCount ?? userList.length)
+            : userList.length,
+        );
+      }
+      setUsers(userList);
+      setTotal(totalCount);
+      return userList;
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载用户失败');
+      return [] as UserItem[];
     } finally {
       setLoading(false);
     }
-  }, [searchUsername, searchStatus]);
+  }, [currentPage, pageSize, queryUsername, queryStatus]);
 
   const loadRoles = useCallback(async () => {
     try {
@@ -110,14 +137,27 @@ export default function UserManagementPage() {
   }, [loadUsers, loadRoles]);
 
   const handleSearch = () => {
-    void loadUsers();
+    const username = searchUsername.trim();
+    const status = searchStatus;
+    if (username === queryUsername && status === queryStatus && currentPage === 1) {
+      void loadUsers(1, pageSize, username, status);
+      return;
+    }
+    setQueryUsername(username);
+    setQueryStatus(status);
+    setCurrentPage(1);
   };
 
   const handleReset = () => {
+    if (!searchUsername && searchStatus === 'all' && !queryUsername && queryStatus === 'all' && currentPage === 1) {
+      void loadUsers(1, pageSize, '', 'all');
+      return;
+    }
     setSearchUsername('');
     setSearchStatus('all');
-    setUsers([]);
-    setTimeout(() => void loadUsers(), 0);
+    setQueryUsername('');
+    setQueryStatus('all');
+    setCurrentPage(1);
   };
 
   const openCreateDialog = () => {
@@ -213,7 +253,10 @@ export default function UserManagementPage() {
       await systemApi.deleteUser(deleteUser.id);
       setDeleteOpen(false);
       setDeleteUser(null);
-      void loadUsers();
+      const currentList = await loadUsers();
+      if (currentList.length === 0 && currentPage > 1) {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -221,7 +264,26 @@ export default function UserManagementPage() {
     }
   };
 
-  const toggleRole = (roleId: number) => {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const handlePrevPage = () => {
+    if (loading || currentPage <= 1) return;
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    if (loading || currentPage >= totalPages) return;
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePageSizeChange = (value: string) => {
+    const newSize = Number(value);
+    if (Number.isNaN(newSize) || newSize <= 0) return;
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
+
+  const toggleRole = (roleId: string) => {
     setFormState((prev) => ({
       ...prev,
       roleIds: prev.roleIds.includes(roleId)
@@ -242,8 +304,8 @@ export default function UserManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="h-full min-h-0 flex flex-col gap-6">
+      <Card className="shrink-0">
         <CardHeader>
           <CardTitle>用户管理</CardTitle>
           <CardDescription>管理系统用户账户、角色分配和权限设置</CardDescription>
@@ -280,19 +342,19 @@ export default function UserManagementPage() {
               <RotateCcw className="h-4 w-4 mr-2" />
               重置
             </Button>
-            <Button onClick={openCreateDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              添加用户
-            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
+      <Card className="flex-1 min-h-0 flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>用户列表</CardTitle>
+          <Button variant="ghost" onClick={openCreateDialog}>
+            <Plus className="h-4 w-4 mr-2" />
+            添加用户
+          </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 min-h-0 flex flex-col">
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>
@@ -307,60 +369,103 @@ export default function UserManagementPage() {
           ) : users.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">暂无数据</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>用户名</TableHead>
-                  <TableHead>邮箱</TableHead>
-                  <TableHead>角色</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.username}</TableCell>
-                    <TableCell>{user.email || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {user.roles?.map((role) => (
-                          <Badge key={role.id} variant="secondary">
-                            {role.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(user.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditDialog(user)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openResetPasswordDialog(user)}
-                        >
-                          <Key className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDeleteDialog(user)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="flex-1 min-h-0 flex flex-col gap-4">
+              <div className="table-scroll flex-1 min-h-0 overflow-auto">
+                <Table className="border">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>用户名</TableHead>
+                      <TableHead>邮箱</TableHead>
+                      <TableHead>角色</TableHead>
+                      <TableHead>状态</TableHead>
+                      <TableHead>操作</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user, index) => (
+                      <TableRow key={user.id} className={index % 2 === 1 ? 'bg-muted/30' : ''}>
+                        <TableCell className="font-medium">{user.username}</TableCell>
+                        <TableCell>{user.email || '-'}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles?.map((role) => (
+                              <Badge key={role.id} variant="secondary">
+                                {role.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(user.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex justify-start gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(user)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openResetPasswordDialog(user)}
+                            >
+                              <Key className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openDeleteDialog(user)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                <div>
+                  共 {total} 条，第 {currentPage}/{totalPages} 页
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>每页</span>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={handlePageSizeChange}
+                    disabled={loading}
+                  >
+                    <SelectTrigger className="w-[90px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={loading || currentPage <= 1}
+                  >
+                    上一页
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={loading || currentPage >= totalPages}
+                  >
+                    下一页
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
