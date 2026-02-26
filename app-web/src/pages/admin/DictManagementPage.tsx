@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, FolderOpen, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, FolderOpen, ChevronRight, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,6 +80,7 @@ const initialItemForm: ItemFormState = {
 
 export default function DictManagementPage() {
   const [categories, setCategories] = useState<DictCategory[]>([]);
+  const [categorySearch, setCategorySearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<DictCategory | null>(null);
   const [items, setItems] = useState<DictItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -325,8 +326,8 @@ export default function DictManagementPage() {
   };
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-120px)]">
-      <Card className="w-[280px] flex-shrink-0 flex flex-col">
+    <div className="h-full min-h-0 flex gap-4">
+      <Card className="w-[280px] min-h-0 flex-shrink-0 flex flex-col">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">字典分类</CardTitle>
@@ -334,22 +335,38 @@ export default function DictManagementPage() {
               <Plus className="h-4 w-4" />
             </Button>
           </div>
+          <div className="relative mt-2">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="搜索分类..."
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
         </CardHeader>
-        <CardContent className="flex-1 p-0">
+        <CardContent className="flex-1 min-h-0 p-0 pt-0">
           {loading ? (
-            <div className="space-y-2 p-4">
+            <div className="space-y-2 px-6">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
           ) : error ? (
-            <Alert variant="destructive" className="m-4">
+            <Alert variant="destructive" className="mx-6">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : (
             <ScrollArea className="h-full">
-              <div className="p-2 space-y-1">
-                {categories.map((category) => (
+              <div className="px-6 py-2 space-y-1">
+                {categories
+                  .filter((c) =>
+                    categorySearch
+                      ? c.name.toLowerCase().includes(categorySearch.toLowerCase()) ||
+                        c.code.toLowerCase().includes(categorySearch.toLowerCase())
+                      : true
+                  )
+                  .map((category) => (
                   <div
                     key={category.id}
                     className={`flex items-center justify-between p-2 rounded-md cursor-pointer group ${
@@ -392,8 +409,13 @@ export default function DictManagementPage() {
                     </div>
                   </div>
                 ))}
-                {categories.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
+                {categories.filter((c) =>
+                    categorySearch
+                      ? c.name.toLowerCase().includes(categorySearch.toLowerCase()) ||
+                        c.code.toLowerCase().includes(categorySearch.toLowerCase())
+                      : true
+                  ).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-sm px-6">
                     暂无分类
                   </div>
                 )}
@@ -403,7 +425,7 @@ export default function DictManagementPage() {
         </CardContent>
       </Card>
 
-      <Card className="flex-1 flex flex-col">
+      <Card className="flex-1 min-h-0 flex flex-col">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
@@ -422,7 +444,7 @@ export default function DictManagementPage() {
             )}
           </div>
         </CardHeader>
-        <CardContent className="flex-1 p-0">
+        <CardContent className="flex-1 min-h-0 p-0">
           {!selectedCategory ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <ChevronRight className="h-4 w-4 mr-2" />
@@ -440,6 +462,7 @@ export default function DictManagementPage() {
             </div>
           ) : (
             <ScrollArea className="h-full">
+              <div className="p-4">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -448,7 +471,7 @@ export default function DictManagementPage() {
                     <TableHead>值</TableHead>
                     <TableHead>排序</TableHead>
                     <TableHead>状态</TableHead>
-                    <TableHead className="text-right">操作</TableHead>
+                    <TableHead>操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -459,8 +482,8 @@ export default function DictManagementPage() {
                       <TableCell className="font-mono text-sm">{item.value || '-'}</TableCell>
                       <TableCell>{item.sort}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                      <TableCell>
+                        <div className="flex justify-start gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -481,6 +504,7 @@ export default function DictManagementPage() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </ScrollArea>
           )}
         </CardContent>
