@@ -1,34 +1,22 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Search, RotateCcw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import {useCallback, useEffect, useState} from 'react';
+import {Pencil, Plus, RotateCcw, Search, Trash2} from 'lucide-react';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Badge} from '@/components/ui/badge';
+import {Skeleton} from '@/components/ui/skeleton';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  systemApi,
-  type RoleItem,
-  type PermissionItem,
-  type RolePayload,
-} from '@/utils/api';
+import {Alert, AlertDescription} from '@/components/ui/alert';
+import {type PermissionItem, type RoleItem, type RolePayload, systemApi,} from '@/utils/api';
 
 type RoleFormState = {
   code: string;
@@ -226,7 +214,7 @@ export default function RoleManagementPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>角色列表</CardTitle>
-          <Button onClick={openCreateDialog}>
+            <Button variant="ghost" onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
             添加角色
           </Button>
