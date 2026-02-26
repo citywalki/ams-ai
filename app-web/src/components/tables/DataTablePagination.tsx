@@ -17,7 +17,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t">
+    <div className="flex items-center justify-between py-3">
       <div className="flex items-center space-x-2">
         <p className="text-sm text-muted-foreground">
           {t('table.pageSize')}
