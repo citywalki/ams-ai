@@ -1,12 +1,12 @@
 import {useCallback, useEffect, useState} from 'react';
 import {ChevronDown, ChevronRight, FileText, Folder, FolderOpen, Menu, Pencil, Plus, RotateCcw, Search, Trash2,} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Badge} from '@/components/ui/badge';
 import {Skeleton} from '@/components/ui/skeleton';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
 import {
     Dialog,
     DialogContent,
@@ -15,15 +15,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {Alert, AlertDescription} from '@/components/ui/alert';
+import {ColumnDef} from '@tanstack/react-table';
+import {useQueryClient} from '@tanstack/react-query';
+import {DataTable} from '@/components/tables/DataTable';
 import {menuApi, type MenuItem, type PermissionItem, type RoleItem, type RolePayload, systemApi,} from '@/utils/api';
+import type {QueryParams, PageResponse} from '@/types/table';
 
 type RoleFormState = {
   code: string;
@@ -39,16 +36,37 @@ const initialFormState: RoleFormState = {
   permissionIds: [],
 };
 
+async function fetchRoles(params: QueryParams, searchParams: Record<string, string>): Promise<PageResponse<RoleItem>> {
+  const res = await systemApi.getRoles({ ...params, ...searchParams });
+  const roleList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
+  const totalCountHeader =
+    (res.headers?.['x-total-count'] as string | number | undefined)
+    ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
+  let totalCount = Number(totalCountHeader);
+  if (Number.isNaN(totalCount)) {
+    totalCount = Number(
+      !Array.isArray(res.data)
+        ? (res.data.totalElements ?? res.data.totalCount ?? roleList.length)
+        : roleList.length,
+    );
+  }
+  const totalPages = Math.ceil(totalCount / (params.size || 20));
+  return {
+    content: roleList,
+    totalElements: totalCount,
+    totalPages,
+    size: params.size || 20,
+    number: params.page || 0,
+  };
+}
+
 export default function RoleManagementPage() {
-  const [roles, setRoles] = useState<RoleItem[]>([]);
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
   const [searchKeyword, setSearchKeyword] = useState('');
   const [queryKeyword, setQueryKeyword] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [total, setTotal] = useState(0);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
@@ -69,45 +87,6 @@ export default function RoleManagementPage() {
   const [editingRoleForMenu, setEditingRoleForMenu] = useState<RoleItem | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
-  const loadRoles = useCallback(async (
-    targetPage = currentPage,
-    targetPageSize = pageSize,
-    targetKeyword = queryKeyword,
-  ) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params: { page: number; size: number; keyword?: string } = {
-        page: Math.max(targetPage - 1, 0),
-        size: targetPageSize,
-      };
-      if (targetKeyword) {
-        params.keyword = targetKeyword;
-      }
-      const res = await systemApi.getRoles(params);
-      const roleList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
-      const totalCountHeader =
-        (res.headers?.['x-total-count'] as string | number | undefined)
-        ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
-      let totalCount = Number(totalCountHeader);
-      if (Number.isNaN(totalCount)) {
-        totalCount = Number(
-          !Array.isArray(res.data)
-            ? (res.data.totalElements ?? res.data.totalCount ?? roleList.length)
-            : roleList.length,
-        );
-      }
-      setRoles(roleList);
-      setTotal(totalCount);
-      return roleList;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '加载角色失败');
-      return [] as RoleItem[];
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, pageSize, queryKeyword]);
-
   const loadPermissions = useCallback(async () => {
     try {
       const res = await systemApi.getPermissions();
@@ -122,29 +101,18 @@ export default function RoleManagementPage() {
     void loadPermissions();
   }, [loadPermissions]);
 
-  useEffect(() => {
-    void loadRoles();
-  }, [loadRoles]);
-
   const handleSearch = () => {
-    const keyword = searchKeyword.trim();
-    if (keyword === queryKeyword && currentPage === 1) {
-      void loadRoles(1, pageSize, keyword);
-      return;
-    }
-    setQueryKeyword(keyword);
-    setCurrentPage(1);
+    setQueryKeyword(searchKeyword.trim());
   };
 
   const handleReset = () => {
-    if (!searchKeyword && !queryKeyword && currentPage === 1) {
-      void loadRoles(1, pageSize, '');
-      return;
-    }
     setSearchKeyword('');
     setQueryKeyword('');
-    setCurrentPage(1);
   };
+
+  const refreshData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['roles'] });
+  }, [queryClient]);
 
   const openCreateDialog = () => {
     setDialogMode('create');
@@ -191,7 +159,7 @@ export default function RoleManagementPage() {
         await systemApi.updateRole(editingRole.id, payload);
       }
       closeDialog();
-      void loadRoles();
+      refreshData();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : '操作失败');
     } finally {
@@ -299,7 +267,7 @@ export default function RoleManagementPage() {
         Array.from(selectedMenuIds)
       );
       closeMenuDialog();
-      void loadRoles();
+      refreshData();
     } catch (err) {
       console.error('Failed to save menu association:', err);
     } finally {
@@ -389,34 +357,12 @@ export default function RoleManagementPage() {
       await systemApi.deleteRole(deleteRole.id);
       setDeleteOpen(false);
       setDeleteRole(null);
-      const currentList = await loadRoles();
-      if (currentList.length === 0 && currentPage > 1) {
-        setCurrentPage((prev) => Math.max(prev - 1, 1));
-      }
+      refreshData();
     } catch (err) {
       console.error(err);
     } finally {
       setDeleteLoading(false);
     }
-  };
-
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  const handlePrevPage = () => {
-    if (loading || currentPage <= 1) return;
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    if (loading || currentPage >= totalPages) return;
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  const handlePageSizeChange = (value: string) => {
-    const newSize = Number(value);
-    if (Number.isNaN(newSize) || newSize <= 0) return;
-    setPageSize(newSize);
-    setCurrentPage(1);
   };
 
   const togglePermission = (permId: string) => {
@@ -428,14 +374,66 @@ export default function RoleManagementPage() {
     }));
   };
 
-  const getPermissionBadge = (role: RoleItem) => {
-    const count = role.permissionIds?.length ?? role.permissions?.length ?? 0;
-    return (
-      <Badge variant="secondary">
-        {count} 个权限
-      </Badge>
-    );
-  };
+  const columns: ColumnDef<RoleItem>[] = [
+    {
+      accessorKey: 'code',
+      header: '编码',
+      cell: ({ row }) => <span className="font-mono">{row.original.code}</span>,
+    },
+    {
+      accessorKey: 'name',
+      header: '名称',
+      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+    },
+    {
+      accessorKey: 'description',
+      header: '描述',
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.description || '-'}</span>
+      ),
+    },
+    {
+      accessorKey: 'permissions',
+      header: '权限',
+      cell: ({ row }) => {
+        const count = row.original.permissionIds?.length ?? row.original.permissions?.length ?? 0;
+        return <Badge variant="secondary">{count} 个权限</Badge>;
+      },
+    },
+    {
+      id: 'actions',
+      header: t('common.actions'),
+      cell: ({ row }) => (
+        <div className="flex justify-start gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            title="关联菜单"
+            onClick={() => openMenuDialog(row.original)}
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => openEditDialog(row.original)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => openDeleteDialog(row.original)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const searchParams: Record<string, string> = {};
+  if (queryKeyword) searchParams.keyword = queryKeyword;
 
   return (
     <div className="h-full min-h-0 flex flex-col gap-6">
@@ -457,11 +455,11 @@ export default function RoleManagementPage() {
             </div>
             <Button onClick={handleSearch}>
               <Search className="h-4 w-4 mr-2" />
-              搜索
+              {t('common.search')}
             </Button>
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-2" />
-              重置
+              {t('common.reset')}
             </Button>
           </div>
         </CardContent>
@@ -470,119 +468,18 @@ export default function RoleManagementPage() {
       <Card className="flex-1 min-h-0 flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>角色列表</CardTitle>
-            <Button variant="ghost" onClick={openCreateDialog}>
+          <Button variant="ghost" onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
-            添加角色
+            {t('common.add')}
           </Button>
         </CardHeader>
-        <CardContent className="flex-1 min-h-0 flex flex-col">
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : roles.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">暂无数据</div>
-          ) : (
-            <div className="flex-1 min-h-0 flex flex-col gap-4">
-              <div className="table-scroll flex-1 min-h-0 overflow-auto">
-                <Table className="border">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>编码</TableHead>
-                      <TableHead>名称</TableHead>
-                      <TableHead>描述</TableHead>
-                      <TableHead>权限</TableHead>
-                      <TableHead>操作</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {roles.map((role, index) => (
-                      <TableRow key={role.id} className={index % 2 === 1 ? 'bg-muted/30' : ''}>
-                        <TableCell className="font-mono">{role.code}</TableCell>
-                        <TableCell className="font-medium">{role.name}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {role.description || '-'}
-                        </TableCell>
-                        <TableCell>{getPermissionBadge(role)}</TableCell>
-                        <TableCell>
-                           <div className="flex justify-start gap-2">
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               title="关联菜单"
-                               onClick={() => openMenuDialog(role)}
-                             >
-                               <Menu className="h-4 w-4" />
-                             </Button>
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => openEditDialog(role)}
-                             >
-                               <Pencil className="h-4 w-4" />
-                             </Button>
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => openDeleteDialog(role)}
-                             >
-                               <Trash2 className="h-4 w-4 text-destructive" />
-                             </Button>
-                           </div>
-                         </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-                <div>
-                  共 {total} 条，第 {currentPage}/{totalPages} 页
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>每页</span>
-                  <Select
-                    value={String(pageSize)}
-                    onValueChange={handlePageSizeChange}
-                    disabled={loading}
-                  >
-                    <SelectTrigger className="w-[90px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePrevPage}
-                    disabled={loading || currentPage <= 1}
-                  >
-                    上一页
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNextPage}
-                    disabled={loading || currentPage >= totalPages}
-                  >
-                    下一页
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+        <CardContent className="flex-1 min-h-0">
+          <DataTable
+            columns={columns}
+            queryKey={['roles']}
+            queryFn={(params) => fetchRoles(params, searchParams)}
+            defaultSort={{ id: 'createdAt', desc: true }}
+          />
         </CardContent>
       </Card>
 
@@ -673,10 +570,10 @@ export default function RoleManagementPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={formLoading}>
-                {formLoading ? '提交中...' : '确定'}
+                {formLoading ? '提交中...' : t('common.confirm')}
               </Button>
             </DialogFooter>
           </form>
@@ -694,14 +591,14 @@ export default function RoleManagementPage() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              取消
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? '删除中...' : '删除'}
+              {deleteLoading ? '删除中...' : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -733,10 +630,10 @@ export default function RoleManagementPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeMenuDialog}>
-              取消
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleMenuSave} disabled={menuSaving}>
-              {menuSaving ? '保存中...' : '保存'}
+              {menuSaving ? '保存中...' : t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
