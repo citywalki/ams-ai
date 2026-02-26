@@ -83,7 +83,7 @@ public class RoleService {
 
     @Transactional
     public void deleteRole(Long id) {
-        long assignedUserCount = userRepo.count("roles.id", id);
+        long assignedUserCount = userRepo.count("select count(u) from User u join u.roles r where r.id = ?1", id);
         if (assignedUserCount > 0) {
             throw new BusinessException("Role is assigned to users and cannot be deleted");
         }

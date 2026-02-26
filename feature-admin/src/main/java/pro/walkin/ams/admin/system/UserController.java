@@ -1,6 +1,7 @@
 package pro.walkin.ams.admin.system;
 
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -49,7 +50,7 @@ public class UserController {
 
     @POST
     @RequireRole("ADMIN")
-    public Response create(UserDto request) {
+    public Response create(@Valid UserDto request) {
         UserResponseDto user = userService.create(request);
         return Response.status(Response.Status.CREATED).entity(user).build();
     }
@@ -106,6 +107,6 @@ public class UserController {
                 .build();
         }
         userService.resetPassword(id, newPassword);
-        return Response.ok().build();
+        return Response.ok(Map.of("message", "密码重置成功")).build();
     }
 }

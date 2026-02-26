@@ -55,6 +55,8 @@ export default function RoleManagementPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteRole, setDeleteRole] = useState<RoleItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [menuError, setMenuError] = useState<string | null>(null);
 
   const [menuDialogOpen, setMenuDialogOpen] = useState(false);
   const [menuTree, setMenuTree] = useState<MenuItem[]>([]);
@@ -80,11 +82,13 @@ export default function RoleManagementPage() {
 
   const handleSearch = () => {
     setQueryKeyword(searchKeyword.trim());
+    void invalidateRoleList(queryClient);
   };
 
   const handleReset = () => {
     setSearchKeyword('');
     setQueryKeyword('');
+    void invalidateRoleList(queryClient);
   };
 
   const refreshData = useCallback(() => {
@@ -121,13 +125,23 @@ export default function RoleManagementPage() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formState.code.trim()) {
+      setFormError(t('pages.roleManagement.messages.codeRequired'));
+      return;
+    }
+    if (!formState.name.trim()) {
+      setFormError(t('pages.roleManagement.messages.nameRequired'));
+      return;
+    }
+    
     setFormLoading(true);
     setFormError(null);
     try {
       const payload: RolePayload = {
-        code: formState.code,
-        name: formState.name,
-        description: formState.description || undefined,
+        code: formState.code.trim(),
+        name: formState.name.trim(),
+        description: formState.description.trim() || undefined,
         permissionIds: formState.permissionIds,
       };
       if (dialogMode === 'create') {
@@ -238,6 +252,7 @@ export default function RoleManagementPage() {
   const handleMenuSave = async () => {
     if (!editingRoleForMenu) return;
     setMenuSaving(true);
+    setMenuError(null);
     try {
       await systemApi.updateRoleMenus(
         editingRoleForMenu.id,
@@ -246,7 +261,7 @@ export default function RoleManagementPage() {
       closeMenuDialog();
       refreshData();
     } catch (err) {
-      console.error('Failed to save menu association:', err);
+      setMenuError(err instanceof Error ? err.message : t('pages.roleManagement.messages.saveFailed'));
     } finally {
       setMenuSaving(false);
     }
@@ -330,13 +345,14 @@ export default function RoleManagementPage() {
   const handleDelete = async () => {
     if (!deleteRole) return;
     setDeleteLoading(true);
+    setDeleteError(null);
     try {
       await systemApi.deleteRole(deleteRole.id);
       setDeleteOpen(false);
       setDeleteRole(null);
       refreshData();
     } catch (err) {
-      console.error(err);
+      setDeleteError(err instanceof Error ? err.message : t('pages.roleManagement.messages.deleteFailed'));
     } finally {
       setDeleteLoading(false);
     }
@@ -427,14 +443,19 @@ export default function RoleManagementPage() {
                 placeholder={t('pages.roleManagement.form.keywordPlaceholder')}
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch();
+                  }
+                }}
               />
             </div>
-            <Button onClick={handleSearch}>
+            <Button type="button" onClick={handleSearch}>
               <Search className="h-4 w-4 mr-2" />
               {t('common.search')}
             </Button>
-            <Button variant="outline" onClick={handleReset}>
+            <Button type="button" variant="outline" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-2" />
               {t('common.reset')}
             </Button>
@@ -562,7 +583,7 @@ export default function RoleManagementPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <Dialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) setDeleteError(null); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('pages.roleManagement.dialog.deleteTitle')}</DialogTitle>
@@ -570,6 +591,11 @@ export default function RoleManagementPage() {
               {t('pages.roleManagement.dialog.deleteDescription', { name: deleteRole?.name ?? '-' })}
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <Alert variant="destructive">
+              <AlertDescription>{deleteError}</AlertDescription>
+            </Alert>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
               {t('common.cancel')}
@@ -586,7 +612,7 @@ export default function RoleManagementPage() {
       </Dialog>
 
       {/* Menu Association Dialog */}
-      <Dialog open={menuDialogOpen} onOpenChange={setMenuDialogOpen}>
+      <Dialog open={menuDialogOpen} onOpenChange={(open) => { setMenuDialogOpen(open); if (!open) setMenuError(null); }}>
         <DialogContent className="max-w-lg h-[500px] flex flex-col">
           <DialogHeader>
             <DialogTitle>
@@ -596,6 +622,11 @@ export default function RoleManagementPage() {
               {t('pages.roleManagement.dialog.menuDescription', { code: editingRoleForMenu?.code ?? '-' })}
             </DialogDescription>
           </DialogHeader>
+          {menuError && (
+            <Alert variant="destructive">
+              <AlertDescription>{menuError}</AlertDescription>
+            </Alert>
+          )}
           <div className="flex-1 min-h-0 overflow-hidden">
             {menuLoading ? (
               <div className="space-y-2">

@@ -98,6 +98,10 @@
       },
       "messages": {
         "operationFailed": "Operation failed",
+        "codeRequired": "Role code is required",
+        "nameRequired": "Role name is required",
+        "deleteFailed": "Delete failed",
+        "saveFailed": "Save failed",
         "noPermissions": "No permissions available",
         "noMenus": "No menus available",
         "submitting": "Submitting...",

@@ -3,6 +3,10 @@ plugins {
     id("code-quality-convention")
 }
 
+tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 dependencies {
     // Quarkus BOM
     implementation(enforcedPlatform(libs.quarkus.bom))

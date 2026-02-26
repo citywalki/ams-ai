@@ -20,6 +20,7 @@ dependencies {
 
     implementation(libs.jakarta.inject.api)
     implementation(libs.jakarta.annotation.api)
+    implementation(libs.javax.validation.api)
 
     implementation(libs.slf4j.api)
 

@@ -1,6 +1,7 @@
 package pro.walkin.ams.admin.system;
 
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
@@ -82,6 +83,7 @@ public class RoleController {
   @Path("/{id}")
   @PUT
   @RequireRole("ADMIN")
+  @Transactional
   public Response update(@PathParam("id") Long id, RoleDto roleDto) {
         Role role = roleService.findById(id).orElse(null);
         if (role == null) {

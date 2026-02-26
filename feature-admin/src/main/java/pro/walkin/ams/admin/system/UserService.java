@@ -88,6 +88,7 @@ public class UserService {
         }
 
         userRepo.persist(user);
+        userRepo.flush();
         return toResponse(user);
     }
 

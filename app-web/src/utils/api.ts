@@ -49,7 +49,12 @@ apiClient.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    const errorData = error.response?.data as { message?: string; error?: string } | undefined;
+    const errorMessage = errorData?.message || errorData?.error || error.message;
+    const enhancedError = new Error(errorMessage);
+    (enhancedError as Error & { status?: number; data?: unknown }).status = error.response?.status;
+    (enhancedError as Error & { status?: number; data?: unknown }).data = error.response?.data;
+    return Promise.reject(enhancedError);
   }
 );
 
@@ -196,6 +201,7 @@ export interface MenuItem {
     tenant?: string;
     createdAt?: string;
     updatedAt?: string;
+    metadata?: Record<string, unknown>;
     children?: MenuItem[];
 }
 

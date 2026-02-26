@@ -72,10 +72,12 @@ export default function UserManagementPage() {
   const [resetPasswordUser, setResetPasswordUser] = useState<UserItem | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState<UserItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const loadRoles = useCallback(async () => {
     try {
@@ -94,6 +96,7 @@ export default function UserManagementPage() {
   const handleSearch = () => {
     setQueryUsername(searchUsername.trim());
     setQueryStatus(searchStatus);
+    void invalidateUserList(queryClient);
   };
 
   const handleReset = () => {
@@ -101,6 +104,7 @@ export default function UserManagementPage() {
     setSearchStatus('all');
     setQueryUsername('');
     setQueryStatus('all');
+    void invalidateUserList(queryClient);
   };
 
   const openCreateDialog = () => {
@@ -171,18 +175,21 @@ export default function UserManagementPage() {
   const openResetPasswordDialog = (user: UserItem) => {
     setResetPasswordUser(user);
     setNewPassword('');
+    setResetPasswordError(null);
     setResetPasswordOpen(true);
   };
 
   const handleResetPassword = async () => {
     if (!resetPasswordUser || !newPassword) return;
     setResetLoading(true);
+    setResetPasswordError(null);
     try {
       await systemApi.resetUserPassword(resetPasswordUser.id, newPassword);
       setResetPasswordOpen(false);
       setResetPasswordUser(null);
     } catch (err) {
-      console.error(err);
+      const message = err instanceof Error ? err.message : t('pages.userManagement.messages.operationFailed');
+      setResetPasswordError(message);
     } finally {
       setResetLoading(false);
     }
@@ -190,19 +197,22 @@ export default function UserManagementPage() {
 
   const openDeleteDialog = (user: UserItem) => {
     setDeleteUser(user);
+    setDeleteError(null);
     setDeleteOpen(true);
   };
 
   const handleDelete = async () => {
     if (!deleteUser) return;
     setDeleteLoading(true);
+    setDeleteError(null);
     try {
       await systemApi.deleteUser(deleteUser.id);
       setDeleteOpen(false);
       setDeleteUser(null);
       refreshData();
     } catch (err) {
-      console.error(err);
+      const message = err instanceof Error ? err.message : t('pages.userManagement.messages.operationFailed');
+      setDeleteError(message);
     } finally {
       setDeleteLoading(false);
     }
@@ -306,7 +316,12 @@ export default function UserManagementPage() {
                 placeholder={t('pages.userManagement.form.usernameSearchPlaceholder')}
                 value={searchUsername}
                 onChange={(e) => setSearchUsername(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch();
+                  }
+                }}
               />
             </div>
             <div className="w-[180px] space-y-2">
@@ -322,11 +337,11 @@ export default function UserManagementPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleSearch}>
+            <Button type="button" onClick={handleSearch}>
               <Search className="h-4 w-4 mr-2" />
               {t('common.search')}
             </Button>
-            <Button variant="outline" onClick={handleReset}>
+            <Button type="button" variant="outline" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-2" />
               {t('common.reset')}
             </Button>
@@ -468,6 +483,11 @@ export default function UserManagementPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {resetPasswordError && (
+              <Alert variant="destructive">
+                <AlertDescription>{resetPasswordError}</AlertDescription>
+              </Alert>
+            )}
             <div className="space-y-2">
               <Label htmlFor="newPassword">{t('pages.userManagement.form.newPassword')}</Label>
               <Input
@@ -501,6 +521,11 @@ export default function UserManagementPage() {
               {t('pages.userManagement.dialog.deleteDescription', { username: deleteUser?.username ?? '-' })}
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <Alert variant="destructive">
+              <AlertDescription>{deleteError}</AlertDescription>
+            </Alert>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
               {t('common.cancel')}

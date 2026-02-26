@@ -199,8 +199,9 @@ export default function MenuManagementPage() {
         await menuApi.updateMenu(editingMenu.id, payload);
       }
       await invalidateMenuQueries(queryClient);
+      await loadFolders();
       closeMenuDialog();
-        void loadMenus(selectedFolder);
+      void loadMenus(selectedFolder);
     } catch (err) {
       setMenuFormError(err instanceof Error ? err.message : t('pages.menuManagement.messages.operationFailed'));
     } finally {
@@ -219,9 +220,10 @@ export default function MenuManagementPage() {
     try {
       await menuApi.deleteMenu(deleteMenu.id);
       await invalidateMenuQueries(queryClient);
+      await loadFolders();
       setDeleteMenuOpen(false);
       setDeleteMenu(null);
-        void loadMenus(selectedFolder);
+      void loadMenus(selectedFolder);
     } catch (err) {
       console.error(err);
     } finally {
@@ -326,8 +328,15 @@ export default function MenuManagementPage() {
   };
 
   const getMenuCountBadge = (folder: MenuItem) => {
-    const count = menus.filter((m) => m.parentId === folder.id).length;
-    return count;
+    const rawCount = folder.metadata?.menuCount;
+    if (typeof rawCount === 'number') {
+      return rawCount;
+    }
+    if (typeof rawCount === 'string') {
+      const parsed = Number.parseInt(rawCount, 10);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
   };
 
   return (

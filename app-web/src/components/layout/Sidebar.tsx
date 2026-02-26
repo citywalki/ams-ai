@@ -1,4 +1,4 @@
-import {type ReactNode, useState} from 'react';
+import {type ReactNode, useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {
     Bell,
@@ -78,6 +78,72 @@ function getMenuLabel(item: MenuItem): string {
   return '首页';
 }
 
+function normalizePath(path?: string): string {
+  if (!path) {
+    return '/';
+  }
+
+  const [withoutQueryOrHash] = path.split(/[?#]/);
+  if (!withoutQueryOrHash) {
+    return '/';
+  }
+
+  if (withoutQueryOrHash.length === 1) {
+    return '/';
+  }
+
+  return withoutQueryOrHash.replace(/\/+$/, '');
+}
+
+function isRouteMatch(menuRoute: string | undefined, currentPath: string): boolean {
+  if (!menuRoute) {
+    return false;
+  }
+
+  const menuPath = normalizePath(menuRoute);
+  const current = normalizePath(currentPath);
+
+  if (menuPath === '/') {
+    return current === '/';
+  }
+
+  return current === menuPath || current.startsWith(`${menuPath}/`);
+}
+
+type ActiveMatch = {
+  activeId: string | null;
+  parentFolderIds: string[];
+};
+
+function findActiveMatch(items: MenuItem[], currentPath: string): ActiveMatch {
+  let bestRouteLength = -1;
+  let activeId: string | null = null;
+  let parentFolderIds: string[] = [];
+
+  const walk = (nodes: MenuItem[], parentIds: string[]) => {
+    nodes.forEach((node) => {
+      const isFolder = node.menuType === 'FOLDER';
+
+      if (!isFolder && isRouteMatch(node.route, currentPath)) {
+        const routeLength = normalizePath(node.route).length;
+        if (routeLength > bestRouteLength) {
+          bestRouteLength = routeLength;
+          activeId = node.id;
+          parentFolderIds = parentIds;
+        }
+      }
+
+      if (node.children && node.children.length > 0) {
+        walk(node.children, isFolder ? [...parentIds, node.id] : parentIds);
+      }
+    });
+  };
+
+  walk(items, []);
+
+  return { activeId, parentFolderIds };
+}
+
 interface MenuItemProps {
   item: MenuItem;
   isCollapsed: boolean;
@@ -151,10 +217,32 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const currentRoute = location.pathname;
+  const { activeId, parentFolderIds } = useMemo(
+    () => findActiveMatch(menus, currentRoute),
+    [menus, currentRoute]
+  );
+
+  useEffect(() => {
+    if (parentFolderIds.length === 0) {
+      return;
+    }
+
+    setExpandedFolders((prev) => {
+      const missing = parentFolderIds.some((folderId) => !prev.has(folderId));
+      if (!missing) {
+        return prev;
+      }
+
+      const next = new Set(prev);
+      parentFolderIds.forEach((folderId) => next.add(folderId));
+      return next;
+    });
+  }, [parentFolderIds]);
 
   const handleNavigate = (route?: string) => {
-    if (route && route !== currentRoute) {
-      navigate(route);
+    const target = normalizePath(route);
+    if (route && target !== normalizePath(currentRoute)) {
+      navigate(target);
     }
   };
 
@@ -173,7 +261,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     const renderMenuItem = (item: MenuItem) => {
         const isFolder = item.menuType === 'FOLDER' && item.children && item.children.length > 0;
         const isExpanded = expandedFolders.has(item.id);
-        const isActive = !isFolder && item.route === currentRoute;
+        const isActive = item.id === activeId;
 
         return (
             <MenuItemComponent
@@ -189,7 +277,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                         key={child.id}
                         item={child}
                         isCollapsed={false}
-                        isActive={child.route === currentRoute}
+                        isActive={child.id === activeId}
                         onClick={() => handleNavigate(child.route)}
                     />
                 ) : undefined}

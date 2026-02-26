@@ -87,7 +87,7 @@ public class Role extends BaseEntity {
 
       String sortField = mapSortField(sortBy);
       String direction = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
-      query.append(" order by ").append(sortField).append(" ").append(direction);
+      query.append(" order by r.").append(sortField).append(" ").append(direction);
 
       return find(query.toString(), params).page(page, size).list();
     }

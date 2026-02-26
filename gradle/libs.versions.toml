@@ -57,6 +57,7 @@ quarkus-rest = { module = "io.quarkus:quarkus-rest", version.ref = "quarkus" }
 quarkus-rest-jackson = { module = "io.quarkus:quarkus-rest-jackson", version.ref = "quarkus" }
 quarkus-config-yaml = { module = "io.quarkus:quarkus-config-yaml", version.ref = "quarkus" }
 quarkus-hibernate-orm-panache = { module = "io.quarkus:quarkus-hibernate-orm-panache", version.ref = "quarkus" }
+quarkus-hibernate-validator = { module = "io.quarkus:quarkus-hibernate-validator", version.ref = "quarkus" }
 
 # 安全
 quarkus-oidc = { module = "io.quarkus:quarkus-oidc", version.ref = "quarkus" }

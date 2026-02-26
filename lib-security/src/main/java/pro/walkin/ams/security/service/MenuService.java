@@ -171,7 +171,35 @@ public class MenuService {
   public List<MenuResponseDto> getFolders(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
     List<Menu> folders = menuRepo.list("menuType = ?1 and tenant = ?2", Menu.MenuType.FOLDER, tenantId);
-    return folders.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
+    Map<Long, Long> childCountByParent =
+        menuRepo.list("parentId is not null and tenant = ?1", tenantId).stream()
+            .collect(Collectors.groupingBy(menu -> menu.parentId, Collectors.counting()));
+
+    return folders.stream()
+        .map(
+            folder -> {
+              MenuResponseDto dto = mapEntityToResponseDto(folder);
+              Map<String, Object> metadata = new HashMap<>(dto.metadata());
+              metadata.put("menuCount", childCountByParent.getOrDefault(folder.id, 0L));
+
+              return new MenuResponseDto(
+                  dto.id(),
+                  dto.key(),
+                  dto.label(),
+                  dto.route(),
+                  dto.parentId(),
+                  dto.icon(),
+                  dto.sortOrder(),
+                  dto.isVisible(),
+                  dto.menuType(),
+                  dto.rolesAllowed(),
+                  metadata,
+                  dto.tenant(),
+                  dto.createdAt(),
+                  dto.updatedAt(),
+                  dto.children());
+            })
+        .collect(Collectors.toList());
   }
 
   public List<MenuResponseDto> getMenusByParentId(Long parentId, Long tenantId) {

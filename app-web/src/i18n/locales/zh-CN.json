@@ -98,6 +98,10 @@
       },
       "messages": {
         "operationFailed": "操作失败",
+        "codeRequired": "请输入角色编码",
+        "nameRequired": "请输入角色名称",
+        "deleteFailed": "删除失败",
+        "saveFailed": "保存失败",
         "noPermissions": "暂无可选权限",
         "noMenus": "暂无菜单",
         "submitting": "提交中...",
