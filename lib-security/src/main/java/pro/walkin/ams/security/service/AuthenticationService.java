@@ -194,7 +194,9 @@ public class AuthenticationService {
         .find(
             "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.id = ?1",
             userId)
-        .firstResult();
+        .stream()
+        .findFirst()
+        .orElse(null);
   }
 
   /** 通过用户名获取用户，包含角色和权限 */
@@ -203,6 +205,8 @@ public class AuthenticationService {
         .find(
             "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = ?1",
             username)
-        .firstResult();
+        .stream()
+        .findFirst()
+        .orElse(null);
   }
 }

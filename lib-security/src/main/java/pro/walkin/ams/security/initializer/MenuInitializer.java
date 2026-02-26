@@ -35,23 +35,49 @@ public class MenuInitializer extends DataInitializer {
         createMenu(tenant, "alerts", "告警列表", "/alerts", "AlertOutlined", 20,
             Arrays.asList("USER", "MANAGER", "ADMIN"), Menu.MenuType.MENU, null);
 
-        createMenu(tenant, "menus", "菜单管理", "/admin/menus", "MenuOutlined", 30,
-            List.of("ADMIN"), Menu.MenuType.MENU, adminFolder != null ? adminFolder.id : null);
+    createMenu(
+        tenant,
+        "menus",
+        "菜单管理",
+        "/admin/menus",
+        "MenuOutlined",
+        30,
+        List.of("ADMIN"),
+        Menu.MenuType.MENU,
+        adminFolder.id);
 
-        createMenu(tenant, "roles", "角色管理", "/admin/roles", "TeamOutlined", 40,
-            List.of("ADMIN"), Menu.MenuType.MENU, adminFolder != null ? adminFolder.id : null);
+    createMenu(
+        tenant,
+        "roles",
+        "角色管理",
+        "/admin/roles",
+        "TeamOutlined",
+        40,
+        List.of("ADMIN"),
+        Menu.MenuType.MENU,
+        adminFolder.id);
 
-        createMenu(tenant, "admin:users", "用户管理", "/admin/users", "UserOutlined", 35,
-            List.of("ADMIN"), Menu.MenuType.MENU, adminFolder != null ? adminFolder.id : null);
+    createMenu(
+        tenant,
+        "admin:users",
+        "用户管理",
+        "/admin/users",
+        "UserOutlined",
+        35,
+        List.of("ADMIN"),
+        Menu.MenuType.MENU,
+        adminFolder.id);
 
-        createMenu(tenant, "admin:dict", "数据字典", "/admin/dict", "BookOutlined", 50,
-            List.of("ADMIN"), Menu.MenuType.MENU, adminFolder != null ? adminFolder.id : null);
-
-        createMenu(tenant, "permissions", "权限管理", "/admin/permissions", "LockOutlined", 45,
-            List.of("ADMIN"), Menu.MenuType.MENU, adminFolder != null ? adminFolder.id : null);
-
-        createMenu(tenant, "settings", "设置", "/settings", "SettingOutlined", 60,
-            Arrays.asList("USER", "MANAGER", "ADMIN"), Menu.MenuType.MENU, null);
+    createMenu(
+        tenant,
+        "admin:dict",
+        "数据字典",
+        "/admin/dict",
+        "BookOutlined",
+        50,
+        List.of("ADMIN"),
+        Menu.MenuType.MENU,
+        adminFolder.id);
 
         log.info("Default menus initialization completed.");
     }

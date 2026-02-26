@@ -79,9 +79,12 @@ public class Role extends BaseEntity {
         return listByTenant(tenantId, page, size);
       }
       String pattern = "%" + keyword.trim().toLowerCase() + "%";
+      java.util.HashMap<String, Object> params = new java.util.HashMap<>();
+      params.put("tenant", tenantId);
+      params.put("pattern", pattern);
       return find(
               "tenant = :tenant and (lower(code) like :pattern or lower(name) like :pattern)",
-              io.quarkus.panache.common.Parameters.with("tenant", tenantId).and("pattern", pattern))
+              params)
           .page(page, size)
           .list();
     }
@@ -95,9 +98,11 @@ public class Role extends BaseEntity {
         return countByTenant(tenantId);
       }
       String pattern = "%" + keyword.trim().toLowerCase() + "%";
+      java.util.HashMap<String, Object> params = new java.util.HashMap<>();
+      params.put("tenant", tenantId);
+      params.put("pattern", pattern);
       return count(
-          "tenant = :tenant and (lower(code) like :pattern or lower(name) like :pattern)",
-          io.quarkus.panache.common.Parameters.with("tenant", tenantId).and("pattern", pattern));
+          "tenant = :tenant and (lower(code) like :pattern or lower(name) like :pattern)", params);
     }
   }
 }
