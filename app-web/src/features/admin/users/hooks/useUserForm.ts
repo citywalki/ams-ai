@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { useForm } from '@tanstack/react-form';
+import { useForm, type ReactFormExtendedApi } from '@tanstack/react-form';
 import { systemApi, type UserItem, type UserCreatePayload, type UserUpdatePayload } from '@/utils/api';
 import { invalidateUserList } from '../queries';
 import {
@@ -9,6 +9,9 @@ import {
   editUserFormSchema,
   type UserFormData,
 } from '../schemas/user-schema';
+
+// Export form type for use in components
+export type UserFormApi = ReactFormExtendedApi<UserFormData, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined>;
 
 const defaultFormValues: UserFormData = {
   username: '',

@@ -19,41 +19,44 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type RoleOption } from '@/utils/api';
-import { type UserFormState } from '../types';
+import { type ReactFormExtendedApi } from '@tanstack/react-form';
+import { type UserFormData } from '../schemas/user-schema';
+
+type UserFormApi = ReactFormExtendedApi<UserFormData, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined>;
 
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: 'create' | 'edit';
-  formState: UserFormState;
-  loading: boolean;
+  form: UserFormApi;
   error: string | null;
   roles: RoleOption[];
-  onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
   onToggleRole: (roleId: string) => void;
-  onUpdateField: <K extends keyof UserFormState>(field: K, value: UserFormState[K]) => void;
 }
 
 export function UserFormDialog({
   open,
   onOpenChange,
   mode,
-  formState,
-  loading,
+  form,
   error,
   roles,
-  onSubmit,
   onClose,
   onToggleRole,
-  onUpdateField,
 }: UserFormDialogProps) {
   const { t } = useTranslation();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <form onSubmit={onSubmit}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>
               {mode === 'create'
@@ -72,74 +75,99 @@ export function UserFormDialog({
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="username">{t('pages.userManagement.form.username')}</Label>
-              <Input
-                id="username"
-                value={formState.username}
-                onChange={(e) => onUpdateField('username', e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('pages.userManagement.form.email')}</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formState.email}
-                onChange={(e) => onUpdateField('email', e.target.value)}
-              />
-            </div>
+            <form.Field name="username">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="username">{t('pages.userManagement.form.username')}</Label>
+                  <Input
+                    id="username"
+                    value={field.state.value as string}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    required
+                  />
+                </div>
+              )}
+            </form.Field>
+            <form.Field name="email">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="email">{t('pages.userManagement.form.email')}</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={field.state.value as string}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </div>
+              )}
+            </form.Field>
             {mode === 'create' && (
-              <div className="space-y-2">
-                <Label htmlFor="password">{t('pages.userManagement.form.password')}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formState.password}
-                  onChange={(e) => onUpdateField('password', e.target.value)}
-                  required
-                />
-              </div>
+              <form.Field name="password">
+                {(field) => (
+                  <div className="space-y-2">
+                    <Label htmlFor="password">{t('pages.userManagement.form.password')}</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      required
+                    />
+                  </div>
+                )}
+              </form.Field>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="status">{t('pages.userManagement.form.status')}</Label>
-              <Select
-                value={formState.status}
-                onValueChange={(value) => onUpdateField('status', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
-                  <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('pages.userManagement.form.roles')}</Label>
-              <div className="flex flex-wrap gap-2">
-                {roles.map((role) => (
-                  <Button
-                    key={role.id}
-                    type="button"
-                    variant={formState.roleIds.includes(role.id) ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => onToggleRole(role.id)}
+            <form.Field name="status">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="status">{t('pages.userManagement.form.status')}</Label>
+                  <Select
+                    value={field.state.value as string}
+                    onValueChange={(value) => field.handleChange(value as 'ACTIVE' | 'INACTIVE')}
                   >
-                    {role.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
+                      <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </form.Field>
+            <form.Field name="roleIds">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label>{t('pages.userManagement.form.roles')}</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {roles.map((role) => (
+                      <Button
+                        key={role.id}
+                        type="button"
+                        variant={(field.state.value as string[]).includes(role.id) ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => onToggleRole(role.id)}
+                      >
+                        {role.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </form.Field>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? t('pages.userManagement.messages.submitting') : t('common.confirm')}
+            <Button type="submit" disabled={form.state.isSubmitting}>
+              {form.state.isSubmitting
+                ? t('pages.userManagement.messages.submitting')
+                : t('common.confirm')}
             </Button>
           </DialogFooter>
         </form>
