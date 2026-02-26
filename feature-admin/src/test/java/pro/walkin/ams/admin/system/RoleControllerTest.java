@@ -44,10 +44,10 @@ class RoleControllerTest {
       role.name = "Administrator";
       role.tenant = 1L;
 
-      when(roleService.findAll(0, 20, "adm")).thenReturn(List.of(role));
+      when(roleService.findAll(0, 20, "adm", "createdAt", "DESC")).thenReturn(List.of(role));
       when(roleService.count("adm")).thenReturn(1L);
 
-      Response response = roleController.findAll(0, 20, "adm");
+      Response response = roleController.findAll(0, 20, "adm", "createdAt", "DESC");
 
       assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
       assertThat(response.getHeaderString("X-Total-Count")).isEqualTo("1");
