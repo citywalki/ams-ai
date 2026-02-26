@@ -1,4 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
+import {useQueryClient} from '@tanstack/react-query';
+import {useTranslation} from 'react-i18next';
 import {FolderOpen, Lock, Pencil, Plus, Search, Trash2} from 'lucide-react';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
@@ -20,6 +22,12 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/
 import {Alert, AlertDescription} from '@/components/ui/alert';
 import {Switch} from '@/components/ui/switch';
 import {menuApi, type MenuItem, type MenuPayload, type PermissionItem, type PermissionPayload,} from '@/utils/api';
+import {
+  fetchFolders,
+  fetchMenuPermissions,
+  fetchMenusByFolder,
+  invalidateMenuQueries,
+} from '@/features/admin/menus/queries';
 
 type MenuFormState = {
   key: string;
@@ -60,6 +68,8 @@ const initialPermissionForm: PermissionFormState = {
 };
 
 export default function MenuManagementPage() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [folders, setFolders] = useState<MenuItem[]>([]);
   const [folderSearch, setFolderSearch] = useState('');
     const [selectedFolder, setSelectedFolder] = useState<'root' | MenuItem>('root');
@@ -99,32 +109,27 @@ export default function MenuManagementPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await menuApi.getFolders();
-      setFolders(res.data);
+      const data = await fetchFolders(queryClient);
+      setFolders(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载菜单分类失败');
+      setError(err instanceof Error ? err.message : t('pages.menuManagement.messages.loadFoldersFailed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [queryClient, t]);
 
     const loadMenus = useCallback(async (folder: 'root' | MenuItem) => {
     setMenusLoading(true);
     try {
-        let res;
-        if (folder === 'root') {
-            res = await menuApi.getRootMenus();
-        } else {
-            res = await menuApi.getMenusByParent(folder.id);
-        }
-      setMenus(res.data);
+      const data = await fetchMenusByFolder(queryClient, folder);
+      setMenus(data);
     } catch (err) {
       console.error('Failed to load menus:', err);
       setMenus([]);
     } finally {
       setMenusLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     void loadFolders();
@@ -193,10 +198,11 @@ export default function MenuManagementPage() {
       } else if (editingMenu) {
         await menuApi.updateMenu(editingMenu.id, payload);
       }
+      await invalidateMenuQueries(queryClient);
       closeMenuDialog();
         void loadMenus(selectedFolder);
     } catch (err) {
-      setMenuFormError(err instanceof Error ? err.message : '操作失败');
+      setMenuFormError(err instanceof Error ? err.message : t('pages.menuManagement.messages.operationFailed'));
     } finally {
       setMenuFormLoading(false);
     }
@@ -212,6 +218,7 @@ export default function MenuManagementPage() {
     setDeleteMenuLoading(true);
     try {
       await menuApi.deleteMenu(deleteMenu.id);
+      await invalidateMenuQueries(queryClient);
       setDeleteMenuOpen(false);
       setDeleteMenu(null);
         void loadMenus(selectedFolder);
@@ -227,8 +234,8 @@ export default function MenuManagementPage() {
     setPermissionDialogOpen(true);
     setPermissionsLoading(true);
     try {
-      const res = await menuApi.getMenuPermissions(menu.id);
-      setPermissions(res.data);
+      const data = await fetchMenuPermissions(queryClient, menu.id);
+      setPermissions(data);
     } catch (err) {
       console.error('Failed to load permissions:', err);
       setPermissions([]);
@@ -285,11 +292,12 @@ export default function MenuManagementPage() {
       } else if (editingPermission) {
         await menuApi.updatePermission(editingPermission.id, payload);
       }
+      await invalidateMenuQueries(queryClient);
       closePermissionFormDialog();
-      const res = await menuApi.getMenuPermissions(selectedMenuForPermission.id);
-      setPermissions(res.data);
+      const data = await fetchMenuPermissions(queryClient, selectedMenuForPermission.id);
+      setPermissions(data);
     } catch (err) {
-      setPermissionFormError(err instanceof Error ? err.message : '操作失败');
+      setPermissionFormError(err instanceof Error ? err.message : t('pages.menuManagement.messages.operationFailed'));
     } finally {
       setPermissionFormLoading(false);
     }
@@ -305,10 +313,11 @@ export default function MenuManagementPage() {
     setDeletePermissionLoading(true);
     try {
       await menuApi.deletePermission(deletePermission.id);
+      await invalidateMenuQueries(queryClient);
       setDeletePermissionOpen(false);
       setDeletePermission(null);
-      const res = await menuApi.getMenuPermissions(selectedMenuForPermission.id);
-      setPermissions(res.data);
+      const data = await fetchMenuPermissions(queryClient, selectedMenuForPermission.id);
+      setPermissions(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -326,7 +335,7 @@ export default function MenuManagementPage() {
       <Card className="w-[280px] min-h-0 flex-shrink-0 flex flex-col">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">菜单分类</CardTitle>
+            <CardTitle className="text-base">{t('pages.menuManagement.folderTitle')}</CardTitle>
             <Button size="sm" onClick={openCreateMenuDialog}>
               <Plus className="h-4 w-4" />
             </Button>
@@ -334,7 +343,7 @@ export default function MenuManagementPage() {
           <div className="relative mt-2">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="搜索分类..."
+              placeholder={t('pages.menuManagement.form.searchFolderPlaceholder')}
               value={folderSearch}
               onChange={(e) => setFolderSearch(e.target.value)}
               className="pl-8 h-9"
@@ -355,7 +364,6 @@ export default function MenuManagementPage() {
           ) : (
             <ScrollArea className="h-full">
               <div className="px-6 py-2 space-y-1">
-                  {/* 根菜单选项 */}
                   <div
                       className={`flex items-center justify-between p-2 rounded-md cursor-pointer group ${
                           selectedFolder === 'root'
@@ -366,7 +374,7 @@ export default function MenuManagementPage() {
                   >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                           <FolderOpen className="h-4 w-4 flex-shrink-0"/>
-                          <span className="truncate text-sm">根菜单</span>
+                          <span className="truncate text-sm">{t('pages.menuManagement.rootMenu')}</span>
                       </div>
                   </div>
                 {folders
@@ -426,7 +434,7 @@ export default function MenuManagementPage() {
                       : true
                   ).length === 0 && (
                   <div className="text-center py-8 text-muted-foreground text-sm px-6">
-                    暂无分类
+                    {t('pages.menuManagement.messages.noFolders')}
                   </div>
                 )}
               </div>
@@ -440,7 +448,7 @@ export default function MenuManagementPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base">
-                  {selectedFolder === 'root' ? '根菜单' : selectedFolder?.label}
+                  {selectedFolder === 'root' ? t('pages.menuManagement.rootMenu') : selectedFolder?.label}
               </CardTitle>
                 {selectedFolder !== 'root' && selectedFolder?.route && (
                 <CardDescription>{selectedFolder.route}</CardDescription>
@@ -448,7 +456,7 @@ export default function MenuManagementPage() {
             </div>
               <Button size="sm" onClick={openCreateMenuDialog}>
                   <Plus className="h-4 w-4 mr-1"/>
-                  添加菜单
+                  {t('pages.menuManagement.actions.addMenu')}
               </Button>
           </div>
         </CardHeader>
@@ -461,7 +469,7 @@ export default function MenuManagementPage() {
             </div>
           ) : menus.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
-              暂无菜单项
+              {t('pages.menuManagement.messages.noMenus')}
             </div>
           ) : (
             <ScrollArea className="h-full">
@@ -470,11 +478,11 @@ export default function MenuManagementPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Key</TableHead>
-                    <TableHead>名称</TableHead>
-                    <TableHead>路由</TableHead>
-                    <TableHead>排序</TableHead>
-                    <TableHead>可见</TableHead>
-                    <TableHead>操作</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.name')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.route')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.sortOrder')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.visible')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -486,15 +494,15 @@ export default function MenuManagementPage() {
                       <TableCell>{menu.sortOrder}</TableCell>
                       <TableCell>
                         {menu.isVisible
-                          ? <Badge variant="success">是</Badge>
-                          : <Badge variant="secondary">否</Badge>}
+                          ? <Badge variant="success">{t('pages.menuManagement.form.yes')}</Badge>
+                          : <Badge variant="secondary">{t('pages.menuManagement.form.no')}</Badge>}
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-start gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            title="编辑权限"
+                            title={t('pages.menuManagement.actions.managePermissions')}
                             onClick={() => openPermissionDialog(menu)}
                           >
                             <Lock className="h-4 w-4" />
@@ -531,7 +539,9 @@ export default function MenuManagementPage() {
           <form onSubmit={handleMenuFormSubmit}>
             <DialogHeader>
               <DialogTitle>
-                {menuDialogMode === 'create' ? '新增菜单' : '编辑菜单'}
+                {menuDialogMode === 'create'
+                  ? t('pages.menuManagement.dialog.createMenuTitle')
+                  : t('pages.menuManagement.dialog.editMenuTitle')}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -549,7 +559,7 @@ export default function MenuManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>名称</Label>
+                <Label>{t('pages.menuManagement.form.name')}</Label>
                 <Input
                   value={menuForm.label}
                   onChange={(e) => setMenuForm((p) => ({ ...p, label: e.target.value }))}
@@ -557,21 +567,21 @@ export default function MenuManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>路由</Label>
+                <Label>{t('pages.menuManagement.form.route')}</Label>
                 <Input
                   value={menuForm.route}
                   onChange={(e) => setMenuForm((p) => ({ ...p, route: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>图标</Label>
+                <Label>{t('pages.menuManagement.form.icon')}</Label>
                 <Input
                   value={menuForm.icon}
                   onChange={(e) => setMenuForm((p) => ({ ...p, icon: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>允许角色（逗号分隔）</Label>
+                <Label>{t('pages.menuManagement.form.rolesAllowed')}</Label>
                 <Input
                   value={menuForm.rolesAllowed}
                   onChange={(e) => setMenuForm((p) => ({ ...p, rolesAllowed: e.target.value }))}
@@ -580,7 +590,7 @@ export default function MenuManagementPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>排序</Label>
+                  <Label>{t('pages.menuManagement.form.sortOrder')}</Label>
                   <Input
                     type="number"
                     value={menuForm.sortOrder}
@@ -588,7 +598,7 @@ export default function MenuManagementPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>类型</Label>
+                  <Label>{t('pages.menuManagement.form.type')}</Label>
                   <Select
                     value={menuForm.menuType}
                     onValueChange={(v: 'FOLDER' | 'MENU') => setMenuForm((p) => ({ ...p, menuType: v }))}
@@ -597,8 +607,8 @@ export default function MenuManagementPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="FOLDER">目录</SelectItem>
-                      <SelectItem value="MENU">菜单</SelectItem>
+                      <SelectItem value="FOLDER">{t('pages.menuManagement.form.folderType')}</SelectItem>
+                      <SelectItem value="MENU">{t('pages.menuManagement.form.menuType')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -608,15 +618,15 @@ export default function MenuManagementPage() {
                   checked={menuForm.isVisible}
                   onCheckedChange={(checked) => setMenuForm((p) => ({ ...p, isVisible: checked }))}
                 />
-                <Label>可见</Label>
+                <Label>{t('pages.menuManagement.form.visible')}</Label>
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeMenuDialog}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={menuFormLoading}>
-                {menuFormLoading ? '提交中...' : '确定'}
+                {menuFormLoading ? t('pages.menuManagement.messages.submitting') : t('common.confirm')}
               </Button>
             </DialogFooter>
           </form>
@@ -628,17 +638,17 @@ export default function MenuManagementPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              权限管理 - {selectedMenuForPermission?.label}
+              {t('pages.menuManagement.dialog.permissionTitle', { label: selectedMenuForPermission?.label ?? '-' })}
             </DialogTitle>
             <DialogDescription>
-              管理菜单 "{selectedMenuForPermission?.key}" 的按钮权限
+              {t('pages.menuManagement.dialog.permissionDescription', { key: selectedMenuForPermission?.key ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="flex justify-end mb-4">
               <Button size="sm" onClick={openCreatePermissionDialog}>
                 <Plus className="h-4 w-4 mr-1" />
-                添加权限
+                {t('pages.menuManagement.actions.addPermission')}
               </Button>
             </div>
             {permissionsLoading ? (
@@ -649,17 +659,17 @@ export default function MenuManagementPage() {
               </div>
             ) : permissions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                暂无权限
+                {t('pages.menuManagement.messages.noPermissions')}
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>编码</TableHead>
-                    <TableHead>名称</TableHead>
-                    <TableHead>排序</TableHead>
-                    <TableHead>按钮类型</TableHead>
-                    <TableHead>操作</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.code')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.name')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.sortOrder')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.buttonType')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -695,7 +705,7 @@ export default function MenuManagementPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPermissionDialogOpen(false)}>
-              关闭
+              {t('pages.menuManagement.actions.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -707,7 +717,9 @@ export default function MenuManagementPage() {
           <form onSubmit={handlePermissionFormSubmit}>
             <DialogHeader>
               <DialogTitle>
-                {permissionFormMode === 'create' ? '新增权限' : '编辑权限'}
+                {permissionFormMode === 'create'
+                  ? t('pages.menuManagement.dialog.createPermissionTitle')
+                  : t('pages.menuManagement.dialog.editPermissionTitle')}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -717,7 +729,7 @@ export default function MenuManagementPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label>编码</Label>
+                <Label>{t('pages.menuManagement.columns.code')}</Label>
                 <Input
                   value={permissionForm.code}
                   onChange={(e) => setPermissionForm((p) => ({ ...p, code: e.target.value }))}
@@ -725,7 +737,7 @@ export default function MenuManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>名称</Label>
+                <Label>{t('pages.menuManagement.columns.name')}</Label>
                 <Input
                   value={permissionForm.name}
                   onChange={(e) => setPermissionForm((p) => ({ ...p, name: e.target.value }))}
@@ -733,7 +745,7 @@ export default function MenuManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>描述</Label>
+                <Label>{t('pages.menuManagement.columns.description')}</Label>
                 <Input
                   value={permissionForm.description}
                   onChange={(e) => setPermissionForm((p) => ({ ...p, description: e.target.value }))}
@@ -741,7 +753,7 @@ export default function MenuManagementPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>排序</Label>
+                  <Label>{t('pages.menuManagement.columns.sortOrder')}</Label>
                   <Input
                     type="number"
                     value={permissionForm.sortOrder}
@@ -749,7 +761,7 @@ export default function MenuManagementPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>按钮类型</Label>
+                  <Label>{t('pages.menuManagement.columns.buttonType')}</Label>
                   <Input
                     value={permissionForm.buttonType}
                     onChange={(e) => setPermissionForm((p) => ({ ...p, buttonType: e.target.value }))}
@@ -760,10 +772,10 @@ export default function MenuManagementPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closePermissionFormDialog}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={permissionFormLoading}>
-                {permissionFormLoading ? '提交中...' : '确定'}
+                {permissionFormLoading ? t('pages.menuManagement.messages.submitting') : t('common.confirm')}
               </Button>
             </DialogFooter>
           </form>
@@ -774,17 +786,17 @@ export default function MenuManagementPage() {
       <Dialog open={deleteMenuOpen} onOpenChange={setDeleteMenuOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
+            <DialogTitle>{t('pages.menuManagement.dialog.deleteMenuTitle')}</DialogTitle>
             <DialogDescription>
-              确定要删除菜单 "{deleteMenu?.label}" 吗？请先删除子菜单和关联权限。
+              {t('pages.menuManagement.dialog.deleteMenuDescription', { label: deleteMenu?.label ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteMenuOpen(false)}>
-              取消
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteMenu} disabled={deleteMenuLoading}>
-              {deleteMenuLoading ? '删除中...' : '删除'}
+              {deleteMenuLoading ? t('pages.menuManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -794,17 +806,17 @@ export default function MenuManagementPage() {
       <Dialog open={deletePermissionOpen} onOpenChange={setDeletePermissionOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
+            <DialogTitle>{t('pages.menuManagement.dialog.deletePermissionTitle')}</DialogTitle>
             <DialogDescription>
-              确定要删除权限 "{deletePermission?.name}" 吗？此操作不可撤销。
+              {t('pages.menuManagement.dialog.deletePermissionDescription', { name: deletePermission?.name ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeletePermissionOpen(false)}>
-              取消
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeletePermission} disabled={deletePermissionLoading}>
-              {deletePermissionLoading ? '删除中...' : '删除'}
+              {deletePermissionLoading ? t('pages.menuManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

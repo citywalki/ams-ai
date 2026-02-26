@@ -25,6 +25,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ColumnDef } from '@tanstack/react-table';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
+import { queryKeys } from '@/lib/queryKeys';
+import { fetchUsersPage, invalidateUserList } from '@/features/admin/users/queries';
 import {
   systemApi,
   type UserItem,
@@ -32,7 +34,6 @@ import {
   type UserCreatePayload,
   type UserUpdatePayload,
 } from '@/utils/api';
-import type { QueryParams, PageResponse } from '@/types/table';
 
 type UserFormState = {
   username: string;
@@ -49,30 +50,6 @@ const initialFormState: UserFormState = {
   status: 'ACTIVE',
   roleIds: [],
 };
-
-async function fetchUsers(params: QueryParams, searchParams: Record<string, string>): Promise<PageResponse<UserItem>> {
-  const res = await systemApi.getUsers({ ...params, ...searchParams });
-  const userList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
-  const totalCountHeader =
-    (res.headers?.['x-total-count'] as string | number | undefined)
-    ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
-  let totalCount = Number(totalCountHeader);
-  if (Number.isNaN(totalCount)) {
-    totalCount = Number(
-      !Array.isArray(res.data)
-        ? (res.data.totalElements ?? res.data.totalCount ?? userList.length)
-        : userList.length,
-    );
-  }
-  const totalPages = Math.ceil(totalCount / (params.size || 20));
-  return {
-    content: userList,
-    totalElements: totalCount,
-    totalPages,
-    size: params.size || 20,
-    number: params.page || 0,
-  };
-}
 
 export default function UserManagementPage() {
   const { t } = useTranslation();
@@ -156,7 +133,7 @@ export default function UserManagementPage() {
   };
 
   const refreshData = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['users'] });
+    void invalidateUserList(queryClient);
   }, [queryClient]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -185,7 +162,7 @@ export default function UserManagementPage() {
       closeDialog();
       refreshData();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : '操作失败');
+      setFormError(err instanceof Error ? err.message : t('pages.userManagement.messages.operationFailed'));
     } finally {
       setFormLoading(false);
     }
@@ -243,9 +220,9 @@ export default function UserManagementPage() {
   const getStatusBadge = (status: string) => {
     switch (status.toUpperCase()) {
       case 'ACTIVE':
-        return <Badge variant="success">启用</Badge>;
+        return <Badge variant="success">{t('pages.userManagement.status.active')}</Badge>;
       case 'INACTIVE':
-        return <Badge variant="warning">禁用</Badge>;
+        return <Badge variant="warning">{t('pages.userManagement.status.inactive')}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -254,16 +231,16 @@ export default function UserManagementPage() {
   const columns: ColumnDef<UserItem>[] = [
     {
       accessorKey: 'username',
-      header: '用户名',
+      header: t('pages.userManagement.columns.username'),
     },
     {
       accessorKey: 'email',
-      header: '邮箱',
+      header: t('pages.userManagement.columns.email'),
       cell: ({ row }) => row.original.email || '-',
     },
     {
       accessorKey: 'roles',
-      header: '角色',
+      header: t('pages.userManagement.columns.roles'),
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
           {row.original.roles?.map((role) => (
@@ -276,7 +253,7 @@ export default function UserManagementPage() {
     },
     {
       accessorKey: 'status',
-      header: '状态',
+      header: t('pages.userManagement.columns.status'),
       cell: ({ row }) => getStatusBadge(row.original.status),
     },
     {
@@ -318,30 +295,30 @@ export default function UserManagementPage() {
     <div className="h-full min-h-0 flex flex-col gap-6">
       <Card className="shrink-0">
         <CardHeader>
-          <CardTitle>用户管理</CardTitle>
-          <CardDescription>管理系统用户账户、角色分配和权限设置</CardDescription>
+          <CardTitle>{t('pages.userManagement.title')}</CardTitle>
+          <CardDescription>{t('pages.userManagement.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-[200px] space-y-2">
-              <Label>用户名</Label>
+              <Label>{t('pages.userManagement.form.username')}</Label>
               <Input
-                placeholder="输入用户名搜索..."
+                placeholder={t('pages.userManagement.form.usernameSearchPlaceholder')}
                 value={searchUsername}
                 onChange={(e) => setSearchUsername(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
             <div className="w-[180px] space-y-2">
-              <Label>状态</Label>
+              <Label>{t('pages.userManagement.form.status')}</Label>
               <Select value={searchStatus} onValueChange={setSearchStatus}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择状态" />
+                  <SelectValue placeholder={t('pages.userManagement.form.statusPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="ACTIVE">启用</SelectItem>
-                  <SelectItem value="INACTIVE">禁用</SelectItem>
+                  <SelectItem value="all">{t('pages.userManagement.status.all')}</SelectItem>
+                  <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
+                  <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -359,7 +336,7 @@ export default function UserManagementPage() {
 
       <Card className="flex-1 min-h-0 flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>用户列表</CardTitle>
+          <CardTitle>{t('pages.userManagement.listTitle')}</CardTitle>
           <Button variant="ghost" onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
             {t('common.add')}
@@ -368,8 +345,8 @@ export default function UserManagementPage() {
         <CardContent className="flex-1 min-h-0">
           <DataTable
             columns={columns}
-            queryKey={['users']}
-            queryFn={(params) => fetchUsers(params, searchParams)}
+            queryKey={queryKeys.users.list(searchParams)}
+            queryFn={(params) => fetchUsersPage(params, searchParams)}
             defaultSort={{ id: 'createdAt', desc: true }}
           />
         </CardContent>
@@ -381,12 +358,14 @@ export default function UserManagementPage() {
           <form onSubmit={handleFormSubmit}>
             <DialogHeader>
               <DialogTitle>
-                {dialogMode === 'create' ? '添加用户' : '编辑用户'}
+                {dialogMode === 'create'
+                  ? t('pages.userManagement.dialog.createTitle')
+                  : t('pages.userManagement.dialog.editTitle')}
               </DialogTitle>
               <DialogDescription>
                 {dialogMode === 'create'
-                  ? '创建新的系统用户账户'
-                  : '修改用户账户信息'}
+                  ? t('pages.userManagement.dialog.createDescription')
+                  : t('pages.userManagement.dialog.editDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -396,7 +375,7 @@ export default function UserManagementPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label htmlFor="username">用户名</Label>
+                <Label htmlFor="username">{t('pages.userManagement.form.username')}</Label>
                 <Input
                   id="username"
                   value={formState.username}
@@ -407,7 +386,7 @@ export default function UserManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">邮箱</Label>
+                <Label htmlFor="email">{t('pages.userManagement.form.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -419,7 +398,7 @@ export default function UserManagementPage() {
               </div>
               {dialogMode === 'create' && (
                 <div className="space-y-2">
-                  <Label htmlFor="password">密码</Label>
+                  <Label htmlFor="password">{t('pages.userManagement.form.password')}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -432,7 +411,7 @@ export default function UserManagementPage() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="status">状态</Label>
+                <Label htmlFor="status">{t('pages.userManagement.form.status')}</Label>
                 <Select
                   value={formState.status}
                   onValueChange={(value) =>
@@ -443,13 +422,13 @@ export default function UserManagementPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ACTIVE">启用</SelectItem>
-                    <SelectItem value="INACTIVE">禁用</SelectItem>
+                    <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
+                    <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>角色</Label>
+                <Label>{t('pages.userManagement.form.roles')}</Label>
                 <div className="flex flex-wrap gap-2">
                   {roles.map((role) => (
                     <Button
@@ -472,7 +451,7 @@ export default function UserManagementPage() {
                 {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={formLoading}>
-                {formLoading ? '提交中...' : t('common.confirm')}
+                {formLoading ? t('pages.userManagement.messages.submitting') : t('common.confirm')}
               </Button>
             </DialogFooter>
           </form>
@@ -483,14 +462,14 @@ export default function UserManagementPage() {
       <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>重置密码</DialogTitle>
+            <DialogTitle>{t('pages.userManagement.dialog.resetPasswordTitle')}</DialogTitle>
             <DialogDescription>
-              为用户 {resetPasswordUser?.username} 设置新密码
+              {t('pages.userManagement.dialog.resetPasswordDescription', { username: resetPasswordUser?.username ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="newPassword">新密码</Label>
+              <Label htmlFor="newPassword">{t('pages.userManagement.form.newPassword')}</Label>
               <Input
                 id="newPassword"
                 type="password"
@@ -507,7 +486,7 @@ export default function UserManagementPage() {
               {t('common.cancel')}
             </Button>
             <Button onClick={handleResetPassword} disabled={resetLoading}>
-              {resetLoading ? '处理中...' : t('common.confirm')}
+              {resetLoading ? t('pages.userManagement.messages.processing') : t('common.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -517,9 +496,9 @@ export default function UserManagementPage() {
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
+            <DialogTitle>{t('pages.userManagement.dialog.deleteTitle')}</DialogTitle>
             <DialogDescription>
-              确定要删除用户 {deleteUser?.username} 吗？此操作不可撤销。
+              {t('pages.userManagement.dialog.deleteDescription', { username: deleteUser?.username ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -531,7 +510,7 @@ export default function UserManagementPage() {
               onClick={handleDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? '删除中...' : t('common.delete')}
+              {deleteLoading ? t('pages.userManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2, FolderOpen, ChevronRight, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +41,11 @@ import {
   type DictCategoryPayload,
   type DictItemPayload,
 } from '@/utils/api';
+import {
+  fetchCategories,
+  fetchDictItems,
+  invalidateDictQueries,
+} from '@/features/admin/dict/queries';
 
 type CategoryFormState = {
   code: string;
@@ -79,6 +86,8 @@ const initialItemForm: ItemFormState = {
 };
 
 export default function DictManagementPage() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<DictCategory[]>([]);
   const [categorySearch, setCategorySearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<DictCategory | null>(null);
@@ -113,30 +122,30 @@ export default function DictManagementPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await dictApi.getCategories();
-      setCategories(res.data);
-      if (res.data.length > 0 && !selectedCategory) {
-        setSelectedCategory(res.data[0]);
+      const data = await fetchCategories(queryClient);
+      setCategories(data);
+      if (data.length > 0 && !selectedCategory) {
+        setSelectedCategory(data[0]);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载分类失败');
+      setError(err instanceof Error ? err.message : t('pages.dictManagement.messages.loadCategoriesFailed'));
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory]);
+  }, [queryClient, selectedCategory, t]);
 
   const loadItems = useCallback(async (categoryId: string) => {
     setItemsLoading(true);
     try {
-      const res = await dictApi.getItems(categoryId);
-      setItems(res.data);
+      const data = await fetchDictItems(queryClient, categoryId);
+      setItems(data);
     } catch (err) {
       console.error('Failed to load items:', err);
       setItems([]);
     } finally {
       setItemsLoading(false);
     }
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     void loadCategories();
@@ -198,10 +207,11 @@ export default function DictManagementPage() {
       } else if (editingCategory) {
         await dictApi.updateCategory(editingCategory.id, payload);
       }
+      await invalidateDictQueries(queryClient);
       closeCategoryDialog();
       void loadCategories();
     } catch (err) {
-      setCategoryFormError(err instanceof Error ? err.message : '操作失败');
+      setCategoryFormError(err instanceof Error ? err.message : t('pages.dictManagement.messages.operationFailed'));
     } finally {
       setCategoryFormLoading(false);
     }
@@ -217,6 +227,7 @@ export default function DictManagementPage() {
     setDeleteCategoryLoading(true);
     try {
       await dictApi.deleteCategory(deleteCategory.id);
+      await invalidateDictQueries(queryClient);
       setDeleteCategoryOpen(false);
       setDeleteCategory(null);
       if (selectedCategory?.id === deleteCategory.id) {
@@ -286,12 +297,13 @@ export default function DictManagementPage() {
       } else if (editingItem) {
         await dictApi.updateItem(editingItem.id, payload);
       }
+      await invalidateDictQueries(queryClient);
       closeItemDialog();
       if (selectedCategory) {
         void loadItems(selectedCategory.id);
       }
     } catch (err) {
-      setItemFormError(err instanceof Error ? err.message : '操作失败');
+      setItemFormError(err instanceof Error ? err.message : t('pages.dictManagement.messages.operationFailed'));
     } finally {
       setItemFormLoading(false);
     }
@@ -307,6 +319,7 @@ export default function DictManagementPage() {
     setDeleteItemLoading(true);
     try {
       await dictApi.deleteItem(deleteItem.id);
+      await invalidateDictQueries(queryClient);
       setDeleteItemOpen(false);
       setDeleteItem(null);
       if (selectedCategory) {
@@ -321,8 +334,8 @@ export default function DictManagementPage() {
 
   const getStatusBadge = (status: number) => {
     return status === 1
-      ? <Badge variant="success">启用</Badge>
-      : <Badge variant="warning">禁用</Badge>;
+      ? <Badge variant="success">{t('pages.dictManagement.status.active')}</Badge>
+      : <Badge variant="warning">{t('pages.dictManagement.status.inactive')}</Badge>;
   };
 
   return (
@@ -330,7 +343,7 @@ export default function DictManagementPage() {
       <Card className="w-[280px] min-h-0 flex-shrink-0 flex flex-col">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">字典分类</CardTitle>
+            <CardTitle className="text-base">{t('pages.dictManagement.categoryTitle')}</CardTitle>
             <Button size="sm" onClick={openCreateCategoryDialog}>
               <Plus className="h-4 w-4" />
             </Button>
@@ -338,7 +351,7 @@ export default function DictManagementPage() {
           <div className="relative mt-2">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="搜索分类..."
+              placeholder={t('pages.dictManagement.form.searchCategoryPlaceholder')}
               value={categorySearch}
               onChange={(e) => setCategorySearch(e.target.value)}
               className="pl-8 h-9"
@@ -416,7 +429,7 @@ export default function DictManagementPage() {
                       : true
                   ).length === 0 && (
                   <div className="text-center py-8 text-muted-foreground text-sm px-6">
-                    暂无分类
+                    {t('pages.dictManagement.messages.noCategories')}
                   </div>
                 )}
               </div>
@@ -430,7 +443,7 @@ export default function DictManagementPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base">
-                {selectedCategory ? selectedCategory.name : '字典项'}
+                {selectedCategory ? selectedCategory.name : t('pages.dictManagement.itemTitle')}
               </CardTitle>
               {selectedCategory?.description && (
                 <CardDescription>{selectedCategory.description}</CardDescription>
@@ -439,7 +452,7 @@ export default function DictManagementPage() {
             {selectedCategory && (
               <Button size="sm" onClick={openCreateItemDialog}>
                 <Plus className="h-4 w-4 mr-1" />
-                添加项
+                {t('pages.dictManagement.actions.addItem')}
               </Button>
             )}
           </div>
@@ -448,7 +461,7 @@ export default function DictManagementPage() {
           {!selectedCategory ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <ChevronRight className="h-4 w-4 mr-2" />
-              请选择左侧分类
+              {t('pages.dictManagement.messages.selectCategory')}
             </div>
           ) : itemsLoading ? (
             <div className="space-y-3 p-4">
@@ -458,7 +471,7 @@ export default function DictManagementPage() {
             </div>
           ) : items.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
-              暂无字典项
+               {t('pages.dictManagement.messages.noItems')}
             </div>
           ) : (
             <ScrollArea className="h-full">
@@ -466,12 +479,12 @@ export default function DictManagementPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>编码</TableHead>
-                    <TableHead>名称</TableHead>
-                    <TableHead>值</TableHead>
-                    <TableHead>排序</TableHead>
-                    <TableHead>状态</TableHead>
-                    <TableHead>操作</TableHead>
+                    <TableHead>{t('pages.dictManagement.columns.code')}</TableHead>
+                    <TableHead>{t('pages.dictManagement.columns.name')}</TableHead>
+                    <TableHead>{t('pages.dictManagement.columns.value')}</TableHead>
+                    <TableHead>{t('pages.dictManagement.columns.sortOrder')}</TableHead>
+                    <TableHead>{t('pages.dictManagement.columns.status')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -516,7 +529,9 @@ export default function DictManagementPage() {
           <form onSubmit={handleCategoryFormSubmit}>
             <DialogHeader>
               <DialogTitle>
-                {categoryDialogMode === 'create' ? '新增分类' : '编辑分类'}
+                {categoryDialogMode === 'create'
+                  ? t('pages.dictManagement.dialog.createCategoryTitle')
+                  : t('pages.dictManagement.dialog.editCategoryTitle')}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -526,7 +541,7 @@ export default function DictManagementPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label>编码</Label>
+                <Label>{t('pages.dictManagement.columns.code')}</Label>
                 <Input
                   value={categoryForm.code}
                   onChange={(e) => setCategoryForm((p) => ({ ...p, code: e.target.value }))}
@@ -534,7 +549,7 @@ export default function DictManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>名称</Label>
+                <Label>{t('pages.dictManagement.columns.name')}</Label>
                 <Input
                   value={categoryForm.name}
                   onChange={(e) => setCategoryForm((p) => ({ ...p, name: e.target.value }))}
@@ -542,7 +557,7 @@ export default function DictManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>描述</Label>
+                <Label>{t('pages.dictManagement.columns.description')}</Label>
                 <Textarea
                   value={categoryForm.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCategoryForm((p) => ({ ...p, description: e.target.value }))}
@@ -550,7 +565,7 @@ export default function DictManagementPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>排序</Label>
+                  <Label>{t('pages.dictManagement.columns.sortOrder')}</Label>
                   <Input
                     type="number"
                     value={categoryForm.sort}
@@ -558,7 +573,7 @@ export default function DictManagementPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>状态</Label>
+                  <Label>{t('pages.dictManagement.columns.status')}</Label>
                   <Select
                     value={String(categoryForm.status)}
                     onValueChange={(v) => setCategoryForm((p) => ({ ...p, status: parseInt(v) }))}
@@ -567,8 +582,8 @@ export default function DictManagementPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">启用</SelectItem>
-                      <SelectItem value="0">禁用</SelectItem>
+                      <SelectItem value="1">{t('pages.dictManagement.status.active')}</SelectItem>
+                      <SelectItem value="0">{t('pages.dictManagement.status.inactive')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -576,10 +591,10 @@ export default function DictManagementPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeCategoryDialog}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={categoryFormLoading}>
-                {categoryFormLoading ? '提交中...' : '确定'}
+                {categoryFormLoading ? t('pages.dictManagement.messages.submitting') : t('common.confirm')}
               </Button>
             </DialogFooter>
           </form>
@@ -592,7 +607,9 @@ export default function DictManagementPage() {
           <form onSubmit={handleItemFormSubmit}>
             <DialogHeader>
               <DialogTitle>
-                {itemDialogMode === 'create' ? '新增字典项' : '编辑字典项'}
+                {itemDialogMode === 'create'
+                  ? t('pages.dictManagement.dialog.createItemTitle')
+                  : t('pages.dictManagement.dialog.editItemTitle')}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -602,7 +619,7 @@ export default function DictManagementPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label>编码</Label>
+                <Label>{t('pages.dictManagement.columns.code')}</Label>
                 <Input
                   value={itemForm.code}
                   onChange={(e) => setItemForm((p) => ({ ...p, code: e.target.value }))}
@@ -610,7 +627,7 @@ export default function DictManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>名称</Label>
+                <Label>{t('pages.dictManagement.columns.name')}</Label>
                 <Input
                   value={itemForm.name}
                   onChange={(e) => setItemForm((p) => ({ ...p, name: e.target.value }))}
@@ -618,14 +635,14 @@ export default function DictManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>值</Label>
+                <Label>{t('pages.dictManagement.columns.value')}</Label>
                 <Input
                   value={itemForm.value}
                   onChange={(e) => setItemForm((p) => ({ ...p, value: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>备注</Label>
+                <Label>{t('pages.dictManagement.columns.remark')}</Label>
                 <Textarea
                   value={itemForm.remark}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setItemForm((p) => ({ ...p, remark: e.target.value }))}
@@ -633,7 +650,7 @@ export default function DictManagementPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>排序</Label>
+                  <Label>{t('pages.dictManagement.columns.sortOrder')}</Label>
                   <Input
                     type="number"
                     value={itemForm.sort}
@@ -641,7 +658,7 @@ export default function DictManagementPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>状态</Label>
+                  <Label>{t('pages.dictManagement.columns.status')}</Label>
                   <Select
                     value={String(itemForm.status)}
                     onValueChange={(v) => setItemForm((p) => ({ ...p, status: parseInt(v) }))}
@@ -650,8 +667,8 @@ export default function DictManagementPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">启用</SelectItem>
-                      <SelectItem value="0">禁用</SelectItem>
+                      <SelectItem value="1">{t('pages.dictManagement.status.active')}</SelectItem>
+                      <SelectItem value="0">{t('pages.dictManagement.status.inactive')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -659,10 +676,10 @@ export default function DictManagementPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeItemDialog}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={itemFormLoading}>
-                {itemFormLoading ? '提交中...' : '确定'}
+                {itemFormLoading ? t('pages.dictManagement.messages.submitting') : t('common.confirm')}
               </Button>
             </DialogFooter>
           </form>
@@ -673,17 +690,17 @@ export default function DictManagementPage() {
       <Dialog open={deleteCategoryOpen} onOpenChange={setDeleteCategoryOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
+            <DialogTitle>{t('pages.dictManagement.dialog.deleteCategoryTitle')}</DialogTitle>
             <DialogDescription>
-              确定要删除分类 "{deleteCategory?.name}" 吗？请先删除分类下的字典项。
+              {t('pages.dictManagement.dialog.deleteCategoryDescription', { name: deleteCategory?.name ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteCategoryOpen(false)}>
-              取消
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteCategory} disabled={deleteCategoryLoading}>
-              {deleteCategoryLoading ? '删除中...' : '删除'}
+              {deleteCategoryLoading ? t('pages.dictManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -693,17 +710,17 @@ export default function DictManagementPage() {
       <Dialog open={deleteItemOpen} onOpenChange={setDeleteItemOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
+            <DialogTitle>{t('pages.dictManagement.dialog.deleteItemTitle')}</DialogTitle>
             <DialogDescription>
-              确定要删除字典项 "{deleteItem?.name}" 吗？此操作不可撤销。
+              {t('pages.dictManagement.dialog.deleteItemDescription', { name: deleteItem?.name ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteItemOpen(false)}>
-              取消
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteItem} disabled={deleteItemLoading}>
-              {deleteItemLoading ? '删除中...' : '删除'}
+              {deleteItemLoading ? t('pages.dictManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

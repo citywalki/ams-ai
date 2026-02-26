@@ -19,8 +19,9 @@ import {Alert, AlertDescription} from '@/components/ui/alert';
 import {ColumnDef} from '@tanstack/react-table';
 import {useQueryClient} from '@tanstack/react-query';
 import {DataTable} from '@/components/tables/DataTable';
+import { queryKeys } from '@/lib/queryKeys';
+import { fetchRolesPage, invalidateRoleList } from '@/features/admin/roles/queries';
 import {menuApi, type MenuItem, type PermissionItem, type RoleItem, type RolePayload, systemApi,} from '@/utils/api';
-import type {QueryParams, PageResponse} from '@/types/table';
 
 type RoleFormState = {
   code: string;
@@ -35,30 +36,6 @@ const initialFormState: RoleFormState = {
   description: '',
   permissionIds: [],
 };
-
-async function fetchRoles(params: QueryParams, searchParams: Record<string, string>): Promise<PageResponse<RoleItem>> {
-  const res = await systemApi.getRoles({ ...params, ...searchParams });
-  const roleList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
-  const totalCountHeader =
-    (res.headers?.['x-total-count'] as string | number | undefined)
-    ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
-  let totalCount = Number(totalCountHeader);
-  if (Number.isNaN(totalCount)) {
-    totalCount = Number(
-      !Array.isArray(res.data)
-        ? (res.data.totalElements ?? res.data.totalCount ?? roleList.length)
-        : roleList.length,
-    );
-  }
-  const totalPages = Math.ceil(totalCount / (params.size || 20));
-  return {
-    content: roleList,
-    totalElements: totalCount,
-    totalPages,
-    size: params.size || 20,
-    number: params.page || 0,
-  };
-}
 
 export default function RoleManagementPage() {
   const { t } = useTranslation();
@@ -111,7 +88,7 @@ export default function RoleManagementPage() {
   };
 
   const refreshData = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['roles'] });
+    void invalidateRoleList(queryClient);
   }, [queryClient]);
 
   const openCreateDialog = () => {
@@ -161,7 +138,7 @@ export default function RoleManagementPage() {
       closeDialog();
       refreshData();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : '操作失败');
+      setFormError(err instanceof Error ? err.message : t('pages.roleManagement.messages.operationFailed'));
     } finally {
       setFormLoading(false);
     }
@@ -377,27 +354,27 @@ export default function RoleManagementPage() {
   const columns: ColumnDef<RoleItem>[] = [
     {
       accessorKey: 'code',
-      header: '编码',
+      header: t('pages.roleManagement.columns.code'),
       cell: ({ row }) => <span className="font-mono">{row.original.code}</span>,
     },
     {
       accessorKey: 'name',
-      header: '名称',
+      header: t('pages.roleManagement.columns.name'),
       cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
     },
     {
       accessorKey: 'description',
-      header: '描述',
+      header: t('pages.roleManagement.columns.description'),
       cell: ({ row }) => (
         <span className="text-muted-foreground">{row.original.description || '-'}</span>
       ),
     },
     {
       accessorKey: 'permissions',
-      header: '权限',
+      header: t('pages.roleManagement.columns.permissions'),
       cell: ({ row }) => {
         const count = row.original.permissionIds?.length ?? row.original.permissions?.length ?? 0;
-        return <Badge variant="secondary">{count} 个权限</Badge>;
+        return <Badge variant="secondary">{t('pages.roleManagement.columns.permissionsCount', { count })}</Badge>;
       },
     },
     {
@@ -408,7 +385,7 @@ export default function RoleManagementPage() {
           <Button
             variant="ghost"
             size="sm"
-            title="关联菜单"
+            title={t('pages.roleManagement.actions.associateMenus')}
             onClick={() => openMenuDialog(row.original)}
           >
             <Menu className="h-4 w-4" />
@@ -439,15 +416,15 @@ export default function RoleManagementPage() {
     <div className="h-full min-h-0 flex flex-col gap-6">
       <Card className="shrink-0">
         <CardHeader>
-          <CardTitle>角色管理</CardTitle>
-          <CardDescription>管理系统角色和权限配置</CardDescription>
+          <CardTitle>{t('pages.roleManagement.title')}</CardTitle>
+          <CardDescription>{t('pages.roleManagement.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-[200px] space-y-2">
-              <Label>关键词</Label>
+              <Label>{t('pages.roleManagement.form.keyword')}</Label>
               <Input
-                placeholder="输入角色名称或编码搜索..."
+                placeholder={t('pages.roleManagement.form.keywordPlaceholder')}
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -467,7 +444,7 @@ export default function RoleManagementPage() {
 
       <Card className="flex-1 min-h-0 flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>角色列表</CardTitle>
+          <CardTitle>{t('pages.roleManagement.listTitle')}</CardTitle>
           <Button variant="ghost" onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
             {t('common.add')}
@@ -476,8 +453,8 @@ export default function RoleManagementPage() {
         <CardContent className="flex-1 min-h-0">
           <DataTable
             columns={columns}
-            queryKey={['roles']}
-            queryFn={(params) => fetchRoles(params, searchParams)}
+            queryKey={queryKeys.roles.list(searchParams)}
+            queryFn={(params) => fetchRolesPage(params, searchParams)}
             defaultSort={{ id: 'createdAt', desc: true }}
           />
         </CardContent>
@@ -489,10 +466,14 @@ export default function RoleManagementPage() {
           <form onSubmit={handleFormSubmit}>
             <DialogHeader>
               <DialogTitle>
-                {dialogMode === 'create' ? '添加角色' : '编辑角色'}
+                {dialogMode === 'create'
+                  ? t('pages.roleManagement.dialog.createTitle')
+                  : t('pages.roleManagement.dialog.editTitle')}
               </DialogTitle>
               <DialogDescription>
-                {dialogMode === 'create' ? '创建新的系统角色' : '修改角色信息'}
+                {dialogMode === 'create'
+                  ? t('pages.roleManagement.dialog.createDescription')
+                  : t('pages.roleManagement.dialog.editDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -503,32 +484,32 @@ export default function RoleManagementPage() {
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="code">编码</Label>
+                  <Label htmlFor="code">{t('pages.roleManagement.form.code')}</Label>
                   <Input
                     id="code"
                     value={formState.code}
                     onChange={(e) =>
                       setFormState((prev) => ({ ...prev, code: e.target.value }))
                     }
-                    placeholder="如：ROLE_ADMIN"
+                    placeholder={t('pages.roleManagement.form.codePlaceholder')}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="name">名称</Label>
+                  <Label htmlFor="name">{t('pages.roleManagement.form.name')}</Label>
                   <Input
                     id="name"
                     value={formState.name}
                     onChange={(e) =>
                       setFormState((prev) => ({ ...prev, name: e.target.value }))
                     }
-                    placeholder="如：管理员"
+                    placeholder={t('pages.roleManagement.form.namePlaceholder')}
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">描述</Label>
+                <Label htmlFor="description">{t('pages.roleManagement.form.description')}</Label>
                 <Input
                   id="description"
                   value={formState.description}
@@ -538,14 +519,14 @@ export default function RoleManagementPage() {
                       description: e.target.value,
                     }))
                   }
-                  placeholder="角色描述（可选）"
+                  placeholder={t('pages.roleManagement.form.descriptionPlaceholder')}
                 />
               </div>
               <div className="space-y-2">
-                <Label>权限</Label>
+                <Label>{t('pages.roleManagement.form.permissions')}</Label>
                 <div className="border rounded-md p-4 max-h-[300px] overflow-y-auto">
                   {permissions.length === 0 ? (
-                    <div className="text-muted-foreground text-sm">暂无可选权限</div>
+                    <div className="text-muted-foreground text-sm">{t('pages.roleManagement.messages.noPermissions')}</div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {permissions.map((perm) => (
@@ -573,7 +554,7 @@ export default function RoleManagementPage() {
                 {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={formLoading}>
-                {formLoading ? '提交中...' : t('common.confirm')}
+                {formLoading ? t('pages.roleManagement.messages.submitting') : t('common.confirm')}
               </Button>
             </DialogFooter>
           </form>
@@ -584,9 +565,9 @@ export default function RoleManagementPage() {
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
+            <DialogTitle>{t('pages.roleManagement.dialog.deleteTitle')}</DialogTitle>
             <DialogDescription>
-              确定要删除角色 {deleteRole?.name} 吗？此操作不可撤销。
+              {t('pages.roleManagement.dialog.deleteDescription', { name: deleteRole?.name ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -598,7 +579,7 @@ export default function RoleManagementPage() {
               onClick={handleDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? '删除中...' : t('common.delete')}
+              {deleteLoading ? t('pages.roleManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -608,9 +589,11 @@ export default function RoleManagementPage() {
       <Dialog open={menuDialogOpen} onOpenChange={setMenuDialogOpen}>
         <DialogContent className="max-w-lg h-[500px] flex flex-col">
           <DialogHeader>
-            <DialogTitle>关联菜单 - {editingRoleForMenu?.name}</DialogTitle>
+            <DialogTitle>
+              {t('pages.roleManagement.dialog.menuTitle', { name: editingRoleForMenu?.name ?? '-' })}
+            </DialogTitle>
             <DialogDescription>
-              选择角色 "{editingRoleForMenu?.code}" 可访问的菜单
+              {t('pages.roleManagement.dialog.menuDescription', { code: editingRoleForMenu?.code ?? '-' })}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 min-h-0 overflow-hidden">
@@ -621,7 +604,7 @@ export default function RoleManagementPage() {
                 ))}
               </div>
             ) : menuTree.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">暂无菜单</div>
+              <div className="text-center py-8 text-muted-foreground">{t('pages.roleManagement.messages.noMenus')}</div>
             ) : (
               <div className="border rounded-md h-full overflow-y-auto">
                 {renderMenuTree(menuTree)}
@@ -633,7 +616,7 @@ export default function RoleManagementPage() {
               {t('common.cancel')}
             </Button>
             <Button onClick={handleMenuSave} disabled={menuSaving}>
-              {menuSaving ? '保存中...' : t('common.save')}
+              {menuSaving ? t('pages.roleManagement.messages.saving') : t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
