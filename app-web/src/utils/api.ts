@@ -81,6 +81,8 @@ export interface RoleQueryParams {
     page?: number;
     size?: number;
     keyword?: string;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
 }
 
 export interface RolePayload {
@@ -106,6 +108,8 @@ export interface UserQueryParams {
     username?: string;
     email?: string;
     status?: string;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
 }
 
 export interface UserCreatePayload {
@@ -207,6 +211,13 @@ export interface MenuPayload {
     rolesAllowed?: string[];
 }
 
+export interface PermissionQueryParams {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+}
+
 export interface PermissionPayload {
     code: string;
     name: string;
@@ -232,7 +243,7 @@ export const systemApi = {
         apiClient.get<{ menuIds: string[] }>(`/system/roles/${roleId}/menus`),
     updateRoleMenus: (roleId: string, menuIds: string[]) =>
         apiClient.put(`/system/roles/${roleId}/menus`, { menuIds }),
-    getPermissions: (params?: { page?: number; size?: number }) =>
+    getPermissions: (params?: PermissionQueryParams) =>
         apiClient.get<PageResponse<PermissionItem> | PermissionItem[]>('/system/permissions', {params})
 };
 
