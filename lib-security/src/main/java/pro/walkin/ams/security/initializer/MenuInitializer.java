@@ -2,6 +2,7 @@ package pro.walkin.ams.security.initializer;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,8 +16,9 @@ public class MenuInitializer extends DataInitializer {
     @Inject
     TenantInitializer tenantInitializer;
 
-    @Override
-    public void initialize() {
+  @Override
+  @Transactional
+  public void initialize() {
         Tenant tenant = tenantInitializer.getDefaultTenant();
         if (tenant == null) {
             log.warn("Default tenant not found, skipping menu initialization");

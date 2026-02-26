@@ -2,8 +2,8 @@ package pro.walkin.ams.security.initializer;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import pro.walkin.ams.common.Constants;
-import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.Role_;
 import pro.walkin.ams.persistence.entity.system.Tenant;
 import pro.walkin.ams.persistence.entity.system.User;
@@ -22,8 +22,9 @@ public class UserInitializer extends DataInitializer {
     @Inject
     PasswordService passwordService;
 
-    @Override
-    public void initialize() {
+  @Override
+  @Transactional
+  public void initialize() {
         Tenant tenant = tenantInitializer.getDefaultTenant();
         if (tenant == null) {
             log.warn("Default tenant not found, skipping user initialization");

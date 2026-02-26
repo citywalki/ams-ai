@@ -1,7 +1,7 @@
 package pro.walkin.ams.security.initializer;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import pro.walkin.ams.persistence.entity.system.Tenant;
 import pro.walkin.ams.persistence.entity.system.Tenant_;
@@ -14,8 +14,9 @@ public class TenantInitializer extends DataInitializer {
 
     private Tenant defaultTenant;
 
-    @Override
-    public void initialize() {
+  @Override
+  @Transactional
+  public void initialize() {
         if (!initDefaultData) {
             return;
         }
