@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
-import {Pencil, Plus, RotateCcw, Search, Trash2} from 'lucide-react';
+import {Menu, Pencil, Plus, RotateCcw, Search, Trash2} from 'lucide-react';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -15,14 +15,21 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {Alert, AlertDescription} from '@/components/ui/alert';
-import {type PermissionItem, type RoleItem, type RolePayload, systemApi,} from '@/utils/api';
+import {menuApi, type MenuItem, type PermissionItem, type RoleItem, type RolePayload, systemApi,} from '@/utils/api';
 
 type RoleFormState = {
   code: string;
   name: string;
   description: string;
-  permissionIds: number[];
+  permissionIds: string[];
 };
 
 const initialFormState: RoleFormState = {
@@ -38,6 +45,10 @@ export default function RoleManagementPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [queryKeyword, setQueryKeyword] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [total, setTotal] = useState(0);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
@@ -50,20 +61,51 @@ export default function RoleManagementPage() {
   const [deleteRole, setDeleteRole] = useState<RoleItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const loadRoles = useCallback(async () => {
+  const [menuDialogOpen, setMenuDialogOpen] = useState(false);
+  const [menuTree, setMenuTree] = useState<MenuItem[]>([]);
+  const [selectedMenuIds, setSelectedMenuIds] = useState<Set<string>>(new Set());
+  const [menuLoading, setMenuLoading] = useState(false);
+  const [menuSaving, setMenuSaving] = useState(false);
+  const [editingRoleForMenu, setEditingRoleForMenu] = useState<RoleItem | null>(null);
+
+  const loadRoles = useCallback(async (
+    targetPage = currentPage,
+    targetPageSize = pageSize,
+    targetKeyword = queryKeyword,
+  ) => {
     setLoading(true);
     setError(null);
     try {
-      const params = searchKeyword ? { keyword: searchKeyword } : undefined;
+      const params: { page: number; size: number; keyword?: string } = {
+        page: Math.max(targetPage - 1, 0),
+        size: targetPageSize,
+      };
+      if (targetKeyword) {
+        params.keyword = targetKeyword;
+      }
       const res = await systemApi.getRoles(params);
       const roleList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
+      const totalCountHeader =
+        (res.headers?.['x-total-count'] as string | number | undefined)
+        ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
+      let totalCount = Number(totalCountHeader);
+      if (Number.isNaN(totalCount)) {
+        totalCount = Number(
+          !Array.isArray(res.data)
+            ? (res.data.totalElements ?? res.data.totalCount ?? roleList.length)
+            : roleList.length,
+        );
+      }
       setRoles(roleList);
+      setTotal(totalCount);
+      return roleList;
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载角色失败');
+      return [] as RoleItem[];
     } finally {
       setLoading(false);
     }
-  }, [searchKeyword]);
+  }, [currentPage, pageSize, queryKeyword]);
 
   const loadPermissions = useCallback(async () => {
     try {
@@ -76,18 +118,31 @@ export default function RoleManagementPage() {
   }, []);
 
   useEffect(() => {
-    void loadRoles();
     void loadPermissions();
-  }, [loadRoles, loadPermissions]);
+  }, [loadPermissions]);
+
+  useEffect(() => {
+    void loadRoles();
+  }, [loadRoles]);
 
   const handleSearch = () => {
-    void loadRoles();
+    const keyword = searchKeyword.trim();
+    if (keyword === queryKeyword && currentPage === 1) {
+      void loadRoles(1, pageSize, keyword);
+      return;
+    }
+    setQueryKeyword(keyword);
+    setCurrentPage(1);
   };
 
   const handleReset = () => {
+    if (!searchKeyword && !queryKeyword && currentPage === 1) {
+      void loadRoles(1, pageSize, '');
+      return;
+    }
     setSearchKeyword('');
-    setRoles([]);
-    setTimeout(() => void loadRoles(), 0);
+    setQueryKeyword('');
+    setCurrentPage(1);
   };
 
   const openCreateDialog = () => {
@@ -148,6 +203,94 @@ export default function RoleManagementPage() {
     setDeleteOpen(true);
   };
 
+  const openMenuDialog = async (role: RoleItem) => {
+    setEditingRoleForMenu(role);
+    setMenuLoading(true);
+    setMenuDialogOpen(true);
+    try {
+      const [treeRes, roleMenusRes] = await Promise.all([
+        menuApi.getMenuTree(),
+        systemApi.getRoleMenus(Number(role.id)),
+      ]);
+      setMenuTree(treeRes.data);
+      const menuIds = roleMenusRes.data.menuIds || [];
+      setSelectedMenuIds(new Set(menuIds.map(String)));
+    } catch (err) {
+      console.error('Failed to load menu data:', err);
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  const closeMenuDialog = () => {
+    setMenuDialogOpen(false);
+    setEditingRoleForMenu(null);
+    setMenuTree([]);
+    setSelectedMenuIds(new Set());
+  };
+
+  const toggleMenuSelection = (menuId: string) => {
+    setSelectedMenuIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(menuId)) {
+        next.delete(menuId);
+      } else {
+        next.add(menuId);
+      }
+      return next;
+    });
+  };
+
+  const handleMenuSave = async () => {
+    if (!editingRoleForMenu) return;
+    setMenuSaving(true);
+    try {
+      await systemApi.updateRoleMenus(
+        Number(editingRoleForMenu.id),
+        Array.from(selectedMenuIds)
+      );
+      closeMenuDialog();
+      void loadRoles();
+    } catch (err) {
+      console.error('Failed to save menu association:', err);
+    } finally {
+      setMenuSaving(false);
+    }
+  };
+
+  const isMenuSelected = (menu: MenuItem): boolean => {
+    return selectedMenuIds.has(menu.id);
+  };
+
+  const renderMenuTree = (menus: MenuItem[], level = 0): React.ReactNode => {
+    return menus.map((menu) => (
+      <div key={menu.id} className="select-none">
+        <div
+          className={`flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted cursor-pointer ${
+            isMenuSelected(menu) ? 'bg-primary/10' : ''
+          }`}
+          style={{ paddingLeft: `${level * 16 + 8}px` }}
+          onClick={() => toggleMenuSelection(menu.id)}
+        >
+          <div
+            className={`w-4 h-4 border rounded flex items-center justify-center ${
+              isMenuSelected(menu) ? 'bg-primary border-primary' : 'border-muted-foreground'
+            }`}
+          >
+            {isMenuSelected(menu) && (
+              <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </div>
+          <span className="text-sm">{menu.label}</span>
+          <span className="text-xs text-muted-foreground font-mono">({menu.key})</span>
+        </div>
+        {menu.children && menu.children.length > 0 && renderMenuTree(menu.children, level + 1)}
+      </div>
+    ));
+  };
+
   const handleDelete = async () => {
     if (!deleteRole) return;
     setDeleteLoading(true);
@@ -155,7 +298,10 @@ export default function RoleManagementPage() {
       await systemApi.deleteRole(deleteRole.id);
       setDeleteOpen(false);
       setDeleteRole(null);
-      void loadRoles();
+      const currentList = await loadRoles();
+      if (currentList.length === 0 && currentPage > 1) {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -163,7 +309,26 @@ export default function RoleManagementPage() {
     }
   };
 
-  const togglePermission = (permId: number) => {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const handlePrevPage = () => {
+    if (loading || currentPage <= 1) return;
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    if (loading || currentPage >= totalPages) return;
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePageSizeChange = (value: string) => {
+    const newSize = Number(value);
+    if (Number.isNaN(newSize) || newSize <= 0) return;
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
+
+  const togglePermission = (permId: string) => {
     setFormState((prev) => ({
       ...prev,
       permissionIds: prev.permissionIds.includes(permId)
@@ -182,8 +347,8 @@ export default function RoleManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="h-full min-h-0 flex flex-col gap-6">
+      <Card className="shrink-0">
         <CardHeader>
           <CardTitle>角色管理</CardTitle>
           <CardDescription>管理系统角色和权限配置</CardDescription>
@@ -211,7 +376,7 @@ export default function RoleManagementPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="flex-1 min-h-0 flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>角色列表</CardTitle>
             <Button variant="ghost" onClick={openCreateDialog}>
@@ -219,7 +384,7 @@ export default function RoleManagementPage() {
             添加角色
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 min-h-0 flex flex-col">
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>
@@ -234,47 +399,98 @@ export default function RoleManagementPage() {
           ) : roles.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">暂无数据</div>
           ) : (
-            <Table className="border">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>编码</TableHead>
-                  <TableHead>名称</TableHead>
-                  <TableHead>描述</TableHead>
-                  <TableHead>权限</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {roles.map((role, index) => (
-                  <TableRow key={role.id} className={index % 2 === 1 ? 'bg-muted/30' : ''}>
-                    <TableCell className="font-mono">{role.code}</TableCell>
-                    <TableCell className="font-medium">{role.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {role.description || '-'}
-                    </TableCell>
-                    <TableCell>{getPermissionBadge(role)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditDialog(role)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDeleteDialog(role)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="flex-1 min-h-0 flex flex-col gap-4">
+              <div className="table-scroll flex-1 min-h-0 overflow-auto">
+                <Table className="border">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>编码</TableHead>
+                      <TableHead>名称</TableHead>
+                      <TableHead>描述</TableHead>
+                      <TableHead>权限</TableHead>
+                      <TableHead>操作</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {roles.map((role, index) => (
+                      <TableRow key={role.id} className={index % 2 === 1 ? 'bg-muted/30' : ''}>
+                        <TableCell className="font-mono">{role.code}</TableCell>
+                        <TableCell className="font-medium">{role.name}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {role.description || '-'}
+                        </TableCell>
+                        <TableCell>{getPermissionBadge(role)}</TableCell>
+                        <TableCell>
+                           <div className="flex justify-start gap-2">
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               title="关联菜单"
+                               onClick={() => openMenuDialog(role)}
+                             >
+                               <Menu className="h-4 w-4" />
+                             </Button>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => openEditDialog(role)}
+                             >
+                               <Pencil className="h-4 w-4" />
+                             </Button>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => openDeleteDialog(role)}
+                             >
+                               <Trash2 className="h-4 w-4 text-destructive" />
+                             </Button>
+                           </div>
+                         </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                <div>
+                  共 {total} 条，第 {currentPage}/{totalPages} 页
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>每页</span>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={handlePageSizeChange}
+                    disabled={loading}
+                  >
+                    <SelectTrigger className="w-[90px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    disabled={loading || currentPage <= 1}
+                  >
+                    上一页
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={loading || currentPage >= totalPages}
+                  >
+                    下一页
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -395,6 +611,41 @@ export default function RoleManagementPage() {
               disabled={deleteLoading}
             >
               {deleteLoading ? '删除中...' : '删除'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Menu Association Dialog */}
+      <Dialog open={menuDialogOpen} onOpenChange={setMenuDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>关联菜单 - {editingRoleForMenu?.name}</DialogTitle>
+            <DialogDescription>
+              选择角色 "{editingRoleForMenu?.code}" 可访问的菜单
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {menuLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
+            ) : menuTree.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">暂无菜单</div>
+            ) : (
+              <div className="border rounded-md max-h-[400px] overflow-y-auto">
+                {renderMenuTree(menuTree)}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeMenuDialog}>
+              取消
+            </Button>
+            <Button onClick={handleMenuSave} disabled={menuSaving}>
+              {menuSaving ? '保存中...' : '保存'}
             </Button>
           </DialogFooter>
         </DialogContent>

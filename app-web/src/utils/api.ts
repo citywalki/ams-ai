@@ -62,15 +62,18 @@ export interface RoleOption {
 }
 
 export interface PermissionItem {
-    id: number;
+    id: string;
     code: string;
     name: string;
     description?: string;
+    menuId?: string;
+    sortOrder?: number;
+    buttonType?: string;
 }
 
 export interface RoleItem extends RoleOption {
     description?: string;
-    permissionIds?: number[];
+    permissionIds?: string[];
     permissions?: PermissionItem[];
 }
 
@@ -84,7 +87,7 @@ export interface RolePayload {
     code: string;
     name: string;
     description?: string;
-    permissionIds?: number[];
+    permissionIds?: string[];
 }
 
 export interface UserItem {
@@ -175,8 +178,46 @@ export interface DictItemPayload {
     remark?: string;
 }
 
+export interface MenuItem {
+    id: string;
+    key: string;
+    label: string;
+    route?: string;
+    parentId?: string;
+    icon?: string;
+    sortOrder: number;
+    isVisible: boolean;
+    menuType: 'FOLDER' | 'MENU';
+    rolesAllowed: string[];
+    tenant?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    children?: MenuItem[];
+}
+
+export interface MenuPayload {
+    key: string;
+    label: string;
+    route?: string;
+    parentId?: string;
+    icon?: string;
+    sortOrder?: number;
+    isVisible?: boolean;
+    menuType?: 'FOLDER' | 'MENU';
+    rolesAllowed?: string[];
+}
+
+export interface PermissionPayload {
+    code: string;
+    name: string;
+    description?: string;
+    menuId?: string;
+    sortOrder?: number;
+    buttonType?: string;
+}
+
 export const systemApi = {
-    getUsers: (params?: UserQueryParams) => apiClient.get<PageResponse<UserItem>>('/system/users', {params}),
+    getUsers: (params?: UserQueryParams) => apiClient.get<PageResponse<UserItem> | UserItem[]>('/system/users', {params}),
     getUserById: (id: number) => apiClient.get<UserItem>(`/system/users/${id}`),
     createUser: (payload: UserCreatePayload) => apiClient.post<UserItem>('/system/users', payload),
     updateUser: (id: number, payload: UserUpdatePayload) => apiClient.put<UserItem>(`/system/users/${id}`, payload),
@@ -187,6 +228,10 @@ export const systemApi = {
     createRole: (payload: RolePayload) => apiClient.post<RoleItem>('/system/roles', payload),
     updateRole: (id: number, payload: RolePayload) => apiClient.put<RoleItem>(`/system/roles/${id}`, payload),
     deleteRole: (id: number) => apiClient.delete(`/system/roles/${id}`),
+    getRoleMenus: (roleId: number) =>
+        apiClient.get<{ menuIds: string[] }>(`/system/roles/${roleId}/menus`),
+    updateRoleMenus: (roleId: number, menuIds: string[]) =>
+        apiClient.put(`/system/roles/${roleId}/menus`, { menuIds }),
     getPermissions: (params?: { page?: number; size?: number }) =>
         apiClient.get<PageResponse<PermissionItem> | PermissionItem[]>('/system/permissions', {params})
 };
@@ -204,4 +249,21 @@ export const dictApi = {
     createItem: (categoryId: string, payload: DictItemPayload) => apiClient.post<DictItem>(`/system/dict/categories/${categoryId}/items`, payload),
     updateItem: (id: string, payload: DictItemPayload) => apiClient.put<DictItem>(`/system/dict/items/${id}`, payload),
     deleteItem: (id: string) => apiClient.delete(`/system/dict/items/${id}`),
+};
+
+export const menuApi = {
+    getMenuTree: () => apiClient.get<MenuItem[]>('/system/menus/tree'),
+    getUserMenus: () => apiClient.get<MenuItem[]>('/system/menus/user'),
+    getFolders: () => apiClient.get<MenuItem[]>('/system/menus/folders'),
+    getRootMenus: () => apiClient.get<MenuItem[]>('/system/menus', { params: { root: true } }),
+    getMenusByParent: (parentId: string) => apiClient.get<MenuItem[]>('/system/menus', { params: { parentId } }),
+    getMenuById: (id: string) => apiClient.get<MenuItem>(`/system/menus/${id}`),
+    createMenu: (payload: MenuPayload) => apiClient.post<MenuItem>('/system/menus', payload),
+    updateMenu: (id: string, payload: MenuPayload) => apiClient.put<MenuItem>(`/system/menus/${id}`, payload),
+    deleteMenu: (id: string) => apiClient.delete(`/system/menus/${id}`),
+
+    getMenuPermissions: (menuId: string) => apiClient.get<PermissionItem[]>(`/system/permissions/menu/${menuId}`),
+    createPermission: (payload: PermissionPayload) => apiClient.post<PermissionItem>('/system/permissions', payload),
+    updatePermission: (id: string, payload: PermissionPayload) => apiClient.put<PermissionItem>(`/system/permissions/${id}`, payload),
+    deletePermission: (id: string) => apiClient.delete(`/system/permissions/${id}`),
 };
