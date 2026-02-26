@@ -1,19 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, Key, Search, RotateCcw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +22,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ColumnDef } from '@tanstack/react-table';
+import { useQueryClient } from '@tanstack/react-query';
+import { DataTable } from '@/components/tables/DataTable';
 import {
   systemApi,
   type UserItem,
@@ -37,6 +32,7 @@ import {
   type UserCreatePayload,
   type UserUpdatePayload,
 } from '@/utils/api';
+import type { QueryParams, PageResponse } from '@/types/table';
 
 type UserFormState = {
   username: string;
@@ -54,18 +50,39 @@ const initialFormState: UserFormState = {
   roleIds: [],
 };
 
+async function fetchUsers(params: QueryParams, searchParams: Record<string, string>): Promise<PageResponse<UserItem>> {
+  const res = await systemApi.getUsers({ ...params, ...searchParams });
+  const userList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
+  const totalCountHeader =
+    (res.headers?.['x-total-count'] as string | number | undefined)
+    ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
+  let totalCount = Number(totalCountHeader);
+  if (Number.isNaN(totalCount)) {
+    totalCount = Number(
+      !Array.isArray(res.data)
+        ? (res.data.totalElements ?? res.data.totalCount ?? userList.length)
+        : userList.length,
+    );
+  }
+  const totalPages = Math.ceil(totalCount / (params.size || 20));
+  return {
+    content: userList,
+    totalElements: totalCount,
+    totalPages,
+    size: params.size || 20,
+    number: params.page || 0,
+  };
+}
+
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<UserItem[]>([]);
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [roles, setRoles] = useState<RoleOption[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
   const [searchUsername, setSearchUsername] = useState('');
   const [queryUsername, setQueryUsername] = useState('');
   const [searchStatus, setSearchStatus] = useState<string>('all');
   const [queryStatus, setQueryStatus] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [total, setTotal] = useState(0);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
@@ -83,44 +100,6 @@ export default function UserManagementPage() {
   const [deleteUser, setDeleteUser] = useState<UserItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const loadUsers = useCallback(async (
-    targetPage = currentPage,
-    targetPageSize = pageSize,
-    targetUsername = queryUsername,
-    targetStatus = queryStatus,
-  ) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params: Record<string, string | number | undefined> = {};
-      params.page = Math.max(targetPage - 1, 0);
-      params.size = targetPageSize;
-      if (targetUsername) params.username = targetUsername;
-      if (targetStatus !== 'all') params.status = targetStatus;
-      const res = await systemApi.getUsers(params);
-      const userList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
-      const totalCountHeader =
-        (res.headers?.['x-total-count'] as string | number | undefined)
-        ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
-      let totalCount = Number(totalCountHeader);
-      if (Number.isNaN(totalCount)) {
-        totalCount = Number(
-          !Array.isArray(res.data)
-            ? (res.data.totalElements ?? res.data.totalCount ?? userList.length)
-            : userList.length,
-        );
-      }
-      setUsers(userList);
-      setTotal(totalCount);
-      return userList;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '加载用户失败');
-      return [] as UserItem[];
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, pageSize, queryUsername, queryStatus]);
-
   const loadRoles = useCallback(async () => {
     try {
       const res = await systemApi.getRoles();
@@ -132,32 +111,19 @@ export default function UserManagementPage() {
   }, []);
 
   useEffect(() => {
-    void loadUsers();
     void loadRoles();
-  }, [loadUsers, loadRoles]);
+  }, [loadRoles]);
 
   const handleSearch = () => {
-    const username = searchUsername.trim();
-    const status = searchStatus;
-    if (username === queryUsername && status === queryStatus && currentPage === 1) {
-      void loadUsers(1, pageSize, username, status);
-      return;
-    }
-    setQueryUsername(username);
-    setQueryStatus(status);
-    setCurrentPage(1);
+    setQueryUsername(searchUsername.trim());
+    setQueryStatus(searchStatus);
   };
 
   const handleReset = () => {
-    if (!searchUsername && searchStatus === 'all' && !queryUsername && queryStatus === 'all' && currentPage === 1) {
-      void loadUsers(1, pageSize, '', 'all');
-      return;
-    }
     setSearchUsername('');
     setSearchStatus('all');
     setQueryUsername('');
     setQueryStatus('all');
-    setCurrentPage(1);
   };
 
   const openCreateDialog = () => {
@@ -189,6 +155,10 @@ export default function UserManagementPage() {
     setFormError(null);
   };
 
+  const refreshData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['users'] });
+  }, [queryClient]);
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
@@ -213,7 +183,7 @@ export default function UserManagementPage() {
         await systemApi.updateUser(editingUser.id, payload);
       }
       closeDialog();
-      void loadUsers();
+      refreshData();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : '操作失败');
     } finally {
@@ -253,34 +223,12 @@ export default function UserManagementPage() {
       await systemApi.deleteUser(deleteUser.id);
       setDeleteOpen(false);
       setDeleteUser(null);
-      const currentList = await loadUsers();
-      if (currentList.length === 0 && currentPage > 1) {
-        setCurrentPage((prev) => Math.max(prev - 1, 1));
-      }
+      refreshData();
     } catch (err) {
       console.error(err);
     } finally {
       setDeleteLoading(false);
     }
-  };
-
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  const handlePrevPage = () => {
-    if (loading || currentPage <= 1) return;
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    if (loading || currentPage >= totalPages) return;
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  const handlePageSizeChange = (value: string) => {
-    const newSize = Number(value);
-    if (Number.isNaN(newSize) || newSize <= 0) return;
-    setPageSize(newSize);
-    setCurrentPage(1);
   };
 
   const toggleRole = (roleId: string) => {
@@ -302,6 +250,69 @@ export default function UserManagementPage() {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+
+  const columns: ColumnDef<UserItem>[] = [
+    {
+      accessorKey: 'username',
+      header: '用户名',
+    },
+    {
+      accessorKey: 'email',
+      header: '邮箱',
+      cell: ({ row }) => row.original.email || '-',
+    },
+    {
+      accessorKey: 'roles',
+      header: '角色',
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {row.original.roles?.map((role) => (
+            <Badge key={role.id} variant="secondary">
+              {role.name}
+            </Badge>
+          ))}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'status',
+      header: '状态',
+      cell: ({ row }) => getStatusBadge(row.original.status),
+    },
+    {
+      id: 'actions',
+      header: t('common.actions'),
+      cell: ({ row }) => (
+        <div className="flex justify-start gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => openEditDialog(row.original)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => openResetPasswordDialog(row.original)}
+          >
+            <Key className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => openDeleteDialog(row.original)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const searchParams: Record<string, string> = {};
+  if (queryUsername) searchParams.username = queryUsername;
+  if (queryStatus !== 'all') searchParams.status = queryStatus;
 
   return (
     <div className="h-full min-h-0 flex flex-col gap-6">
@@ -336,11 +347,11 @@ export default function UserManagementPage() {
             </div>
             <Button onClick={handleSearch}>
               <Search className="h-4 w-4 mr-2" />
-              搜索
+              {t('common.search')}
             </Button>
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-2" />
-              重置
+              {t('common.reset')}
             </Button>
           </div>
         </CardContent>
@@ -351,122 +362,16 @@ export default function UserManagementPage() {
           <CardTitle>用户列表</CardTitle>
           <Button variant="ghost" onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
-            添加用户
+            {t('common.add')}
           </Button>
         </CardHeader>
-        <CardContent className="flex-1 min-h-0 flex flex-col">
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : users.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">暂无数据</div>
-          ) : (
-            <div className="flex-1 min-h-0 flex flex-col gap-4">
-              <div className="table-scroll flex-1 min-h-0 overflow-auto">
-                <Table className="border">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>用户名</TableHead>
-                      <TableHead>邮箱</TableHead>
-                      <TableHead>角色</TableHead>
-                      <TableHead>状态</TableHead>
-                      <TableHead>操作</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user, index) => (
-                      <TableRow key={user.id} className={index % 2 === 1 ? 'bg-muted/30' : ''}>
-                        <TableCell className="font-medium">{user.username}</TableCell>
-                        <TableCell>{user.email || '-'}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {user.roles?.map((role) => (
-                              <Badge key={role.id} variant="secondary">
-                                {role.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(user.status)}</TableCell>
-                        <TableCell>
-                          <div className="flex justify-start gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEditDialog(user)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openResetPasswordDialog(user)}
-                            >
-                              <Key className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDeleteDialog(user)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-                <div>
-                  共 {total} 条，第 {currentPage}/{totalPages} 页
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>每页</span>
-                  <Select
-                    value={String(pageSize)}
-                    onValueChange={handlePageSizeChange}
-                    disabled={loading}
-                  >
-                    <SelectTrigger className="w-[90px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePrevPage}
-                    disabled={loading || currentPage <= 1}
-                  >
-                    上一页
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNextPage}
-                    disabled={loading || currentPage >= totalPages}
-                  >
-                    下一页
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+        <CardContent className="flex-1 min-h-0">
+          <DataTable
+            columns={columns}
+            queryKey={['users']}
+            queryFn={(params) => fetchUsers(params, searchParams)}
+            defaultSort={{ id: 'createdAt', desc: true }}
+          />
         </CardContent>
       </Card>
 
@@ -564,10 +469,10 @@ export default function UserManagementPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                取消
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={formLoading}>
-                {formLoading ? '提交中...' : '确定'}
+                {formLoading ? '提交中...' : t('common.confirm')}
               </Button>
             </DialogFooter>
           </form>
@@ -599,10 +504,10 @@ export default function UserManagementPage() {
               variant="outline"
               onClick={() => setResetPasswordOpen(false)}
             >
-              取消
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleResetPassword} disabled={resetLoading}>
-              {resetLoading ? '处理中...' : '确定'}
+              {resetLoading ? '处理中...' : t('common.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -619,14 +524,14 @@ export default function UserManagementPage() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              取消
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? '删除中...' : '删除'}
+              {deleteLoading ? '删除中...' : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
