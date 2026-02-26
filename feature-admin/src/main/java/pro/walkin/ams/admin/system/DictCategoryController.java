@@ -8,6 +8,8 @@ import java.util.List;
 import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.DictCategoryDto;
 import pro.walkin.ams.common.dto.DictCategoryResponse;
+import pro.walkin.ams.common.dto.DictItemDto;
+import pro.walkin.ams.common.dto.DictItemResponse;
 import pro.walkin.ams.security.TenantContext;
 import pro.walkin.ams.security.annotation.RequireRole;
 
@@ -18,6 +20,47 @@ public class DictCategoryController {
 
     @Inject
     DictCategoryService categoryService;
+
+    @Inject
+    DictItemService itemService;
+
+    @GET
+    @Path("/{id}/items")
+    @RequireRole("ADMIN")
+    public Response findItemsByCategory(@PathParam("id") Long categoryId) {
+        Long tenantId = TenantContext.getCurrentTenantId();
+        List<DictItemResponse> items = itemService.getByCategoryId(categoryId, tenantId);
+        return ResponseBuilder.of(items);
+    }
+
+    @GET
+    @Path("/{id}/items/tree")
+    @RequireRole("ADMIN")
+    public Response findItemTreeByCategory(@PathParam("id") Long categoryId) {
+        Long tenantId = TenantContext.getCurrentTenantId();
+        List<DictItemResponse> items = itemService.getTreeByCategoryId(categoryId, tenantId);
+        return ResponseBuilder.of(items);
+    }
+
+    @POST
+    @Path("/{id}/items")
+    @RequireRole("ADMIN")
+    public Response createItem(@PathParam("id") Long categoryId, DictItemDto dto) {
+        Long tenantId = TenantContext.getCurrentTenantId();
+        DictItemDto payload = dto == null
+            ? null
+            : new DictItemDto(
+                categoryId,
+                dto.parentId(),
+                dto.code(),
+                dto.name(),
+                dto.value(),
+                dto.sort(),
+                dto.status(),
+                dto.remark()
+            );
+        return ResponseBuilder.of(itemService.create(payload, tenantId));
+    }
 
     @GET
     @RequireRole("ADMIN")

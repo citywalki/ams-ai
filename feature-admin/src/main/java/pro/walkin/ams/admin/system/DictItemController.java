@@ -4,10 +4,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
 import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.DictItemDto;
-import pro.walkin.ams.common.dto.DictItemResponse;
 import pro.walkin.ams.security.TenantContext;
 import pro.walkin.ams.security.annotation.RequireRole;
 
@@ -20,37 +18,11 @@ public class DictItemController {
     DictItemService itemService;
 
     @GET
-    @Path("/categories/{categoryId}/items")
-    @RequireRole("ADMIN")
-    public Response findByCategory(@PathParam("categoryId") Long categoryId) {
-        Long tenantId = TenantContext.getCurrentTenantId();
-        List<DictItemResponse> items = itemService.getByCategoryId(categoryId, tenantId);
-        return ResponseBuilder.of(items);
-    }
-
-    @GET
-    @Path("/categories/{categoryId}/items/tree")
-    @RequireRole("ADMIN")
-    public Response findTreeByCategory(@PathParam("categoryId") Long categoryId) {
-        Long tenantId = TenantContext.getCurrentTenantId();
-        List<DictItemResponse> items = itemService.getTreeByCategoryId(categoryId, tenantId);
-        return ResponseBuilder.of(items);
-    }
-
-    @GET
     @Path("/items/{id}")
     @RequireRole("ADMIN")
     public Response findById(@PathParam("id") Long id) {
         Long tenantId = TenantContext.getCurrentTenantId();
         return ResponseBuilder.of(itemService.getById(id, tenantId));
-    }
-
-    @POST
-    @Path("/categories/{categoryId}/items")
-    @RequireRole("ADMIN")
-    public Response create(@PathParam("categoryId") Long categoryId, DictItemDto dto) {
-        Long tenantId = TenantContext.getCurrentTenantId();
-        return ResponseBuilder.of(itemService.create(dto, tenantId));
     }
 
     @PUT

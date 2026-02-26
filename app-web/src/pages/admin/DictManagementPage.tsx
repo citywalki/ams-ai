@@ -49,8 +49,8 @@ type CategoryFormState = {
 };
 
 type ItemFormState = {
-  categoryId: number;
-  parentId: number | null;
+  categoryId: string;
+  parentId: string | null;
   code: string;
   name: string;
   value: string;
@@ -68,7 +68,7 @@ const initialCategoryForm: CategoryFormState = {
 };
 
 const initialItemForm: ItemFormState = {
-  categoryId: 0,
+  categoryId: '',
   parentId: null,
   code: '',
   name: '',
@@ -124,7 +124,7 @@ export default function DictManagementPage() {
     }
   }, [selectedCategory]);
 
-  const loadItems = useCallback(async (categoryId: number) => {
+  const loadItems = useCallback(async (categoryId: string) => {
     setItemsLoading(true);
     try {
       const res = await dictApi.getItems(categoryId);
