@@ -97,8 +97,6 @@ app-boot/build/
 *~
 
 # Project specific
-docs/database/erd.md
-!docs/database/erd.md
 
 .trae
 .sisyphus
@@ -109,5 +107,6 @@ docs/database/erd.md
 
 # Vite
 .vite/
-/docs/plans
+
+
 .worktrees/
