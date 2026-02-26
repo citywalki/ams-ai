@@ -7,8 +7,10 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import pro.walkin.ams.security.service.MenuService;
 import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.*;
 import pro.walkin.ams.persistence.entity.system.Permission;
@@ -23,6 +25,9 @@ public class RoleController {
 
     @Inject
     RoleService roleService;
+
+    @Inject
+    MenuService menuService;
 
   @Inject RbacService rbacService;
 
@@ -147,6 +152,29 @@ public class RoleController {
     Long tenantId = TenantContext.getCurrentTenantId();
     Set<String> userRoles = rbacService.getUserRoles(userId, tenantId);
     return Response.ok(userRoles).build();
+  }
+
+  /** 获取角色关联的菜单ID列表 */
+  @Path("/{id}/menus")
+  @GET
+  @RequireRole("ADMIN")
+  public Response getRoleMenus(@PathParam("id") Long id) {
+    List<Long> menuIds = roleService.getRoleMenus(id);
+    return Response.ok(Map.of("menuIds", menuIds)).build();
+  }
+
+  /** 更新角色的菜单访问权限 */
+  @Path("/{id}/menus")
+  @PUT
+  @RequireRole("ADMIN")
+  public Response updateRoleMenus(@PathParam("id") Long id, Map<String, List<Long>> request) {
+    List<Long> menuIds = request.get("menuIds");
+    roleService.updateRoleMenus(id, menuIds);
+
+    // 失效菜单缓存
+    menuService.invalidateAllMenuCaches();
+
+    return Response.ok().build();
   }
 
     private RoleResponseDto convertToResponseDto(Role role) {

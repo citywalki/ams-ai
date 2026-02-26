@@ -34,12 +34,16 @@ public class MenuController {
   public Response findAll(
       @QueryParam("page") @DefaultValue("0") int page,
       @QueryParam("size") @DefaultValue("20") int size,
-      @QueryParam("parentId") Long parentId) {
+      @QueryParam("parentId") Long parentId,
+      @QueryParam("root") @DefaultValue("false") boolean root) {
 
         Long tenantId = TenantContext.getCurrentTenantId();
 
         List<MenuResponseDto> menus;
-        if (parentId != null) {
+        if (root) {
+          // 获取顶级菜单（parentId IS NULL）
+          menus = menuService.getMenusByParentId(null, tenantId);
+        } else if (parentId != null) {
           menus = menuService.getMenusByParentId(parentId, tenantId);
         } else {
           menus = menuService.getAllMenus(tenantId);
@@ -63,6 +67,16 @@ public class MenuController {
         Long tenantId = TenantContext.getCurrentTenantId();
         List<MenuResponseDto> folders = menuService.getFolders(tenantId);
         return ResponseBuilder.of(folders);
+    }
+
+  /** 获取完整菜单树（用于角色菜单关联） */
+  @Path("/tree")
+  @GET
+  @RequireRole("ADMIN")
+  public Response getMenuTree() {
+        Long tenantId = TenantContext.getCurrentTenantId();
+        List<MenuResponseDto> menuTree = menuService.getMenuTree(tenantId);
+        return ResponseBuilder.of(menuTree);
     }
 
   /** 获取单个菜单 */

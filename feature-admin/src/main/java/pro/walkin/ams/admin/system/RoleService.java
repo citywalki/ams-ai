@@ -6,7 +6,9 @@ import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import pro.walkin.ams.common.exception.BusinessException;
+import pro.walkin.ams.persistence.entity.system.Menu;
 import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.Permission;
 import pro.walkin.ams.persistence.entity.system.User;
@@ -18,6 +20,7 @@ public class RoleService {
     @Inject Role.Repo roleRepo;
     @Inject Permission.Repo permissionRepo;
     @Inject User.Repo userRepo;
+    @Inject Menu.Repo menuRepo;
 
     @Transactional
     public Role createRole(Role role) {
@@ -148,5 +151,56 @@ public class RoleService {
             }
         }
         role.updatedAt = java.time.Instant.now();
+    }
+
+    public List<Long> getRoleMenus(Long roleId) {
+        Long tenantId = TenantContext.getCurrentTenantId();
+        if (tenantId == null) {
+            return List.of();
+        }
+
+        Role role = roleRepo.findById(roleId);
+        if (role == null) {
+            return List.of();
+        }
+
+        List<Menu> menus = menuRepo.list("tenant", tenantId);
+        return menus.stream()
+            .filter(menu -> menu.rolesAllowed != null && menu.rolesAllowed.contains(role.code))
+            .map(menu -> menu.id)
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional
+    public void updateRoleMenus(Long roleId, List<Long> menuIds) {
+        Long tenantId = TenantContext.getCurrentTenantId();
+        if (tenantId == null) {
+            throw new BusinessException("租户上下文不存在");
+        }
+
+        Role role = roleRepo.findById(roleId);
+        if (role == null) {
+            throw new BusinessException("角色不存在");
+        }
+
+        Set<Long> newMenuIdSet = new HashSet<>(menuIds != null ? menuIds : List.of());
+
+        List<Menu> allMenus = menuRepo.list("tenant", tenantId);
+
+        for (Menu menu : allMenus) {
+            boolean shouldBeAllowed = newMenuIdSet.contains(menu.id);
+            boolean isCurrentlyAllowed = menu.rolesAllowed != null && menu.rolesAllowed.contains(role.code);
+
+            if (shouldBeAllowed && !isCurrentlyAllowed) {
+                if (menu.rolesAllowed == null) {
+                    menu.rolesAllowed = new java.util.ArrayList<>();
+                }
+                if (!menu.rolesAllowed.contains(role.code)) {
+                    menu.rolesAllowed.add(role.code);
+                }
+            } else if (!shouldBeAllowed && isCurrentlyAllowed) {
+                menu.rolesAllowed.remove(role.code);
+            }
+        }
     }
 }

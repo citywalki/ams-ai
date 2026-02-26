@@ -170,7 +170,7 @@ public class MenuService {
 
   public List<MenuResponseDto> getFolders(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
-    List<Menu> folders = menuRepo.list(" menuType = ?1", Menu.MenuType.FOLDER);
+    List<Menu> folders = menuRepo.list("menuType = ?1 and tenant = ?2", Menu.MenuType.FOLDER, tenantId);
     return folders.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
   }
 
@@ -178,9 +178,9 @@ public class MenuService {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
     List<Menu> menus;
     if (parentId == null) {
-      menus = menuRepo.list(" parentId is null");
+      menus = menuRepo.list("parentId is null and tenant = ?1", tenantId);
     } else {
-      menus = menuRepo.list(" parentId = ?1", parentId);
+      menus = menuRepo.list("parentId = ?1 and tenant = ?2", parentId, tenantId);
     }
     return menus.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
   }
@@ -332,5 +332,42 @@ public class MenuService {
     // 在实际应用中，可以根据租户ID更精细地失效缓存
     cache.invalidateAll().await().indefinitely();
     LOG.debug("失效所有菜单缓存（租户 {}）", tenantId);
+  }
+
+  // ========== 管理端菜单树方法 ==========
+
+  public List<MenuResponseDto> getMenuTree(Long tenantId) {
+    Objects.requireNonNull(tenantId, "租户ID不能为空");
+
+    List<Menu> allMenus = menuRepo.list("tenant", tenantId);
+    return buildMenuTreeForAdmin(allMenus);
+  }
+
+  private List<MenuResponseDto> buildMenuTreeForAdmin(List<Menu> menus) {
+    Map<Long, List<Menu>> childrenByParentId = menus.stream()
+        .filter(menu -> menu.parentId != null)
+        .collect(Collectors.groupingBy(menu -> menu.parentId));
+
+    return menus.stream()
+        .filter(menu -> menu.parentId == null)
+        .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
+        .map(menu -> buildMenuItemTreeForAdmin(menu, childrenByParentId))
+        .collect(Collectors.toList());
+  }
+
+  private MenuResponseDto buildMenuItemTreeForAdmin(Menu menu, Map<Long, List<Menu>> childrenByParentId) {
+    MenuResponseDto dto = mapEntityToResponseDto(menu);
+
+    List<Menu> children = childrenByParentId.getOrDefault(menu.id, new ArrayList<>());
+    List<MenuResponseDto> childDtos = children.stream()
+        .sorted(Comparator.comparingInt(child -> child.sortOrder != null ? child.sortOrder : 0))
+        .map(child -> buildMenuItemTreeForAdmin(child, childrenByParentId))
+        .collect(Collectors.toList());
+
+    return new MenuResponseDto(
+        dto.id(), dto.key(), dto.label(), dto.route(), dto.parentId(),
+        dto.icon(), dto.sortOrder(), dto.isVisible(), dto.menuType(),
+        dto.rolesAllowed(), dto.metadata(), dto.tenant(),
+        dto.createdAt(), dto.updatedAt(), childDtos);
   }
 }
