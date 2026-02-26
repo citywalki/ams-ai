@@ -12,27 +12,23 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type UserItem } from '@/utils/api';
+import { type ReactFormExtendedApi } from '@tanstack/react-form';
+import { type ResetPasswordFormData } from '../schemas/reset-password-schema';
 
 interface ResetPasswordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: UserItem | null;
-  newPassword: string;
-  onNewPasswordChange: (value: string) => void;
-  loading: boolean;
+  form: ReactFormExtendedApi<ResetPasswordFormData, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined>;
   error: string | null;
-  onConfirm: () => void;
 }
 
 export function ResetPasswordDialog({
   open,
   onOpenChange,
   user,
-  newPassword,
-  onNewPasswordChange,
-  loading,
+  form,
   error,
-  onConfirm,
 }: ResetPasswordDialogProps) {
   const { t } = useTranslation();
 
@@ -47,30 +43,45 @@ export function ResetPasswordDialog({
             })}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="newPassword">{t('pages.userManagement.form.newPassword')}</Label>
-            <Input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={(e) => onNewPasswordChange(e.target.value)}
-            />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
+          <div className="space-y-4 py-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <form.Field name="newPassword">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">{t('pages.userManagement.form.newPassword')}</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </div>
+              )}
+            </form.Field>
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
-          </Button>
-          <Button onClick={onConfirm} disabled={loading}>
-            {loading ? t('pages.userManagement.messages.processing') : t('common.confirm')}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" disabled={form.state.isSubmitting}>
+              {form.state.isSubmitting
+                ? t('pages.userManagement.messages.processing')
+                : t('common.confirm')}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
