@@ -61,15 +61,19 @@ export const authApi = {
 // 菜单相关接口
 export interface MenuItem {
   id: string;
-  name: string;
-  route: string;
-  icon: string;
-  permission: string;
+    key: string;
+    label: string;
+    route?: string;
+    icon?: string;
   parentId?: string;
+    sortOrder?: number;
+    isVisible?: boolean;
+    menuType?: 'FOLDER' | 'MENU';
+    rolesAllowed?: string[];
   children?: MenuItem[];
-  tenantId: number;
-  createdAt: string;
-  updatedAt: string;
+    tenant?: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export const menuApi = {

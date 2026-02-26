@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Header } from './Header';
-import { Sidebar } from './Sidebar';
-import { cn } from '@/lib/utils';
+import {useEffect, useState} from 'react';
+import {Outlet} from 'react-router-dom';
+import {AnimatePresence, motion} from 'framer-motion';
+import {Header} from './Header';
+import {Sidebar} from './Sidebar';
+import {cn} from '@/lib/utils';
 
 export default function MainLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -68,11 +68,12 @@ export default function MainLayout() {
           )}
         </AnimatePresence>
 
-        <main className="flex-1 overflow-auto">
+          <main className="flex-1 min-h-0 overflow-hidden">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
+            className="h-full min-h-0 flex flex-col"
           >
             <Outlet />
           </motion.div>

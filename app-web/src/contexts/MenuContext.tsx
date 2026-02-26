@@ -1,6 +1,6 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { menuApi, type MenuItem } from '@/services';
-import { useAuthStore } from '@/stores/authStore';
+import {createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {menuApi, type MenuItem} from '@/services';
+import {useAuthStore} from '@/stores/authStore';
 
 type MenuContextValue = {
   menus: MenuItem[];
@@ -11,7 +11,7 @@ type MenuContextValue = {
 
 const MenuContext = createContext<MenuContextValue | null>(null);
 
-function normalizeRoute(route: string): string {
+function normalizeRoute(route?: string): string {
   if (!route) {
     return '/';
   }

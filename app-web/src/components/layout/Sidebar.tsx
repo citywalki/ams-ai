@@ -1,10 +1,24 @@
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Link2, History, Home, Bell, Menu, Users, Settings, BookOpen, Folder } from 'lucide-react';
-import { useMenus } from '@/contexts/MenuContext';
-import type { MenuItem } from '@/services';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import {type ReactNode, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {
+    Bell,
+    BookOpen,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Folder,
+    History,
+    Home,
+    Link2,
+    Menu,
+    Settings,
+    Users
+} from 'lucide-react';
+import {useMenus} from '@/contexts/MenuContext';
+import type {MenuItem} from '@/services';
+import {Button} from '@/components/ui/button';
+import {Skeleton} from '@/components/ui/skeleton';
+import {cn} from '@/lib/utils';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -37,28 +51,29 @@ function getMenuIcon(iconName?: string): React.ElementType {
 }
 
 function getMenuLabel(item: MenuItem): string {
-  const routeLabelMap: Record<string, string> = {
-    '/dashboard': '首页',
-    '/alerts': '告警列表',
-    '/admin/menus': '菜单管理',
-    '/admin/users': '用户管理',
-    '/admin/roles': '角色管理',
-    '/admin/dict': '字典管理',
-    '/settings': '设置'
-  };
-
-  if (item.name && item.name.trim().length > 0) {
-    return item.name;
-  }
-  if (item.route && routeLabelMap[item.route]) {
-    return routeLabelMap[item.route];
-  }
-  if (item.route && item.route !== '/') {
-    const normalized = item.route.replace(/^\//, '').split('/').pop() ?? item.route;
-    return normalized
-      .split(/[-_]/)
-      .map((part) => (part ? `${part.charAt(0).toUpperCase()}${part.slice(1)}` : part))
-      .join(' ');
+    if (item.label && item.label.trim().length > 0) {
+        return item.label;
+    }
+    if (item.route) {
+        const routeLabelMap: Record<string, string> = {
+            '/dashboard': '首页',
+            '/alerts': '告警列表',
+            '/admin/menus': '菜单管理',
+            '/admin/users': '用户管理',
+            '/admin/roles': '角色管理',
+            '/admin/dict': '字典管理',
+            '/settings': '设置'
+        };
+        if (routeLabelMap[item.route]) {
+            return routeLabelMap[item.route];
+        }
+        if (item.route !== '/') {
+            const normalized = item.route.replace(/^\//, '').split('/').pop() ?? item.route;
+            return normalized
+                .split(/[-_]/)
+                .map((part) => (part ? `${part.charAt(0).toUpperCase()}${part.slice(1)}` : part))
+                .join(' ');
+        }
   }
   return '首页';
 }
@@ -67,25 +82,65 @@ interface MenuItemProps {
   item: MenuItem;
   isCollapsed: boolean;
   isActive: boolean;
+    isExpanded?: boolean;
   onClick: () => void;
+    onToggleExpand?: () => void;
+    renderChild?: (child: MenuItem) => ReactNode;
 }
 
-function MenuItemComponent({ item, isCollapsed, isActive, onClick }: MenuItemProps) {
+function MenuItemComponent({
+                               item,
+                               isCollapsed,
+                               isActive,
+                               isExpanded,
+                               onClick,
+                               onToggleExpand,
+                               renderChild
+                           }: MenuItemProps) {
   const Icon = getMenuIcon(item.icon);
-  
+    const isFolder = item.menuType === 'FOLDER' && item.children && item.children.length > 0;
+    const hasChildren = item.children && item.children.length > 0;
+
+    const handleClick = () => {
+        if (isFolder && onToggleExpand) {
+            onToggleExpand();
+        } else {
+            onClick();
+        }
+    };
+
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200",
-        "text-slate-600 hover:bg-sky-50 hover:text-sky-700",
-        isActive && "bg-sky-100 text-sky-700 font-medium shadow-sm",
-        isCollapsed && "justify-center px-2"
-      )}
-    >
-      <Icon className="h-5 w-5 shrink-0" />
-      {!isCollapsed && <span className="truncate">{getMenuLabel(item)}</span>}
-    </button>
+      <div>
+          <button
+              onClick={handleClick}
+              className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200",
+                  "text-slate-600 hover:bg-sky-50 hover:text-sky-700",
+                  isActive && "bg-sky-100 text-sky-700 font-medium shadow-sm",
+                  isCollapsed && "justify-center px-2"
+              )}
+          >
+              <Icon className="h-5 w-5 shrink-0"/>
+              {!isCollapsed && (
+                  <>
+                      <span className="truncate flex-1 text-left">{getMenuLabel(item)}</span>
+                      {isFolder && (
+                          <ChevronDown
+                              className={cn(
+                                  "h-4 w-4 transition-transform duration-200",
+                                  isExpanded && "rotate-180"
+                              )}
+                          />
+                      )}
+                  </>
+              )}
+          </button>
+          {!isCollapsed && isFolder && isExpanded && hasChildren && renderChild && (
+              <div className="ml-4 mt-1 space-y-1 border-l-2 border-slate-200 pl-2">
+                  {item.children!.map(renderChild)}
+              </div>
+          )}
+      </div>
   );
 }
 
@@ -93,6 +148,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { menus, isLoading, error } = useMenus();
+    const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const currentRoute = location.pathname;
 
@@ -101,6 +157,45 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       navigate(route);
     }
   };
+
+    const toggleFolder = (folderId: string) => {
+        setExpandedFolders((prev) => {
+            const next = new Set(prev);
+            if (next.has(folderId)) {
+                next.delete(folderId);
+            } else {
+                next.add(folderId);
+            }
+            return next;
+        });
+    };
+
+    const renderMenuItem = (item: MenuItem) => {
+        const isFolder = item.menuType === 'FOLDER' && item.children && item.children.length > 0;
+        const isExpanded = expandedFolders.has(item.id);
+        const isActive = !isFolder && item.route === currentRoute;
+
+        return (
+            <MenuItemComponent
+                key={item.id}
+                item={item}
+                isCollapsed={isCollapsed}
+                isActive={isActive}
+                isExpanded={isExpanded}
+                onClick={() => handleNavigate(item.route)}
+                onToggleExpand={isFolder ? () => toggleFolder(item.id) : undefined}
+                renderChild={isFolder ? (child: MenuItem) => (
+                    <MenuItemComponent
+                        key={child.id}
+                        item={child}
+                        isCollapsed={false}
+                        isActive={child.route === currentRoute}
+                        onClick={() => handleNavigate(child.route)}
+                    />
+                ) : undefined}
+            />
+        );
+    };
 
   return (
     <aside
@@ -119,27 +214,19 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         ) : error ? (
           <div className="p-2 text-sm text-red-500">{error}</div>
         ) : (
-          menus.map((item) => (
-            <MenuItemComponent
-              key={item.id}
-              item={item}
-              isCollapsed={isCollapsed}
-              isActive={item.route === currentRoute}
-              onClick={() => handleNavigate(item.route)}
-            />
-          ))
+            menus.map(renderMenuItem)
         )}
       </nav>
 
       <div className="border-t p-2 space-y-1">
         <MenuItemComponent
-          item={{ id: 'links', name: '常用链接', icon: 'chain-link' } as MenuItem}
+            item={{id: 'links', label: '常用链接', icon: 'chain-link'} as MenuItem}
           isCollapsed={isCollapsed}
           isActive={false}
           onClick={() => navigate('/dashboard')}
         />
         <MenuItemComponent
-          item={{ id: 'history', name: '历史记录', icon: 'history' } as MenuItem}
+            item={{id: 'history', label: '历史记录', icon: 'history'} as MenuItem}
           isCollapsed={isCollapsed}
           isActive={false}
           onClick={() => navigate('/dashboard')}
