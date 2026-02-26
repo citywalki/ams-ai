@@ -36,9 +36,11 @@ public class RoleController {
   public Response findAll(
       @QueryParam("page") @DefaultValue("0") int page,
       @QueryParam("size") @DefaultValue("20") int size,
-      @QueryParam("keyword") String keyword) {
+      @QueryParam("keyword") String keyword,
+      @QueryParam("sortBy") @DefaultValue("createdAt") String sortBy,
+      @QueryParam("sortOrder") @DefaultValue("DESC") String sortOrder) {
 
-        List<Role> roles = roleService.findAll(page, size, keyword);
+        List<Role> roles = roleService.findAll(page, size, keyword, sortBy, sortOrder);
         List<RoleResponseDto> roleDtos = roles.stream().map(this::convertToResponseDto).collect(Collectors.toList());
         long totalCount = roleService.count(keyword);
         long totalPages = (long) Math.ceil((double) totalCount / size);

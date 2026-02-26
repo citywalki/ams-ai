@@ -37,9 +37,11 @@ public class PermissionController {
   @RequireRole("ADMIN")
   public Response findAll(
       @QueryParam("page") @DefaultValue("0") int page,
-      @QueryParam("size") @DefaultValue("20") int size) {
+      @QueryParam("size") @DefaultValue("20") int size,
+      @QueryParam("sortBy") @DefaultValue("createdAt") String sortBy,
+      @QueryParam("sortOrder") @DefaultValue("DESC") String sortOrder) {
 
-        List<Permission> permissions = permissionService.findAll(page, size);
+        List<Permission> permissions = permissionService.findAll(page, size, sortBy, sortOrder);
         List<PermissionResponseDto> permissionDtos = permissions.stream()
             .map(this::convertToResponseDto)
             .collect(Collectors.toList());

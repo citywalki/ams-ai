@@ -24,11 +24,15 @@ public class PermissionService {
     }
 
     public List<Permission> findAll(int page, int size) {
+        return findAll(page, size, null, null);
+    }
+
+    public List<Permission> findAll(int page, int size, String sortBy, String sortOrder) {
         Long tenantId = TenantContext.getCurrentTenantId();
         if (tenantId == null) {
             return List.of();
         }
-        return permissionRepo.listByTenant(tenantId, page, size);
+        return permissionRepo.listByTenant(tenantId, sortBy, sortOrder, page, size);
     }
 
     public long count() {

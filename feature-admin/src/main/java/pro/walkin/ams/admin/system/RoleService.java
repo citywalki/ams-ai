@@ -42,15 +42,19 @@ public class RoleService {
     }
 
     public List<Role> findAll(int page, int size) {
-        return findAll(page, size, null);
+        return findAll(page, size, null, null, null);
     }
 
     public List<Role> findAll(int page, int size, String keyword) {
+        return findAll(page, size, keyword, null, null);
+    }
+
+    public List<Role> findAll(int page, int size, String keyword, String sortBy, String sortOrder) {
         Long tenantId = TenantContext.getCurrentTenantId();
         if (tenantId == null) {
             return List.of();
         }
-        return roleRepo.listByTenantAndKeyword(tenantId, keyword, page, size);
+        return roleRepo.listByTenantAndKeyword(tenantId, keyword, sortBy, sortOrder, page, size);
     }
 
     public long count() {

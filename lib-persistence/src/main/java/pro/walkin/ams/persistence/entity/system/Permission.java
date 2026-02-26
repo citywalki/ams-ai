@@ -83,8 +83,23 @@ public class Permission extends BaseEntity {
       return list("menu.id", menuId);
     }
     
-    default List<Permission> listByTenant(Long tenantId, int page, int size) {
-        return find("tenant", tenantId).page(page, size).list();
+    default List<Permission> listByTenant(Long tenantId, String sortBy, String sortOrder, int page, int size) {
+      String sortField = mapSortField(sortBy);
+      String direction = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
+      return find("tenant = ?1 order by " + sortField + " " + direction, tenantId).page(page, size).list();
+    }
+
+    default String mapSortField(String sortBy) {
+      if (sortBy == null) {
+        return "createdAt";
+      }
+      return switch (sortBy) {
+        case "code" -> "code";
+        case "name" -> "name";
+        case "createdAt" -> "createdAt";
+        case "updatedAt" -> "updatedAt";
+        default -> "createdAt";
+      };
     }
     
     default long countByTenant(Long tenantId) {
