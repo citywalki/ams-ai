@@ -1,14 +1,15 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
+import {Navigate, Route, Routes} from 'react-router-dom';
+import {useAuthStore} from '@/stores/authStore';
 import DashboardPage from '@/pages/dashboard/DashboardPage';
 import FeatureHostPage from '@/pages/FeatureHostPage';
 import LoginPage from '@/pages/login/LoginPage';
 import UserManagementPage from '@/pages/admin/UserManagementPage';
 import RoleManagementPage from '@/pages/admin/RoleManagementPage';
 import DictManagementPage from '@/pages/admin/DictManagementPage';
+import MenuManagementPage from '@/pages/admin/MenuManagementPage';
 import MainLayout from '@/components/layout/MainLayout';
-import { MenuProvider } from '@/contexts/MenuContext';
-import { Skeleton } from '@/components/ui/skeleton';
+import {MenuProvider} from '@/contexts/MenuContext';
+import {Skeleton} from '@/components/ui/skeleton';
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -44,6 +45,7 @@ export default function AppRouter() {
           <Route path="admin/users" element={<UserManagementPage />} />
           <Route path="admin/roles" element={<RoleManagementPage />} />
           <Route path="admin/dict" element={<DictManagementPage />} />
+            <Route path="admin/menus" element={<MenuManagementPage/>}/>
           <Route path="*" element={<FeatureHostPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

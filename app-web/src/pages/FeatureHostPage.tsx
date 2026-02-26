@@ -1,11 +1,11 @@
-import { useLocation } from 'react-router-dom';
-import { useMenus } from '@/contexts/MenuContext';
-import type { MenuItem } from '@/services';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {useLocation} from 'react-router-dom';
+import {useMenus} from '@/contexts/MenuContext';
+import type {MenuItem} from '@/services';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 
 function flattenMenus(items: MenuItem[]): { name: string; route: string }[] {
   return items.flatMap((item) => [
-    { name: item.name, route: item.route },
+      {name: item.label ?? '', route: item.route ?? ''},
     ...(item.children ? flattenMenus(item.children) : [])
   ]);
 }

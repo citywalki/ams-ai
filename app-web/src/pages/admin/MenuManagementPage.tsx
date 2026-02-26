@@ -1,44 +1,25 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, FolderOpen, ChevronRight, Search, Lock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import {useCallback, useEffect, useState} from 'react';
+import {FolderOpen, Lock, Pencil, Plus, Search, Trash2} from 'lucide-react';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Badge} from '@/components/ui/badge';
+import {Skeleton} from '@/components/ui/skeleton';
+import {ScrollArea} from '@/components/ui/scroll-area';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Switch } from '@/components/ui/switch';
-import {
-  menuApi,
-  type MenuItem,
-  type MenuPayload,
-  type PermissionItem,
-  type PermissionPayload,
-} from '@/utils/api';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
+import {Alert, AlertDescription} from '@/components/ui/alert';
+import {Switch} from '@/components/ui/switch';
+import {menuApi, type MenuItem, type MenuPayload, type PermissionItem, type PermissionPayload,} from '@/utils/api';
 
 type MenuFormState = {
   key: string;
@@ -81,7 +62,7 @@ const initialPermissionForm: PermissionFormState = {
 export default function MenuManagementPage() {
   const [folders, setFolders] = useState<MenuItem[]>([]);
   const [folderSearch, setFolderSearch] = useState('');
-  const [selectedFolder, setSelectedFolder] = useState<MenuItem | null>(null);
+    const [selectedFolder, setSelectedFolder] = useState<'root' | MenuItem>('root');
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [menusLoading, setMenusLoading] = useState(false);
@@ -120,20 +101,22 @@ export default function MenuManagementPage() {
     try {
       const res = await menuApi.getFolders();
       setFolders(res.data);
-      if (res.data.length > 0 && !selectedFolder) {
-        setSelectedFolder(res.data[0]);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载菜单分类失败');
     } finally {
       setLoading(false);
     }
-  }, [selectedFolder]);
+  }, []);
 
-  const loadMenus = useCallback(async (parentId: string) => {
+    const loadMenus = useCallback(async (folder: 'root' | MenuItem) => {
     setMenusLoading(true);
     try {
-      const res = await menuApi.getMenusByParent(parentId);
+        let res;
+        if (folder === 'root') {
+            res = await menuApi.getRootMenus();
+        } else {
+            res = await menuApi.getMenusByParent(folder.id);
+        }
       setMenus(res.data);
     } catch (err) {
       console.error('Failed to load menus:', err);
@@ -148,12 +131,10 @@ export default function MenuManagementPage() {
   }, [loadFolders]);
 
   useEffect(() => {
-    if (selectedFolder) {
-      void loadMenus(selectedFolder.id);
-    }
+      void loadMenus(selectedFolder);
   }, [selectedFolder, loadMenus]);
 
-  const selectFolder = (folder: MenuItem) => {
+    const selectFolder = (folder: 'root' | MenuItem) => {
     setSelectedFolder(folder);
   };
 
@@ -198,7 +179,7 @@ export default function MenuManagementPage() {
         key: menuForm.key,
         label: menuForm.label,
         route: menuForm.route || undefined,
-        parentId: selectedFolder?.id,
+          parentId: selectedFolder === 'root' ? undefined : selectedFolder?.id,
         icon: menuForm.icon || undefined,
         sortOrder: menuForm.sortOrder,
         isVisible: menuForm.isVisible,
@@ -213,9 +194,7 @@ export default function MenuManagementPage() {
         await menuApi.updateMenu(editingMenu.id, payload);
       }
       closeMenuDialog();
-      if (selectedFolder) {
-        void loadMenus(selectedFolder.id);
-      }
+        void loadMenus(selectedFolder);
     } catch (err) {
       setMenuFormError(err instanceof Error ? err.message : '操作失败');
     } finally {
@@ -235,9 +214,7 @@ export default function MenuManagementPage() {
       await menuApi.deleteMenu(deleteMenu.id);
       setDeleteMenuOpen(false);
       setDeleteMenu(null);
-      if (selectedFolder) {
-        void loadMenus(selectedFolder.id);
-      }
+        void loadMenus(selectedFolder);
     } catch (err) {
       console.error(err);
     } finally {
@@ -378,6 +355,20 @@ export default function MenuManagementPage() {
           ) : (
             <ScrollArea className="h-full">
               <div className="px-6 py-2 space-y-1">
+                  {/* 根菜单选项 */}
+                  <div
+                      className={`flex items-center justify-between p-2 rounded-md cursor-pointer group ${
+                          selectedFolder === 'root'
+                              ? 'bg-primary/10 text-primary'
+                              : 'hover:bg-muted'
+                      }`}
+                      onClick={() => selectFolder('root')}
+                  >
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <FolderOpen className="h-4 w-4 flex-shrink-0"/>
+                          <span className="truncate text-sm">根菜单</span>
+                      </div>
+                  </div>
                 {folders
                   .filter((f) =>
                     folderSearch
@@ -389,7 +380,7 @@ export default function MenuManagementPage() {
                   <div
                     key={folder.id}
                     className={`flex items-center justify-between p-2 rounded-md cursor-pointer group ${
-                      selectedFolder?.id === folder.id
+                        typeof selectedFolder !== 'string' && selectedFolder?.id === folder.id
                         ? 'bg-primary/10 text-primary'
                         : 'hover:bg-muted'
                     }`}
@@ -449,27 +440,20 @@ export default function MenuManagementPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base">
-                {selectedFolder ? selectedFolder.label : '菜单项'}
+                  {selectedFolder === 'root' ? '根菜单' : selectedFolder?.label}
               </CardTitle>
-              {selectedFolder?.route && (
+                {selectedFolder !== 'root' && selectedFolder?.route && (
                 <CardDescription>{selectedFolder.route}</CardDescription>
               )}
             </div>
-            {selectedFolder && (
               <Button size="sm" onClick={openCreateMenuDialog}>
-                <Plus className="h-4 w-4 mr-1" />
-                添加菜单
+                  <Plus className="h-4 w-4 mr-1"/>
+                  添加菜单
               </Button>
-            )}
           </div>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 p-0">
-          {!selectedFolder ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              <ChevronRight className="h-4 w-4 mr-2" />
-              请选择左侧分类
-            </div>
-          ) : menusLoading ? (
+            {menusLoading ? (
             <div className="space-y-3 p-4">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-12 w-full" />
