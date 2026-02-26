@@ -191,15 +191,17 @@ public class RoleService {
             boolean shouldBeAllowed = newMenuIdSet.contains(menu.id);
             boolean isCurrentlyAllowed = menu.rolesAllowed != null && menu.rolesAllowed.contains(role.code);
 
-            if (shouldBeAllowed && !isCurrentlyAllowed) {
-                if (menu.rolesAllowed == null) {
-                    menu.rolesAllowed = new java.util.ArrayList<>();
+            if (shouldBeAllowed != isCurrentlyAllowed) {
+                List<String> newRolesAllowed = new java.util.ArrayList<>(menu.rolesAllowed != null ? menu.rolesAllowed : List.of());
+                if (shouldBeAllowed) {
+                    if (!newRolesAllowed.contains(role.code)) {
+                        newRolesAllowed.add(role.code);
+                    }
+                } else {
+                    newRolesAllowed.remove(role.code);
                 }
-                if (!menu.rolesAllowed.contains(role.code)) {
-                    menu.rolesAllowed.add(role.code);
-                }
-            } else if (!shouldBeAllowed && isCurrentlyAllowed) {
-                menu.rolesAllowed.remove(role.code);
+                menu.rolesAllowed = newRolesAllowed;
+                menuRepo.persist(menu);
             }
         }
     }

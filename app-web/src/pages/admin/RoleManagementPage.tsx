@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
-import {Menu, Pencil, Plus, RotateCcw, Search, Trash2} from 'lucide-react';
+import {ChevronDown, ChevronRight, FileText, Folder, FolderOpen, Menu, Pencil, Plus, RotateCcw, Search, Trash2,} from 'lucide-react';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -67,6 +67,7 @@ export default function RoleManagementPage() {
   const [menuLoading, setMenuLoading] = useState(false);
   const [menuSaving, setMenuSaving] = useState(false);
   const [editingRoleForMenu, setEditingRoleForMenu] = useState<RoleItem | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const loadRoles = useCallback(async (
     targetPage = currentPage,
@@ -227,10 +228,58 @@ export default function RoleManagementPage() {
     setEditingRoleForMenu(null);
     setMenuTree([]);
     setSelectedMenuIds(new Set());
+    setExpandedFolders(new Set());
   };
 
-  const toggleMenuSelection = (menuId: string) => {
+  const getAllDescendantIds = (menu: MenuItem): string[] => {
+    const ids: string[] = [menu.id];
+    if (menu.children) {
+      for (const child of menu.children) {
+        ids.push(...getAllDescendantIds(child));
+      }
+    }
+    return ids;
+  };
+
+  const getChildrenIds = (menu: MenuItem): string[] => {
+    const ids: string[] = [];
+    if (menu.children) {
+      for (const child of menu.children) {
+        ids.push(child.id);
+        ids.push(...getChildrenIds(child));
+      }
+    }
+    return ids;
+  };
+
+  const getMenuSelectionState = (menu: MenuItem): 'all' | 'partial' | 'none' => {
+    const childrenIds = getChildrenIds(menu);
+    if (childrenIds.length === 0) {
+      return selectedMenuIds.has(menu.id) ? 'all' : 'none';
+    }
+    const selectedCount = childrenIds.filter((id) => selectedMenuIds.has(id)).length;
+    if (selectedCount === 0) return 'none';
+    if (selectedCount === childrenIds.length) return 'all';
+    return 'partial';
+  };
+
+  const toggleMenuWithChildren = (menu: MenuItem) => {
+    const state = getMenuSelectionState(menu);
+    const descendants = getAllDescendantIds(menu);
+
     setSelectedMenuIds((prev) => {
+      const next = new Set(prev);
+      if (state === 'all') {
+        descendants.forEach((id) => next.delete(id));
+      } else {
+        descendants.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const toggleFolderExpand = (menuId: string) => {
+    setExpandedFolders((prev) => {
       const next = new Set(prev);
       if (next.has(menuId)) {
         next.delete(menuId);
@@ -258,37 +307,79 @@ export default function RoleManagementPage() {
     }
   };
 
-  const isMenuSelected = (menu: MenuItem): boolean => {
-    return selectedMenuIds.has(menu.id);
+  const renderCheckbox = (state: 'all' | 'partial' | 'none') => {
+    if (state === 'all') {
+      return (
+        <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+      );
+    }
+    if (state === 'partial') {
+      return <div className="w-2.5 h-0.5 bg-primary-foreground rounded" />;
+    }
+    return null;
   };
 
   const renderMenuTree = (menus: MenuItem[], level = 0): React.ReactNode => {
-    return menus.map((menu) => (
-      <div key={menu.id} className="select-none">
-        <div
-          className={`flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted cursor-pointer ${
-            isMenuSelected(menu) ? 'bg-primary/10' : ''
-          }`}
-          style={{ paddingLeft: `${level * 16 + 8}px` }}
-          onClick={() => toggleMenuSelection(menu.id)}
-        >
+    return menus.map((menu) => {
+      const isFolder = menu.menuType === 'FOLDER';
+      const hasChildren = menu.children && menu.children.length > 0;
+      const isExpanded = expandedFolders.has(menu.id);
+      const selectionState = getMenuSelectionState(menu);
+      const isSelected = selectionState !== 'none';
+
+      return (
+        <div key={menu.id} className="select-none">
           <div
-            className={`w-4 h-4 border rounded flex items-center justify-center ${
-              isMenuSelected(menu) ? 'bg-primary border-primary' : 'border-muted-foreground'
-            }`}
+            className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted cursor-pointer"
+            style={{ paddingLeft: `${level * 16 + 8}px` }}
           >
-            {isMenuSelected(menu) && (
-              <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
+            {isFolder && hasChildren && (
+              <button
+                type="button"
+                className="p-0.5 hover:bg-muted-foreground/20 rounded"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFolderExpand(menu.id);
+                }}
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </button>
             )}
+            {!isFolder && !hasChildren && <div className="w-4" />}
+            <div
+              className="flex items-center gap-2 flex-1"
+              onClick={() => toggleMenuWithChildren(menu)}
+            >
+              {isFolder ? (
+                isExpanded ? (
+                  <FolderOpen className="h-4 w-4 text-amber-500" />
+                ) : (
+                  <Folder className="h-4 w-4 text-amber-500" />
+                )
+              ) : (
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              )}
+              <div
+                className={`w-4 h-4 border flex items-center justify-center ${
+                  isSelected ? 'bg-primary border-primary' : 'border-muted-foreground'
+                }`}
+              >
+                {renderCheckbox(selectionState)}
+              </div>
+              <span className="text-sm">{menu.label}</span>
+              <span className="text-xs text-muted-foreground font-mono">({menu.key})</span>
+            </div>
           </div>
-          <span className="text-sm">{menu.label}</span>
-          <span className="text-xs text-muted-foreground font-mono">({menu.key})</span>
+          {isFolder && hasChildren && isExpanded && renderMenuTree(menu.children!, level + 1)}
         </div>
-        {menu.children && menu.children.length > 0 && renderMenuTree(menu.children, level + 1)}
-      </div>
-    ));
+      );
+    });
   };
 
   const handleDelete = async () => {
@@ -618,14 +709,14 @@ export default function RoleManagementPage() {
 
       {/* Menu Association Dialog */}
       <Dialog open={menuDialogOpen} onOpenChange={setMenuDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg h-[500px] flex flex-col">
           <DialogHeader>
             <DialogTitle>关联菜单 - {editingRoleForMenu?.name}</DialogTitle>
             <DialogDescription>
               选择角色 "{editingRoleForMenu?.code}" 可访问的菜单
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="flex-1 min-h-0 overflow-hidden">
             {menuLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
@@ -635,7 +726,7 @@ export default function RoleManagementPage() {
             ) : menuTree.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">暂无菜单</div>
             ) : (
-              <div className="border rounded-md max-h-[400px] overflow-y-auto">
+              <div className="border rounded-md h-full overflow-y-auto">
                 {renderMenuTree(menuTree)}
               </div>
             )}
