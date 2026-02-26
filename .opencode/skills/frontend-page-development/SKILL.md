@@ -26,17 +26,148 @@ Current standard is not only CRUD layout, but also:
 digraph frontend_dev {
     rankdir=TB;
     "Define types" [shape=box];
+    "Add i18n keys" [shape=box];
     "Add API methods" [shape=box];
     "Build page" [shape=box];
     "Wire route" [shape=box];
     "Verify in browser" [shape=box];
 
-    "Define types" -> "Add API methods";
+    "Define types" -> "Add i18n keys";
+    "Add i18n keys" -> "Add API methods";
     "Add API methods" -> "Build page";
     "Build page" -> "Wire route";
     "Wire route" -> "Verify in browser";
 }
 ```
+
+## Internationalization (i18n)
+
+**All user-facing text must be internationalized using react-i18next.**
+
+### Step 0: Add i18n Keys
+
+Add translation keys to both locale files:
+
+**`app-web/src/i18n/locales/zh-CN.json`:**
+```json
+{
+  "pages": {
+    "xManagement": {
+      "title": "X管理",
+      "searchPlaceholder": "搜索名称或编码...",
+      "addButton": "新增X",
+      "columns": {
+        "code": "编码",
+        "name": "名称",
+        "description": "描述",
+        "actions": "操作"
+      },
+      "dialog": {
+        "createTitle": "新增X",
+        "editTitle": "编辑X"
+      },
+      "form": {
+        "code": "编码",
+        "codePlaceholder": "请输入编码",
+        "name": "名称",
+        "namePlaceholder": "请输入名称"
+      },
+      "confirm": {
+        "deleteTitle": "确认删除",
+        "deleteMessage": "确定要删除该记录吗？"
+      },
+      "messages": {
+        "createSuccess": "创建成功",
+        "updateSuccess": "更新成功",
+        "deleteSuccess": "删除成功"
+      }
+    }
+  }
+}
+```
+
+**`app-web/src/i18n/locales/en-US.json`:**
+```json
+{
+  "pages": {
+    "xManagement": {
+      "title": "X Management",
+      "searchPlaceholder": "Search by name or code...",
+      "addButton": "Add X",
+      "columns": {
+        "code": "Code",
+        "name": "Name",
+        "description": "Description",
+        "actions": "Actions"
+      },
+      "dialog": {
+        "createTitle": "Create X",
+        "editTitle": "Edit X"
+      },
+      "form": {
+        "code": "Code",
+        "codePlaceholder": "Enter code",
+        "name": "Name",
+        "namePlaceholder": "Enter name"
+      },
+      "confirm": {
+        "deleteTitle": "Confirm Delete",
+        "deleteMessage": "Are you sure you want to delete this item?"
+      },
+      "messages": {
+        "createSuccess": "Created successfully",
+        "updateSuccess": "Updated successfully",
+        "deleteSuccess": "Deleted successfully"
+      }
+    }
+  }
+}
+```
+
+### Usage in Components
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+export default function XManagementPage() {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <CardTitle>{t('pages.xManagement.title')}</CardTitle>
+      <Input placeholder={t('pages.xManagement.searchPlaceholder')} />
+      <Button>{t('pages.xManagement.addButton')}</Button>
+      {/* Table columns */}
+      <TableHead>{t('pages.xManagement.columns.code')}</TableHead>
+      {/* Dialog title */}
+      <DialogTitle>
+        {dialogMode === 'create' 
+          ? t('pages.xManagement.dialog.createTitle')
+          : t('pages.xManagement.dialog.editTitle')}
+      </DialogTitle>
+      {/* Toast messages */}
+      toast.success(t('pages.xManagement.messages.createSuccess'));
+    </>
+  );
+}
+```
+
+### i18n Key Naming Convention
+
+| Pattern | Example | Description |
+|---------|---------|-------------|
+| `pages.{pageName}.title` | `pages.roleManagement.title` | Page title |
+| `pages.{pageName}.columns.{field}` | `pages.roleManagement.columns.name` | Table columns |
+| `pages.{pageName}.form.{field}` | `pages.roleManagement.form.name` | Form labels |
+| `pages.{pageName}.dialog.{action}` | `pages.roleManagement.dialog.createTitle` | Dialog titles |
+| `pages.{pageName}.messages.{type}` | `pages.roleManagement.messages.createSuccess` | Toast messages |
+| `common.{action}` | `common.save`, `common.cancel` | Shared actions |
+
+### Common Keys (Pre-defined)
+
+Use existing `common.*` keys for standard actions:
+- `common.loading`, `common.submit`, `common.cancel`, `common.confirm`
+- `common.save`, `common.delete`, `common.edit`, `common.add`, `common.search`
 
 ## Step 1: Define TypeScript Types
 
@@ -217,6 +348,8 @@ import XManagementPage from '@/pages/module/XManagementPage';
 
 | Mistake | Fix |
 |---------|-----|
+| Hardcoding Chinese text in components | Use `t('pages.xxx.key')` for all user-facing text |
+| Missing i18n keys in one locale file | Add keys to BOTH `zh-CN.json` AND `en-US.json` |
 | Using `searchKeyword` directly in loading request | Keep `queryKeyword` separate from input state |
 | Sending 1-based `page` to backend | Convert to zero-based with `Math.max(currentPage - 1, 0)` |
 | Ignoring `x-total-count` | Read response headers first, then fallback to body |
