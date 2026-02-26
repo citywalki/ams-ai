@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import pro.walkin.ams.common.exception.BusinessException;
 import pro.walkin.ams.persistence.entity.system.Menu;
+import pro.walkin.ams.persistence.entity.system.Menu_;
 import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.Permission;
 import pro.walkin.ams.persistence.entity.system.User;
@@ -164,7 +165,7 @@ public class RoleService {
             return List.of();
         }
 
-        List<Menu> menus = menuRepo.list("tenant", tenantId);
+        List<Menu> menus = Menu_.managedBlocking().find("tenant = ?1", tenantId).list();
         return menus.stream()
             .filter(menu -> menu.rolesAllowed != null && menu.rolesAllowed.contains(role.code))
             .map(menu -> menu.id)
@@ -185,7 +186,7 @@ public class RoleService {
 
         Set<Long> newMenuIdSet = new HashSet<>(menuIds != null ? menuIds : List.of());
 
-        List<Menu> allMenus = menuRepo.list("tenant", tenantId);
+        List<Menu> allMenus = Menu_.managedBlocking().find("tenant = ?1", tenantId).list();
 
         for (Menu menu : allMenus) {
             boolean shouldBeAllowed = newMenuIdSet.contains(menu.id);
@@ -201,7 +202,7 @@ public class RoleService {
                     newRolesAllowed.remove(role.code);
                 }
                 menu.rolesAllowed = newRolesAllowed;
-                menuRepo.persist(menu);
+                menu.persist();
             }
         }
     }

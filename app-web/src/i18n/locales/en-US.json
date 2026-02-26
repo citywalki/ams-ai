@@ -9,7 +9,18 @@
     "edit": "Edit",
     "add": "Add",
     "search": "Search",
-    "more": "More"
+    "more": "More",
+    "reset": "Reset",
+    "actions": "Actions"
+  },
+  "table": {
+    "pageSize": "Show",
+    "records": "records",
+    "page": "Page",
+    "pageOf": "of",
+    "pages": "",
+    "noData": "No data available",
+    "loadError": "Failed to load data"
   },
   "login": {
     "title": "AMS Login",

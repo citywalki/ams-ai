@@ -227,10 +227,10 @@ export const systemApi = {
     getRoles: (params?: RoleQueryParams) => apiClient.get<PageResponse<RoleItem> | RoleItem[]>('/system/roles', {params}),
     createRole: (payload: RolePayload) => apiClient.post<RoleItem>('/system/roles', payload),
     updateRole: (id: number, payload: RolePayload) => apiClient.put<RoleItem>(`/system/roles/${id}`, payload),
-    deleteRole: (id: number) => apiClient.delete(`/system/roles/${id}`),
-    getRoleMenus: (roleId: number) =>
+    deleteRole: (id: number | string) => apiClient.delete(`/system/roles/${id}`),
+    getRoleMenus: (roleId: number | string) =>
         apiClient.get<{ menuIds: string[] }>(`/system/roles/${roleId}/menus`),
-    updateRoleMenus: (roleId: number, menuIds: string[]) =>
+    updateRoleMenus: (roleId: number | string, menuIds: string[]) =>
         apiClient.put(`/system/roles/${roleId}/menus`, { menuIds }),
     getPermissions: (params?: { page?: number; size?: number }) =>
         apiClient.get<PageResponse<PermissionItem> | PermissionItem[]>('/system/permissions', {params})

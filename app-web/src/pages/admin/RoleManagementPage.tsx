@@ -211,7 +211,7 @@ export default function RoleManagementPage() {
     try {
       const [treeRes, roleMenusRes] = await Promise.all([
         menuApi.getMenuTree(),
-        systemApi.getRoleMenus(Number(role.id)),
+        systemApi.getRoleMenus(role.id),
       ]);
       setMenuTree(treeRes.data);
       const menuIds = roleMenusRes.data.menuIds || [];
@@ -295,7 +295,7 @@ export default function RoleManagementPage() {
     setMenuSaving(true);
     try {
       await systemApi.updateRoleMenus(
-        Number(editingRoleForMenu.id),
+        editingRoleForMenu.id,
         Array.from(selectedMenuIds)
       );
       closeMenuDialog();
