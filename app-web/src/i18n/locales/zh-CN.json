@@ -59,5 +59,189 @@
     "severity": "级别",
     "status": "状态",
     "createdAt": "创建时间"
+  },
+  "pages": {
+    "roleManagement": {
+      "title": "角色管理",
+      "description": "管理系统角色和权限配置",
+      "listTitle": "角色列表",
+      "actions": {
+        "associateMenus": "关联菜单"
+      },
+      "columns": {
+        "code": "编码",
+        "name": "名称",
+        "description": "描述",
+        "permissions": "权限",
+        "permissionsCount": "{{count}} 个权限"
+      },
+      "form": {
+        "keyword": "关键词",
+        "keywordPlaceholder": "输入角色名称或编码搜索...",
+        "code": "编码",
+        "codePlaceholder": "如：ROLE_ADMIN",
+        "name": "名称",
+        "namePlaceholder": "如：管理员",
+        "description": "描述",
+        "descriptionPlaceholder": "角色描述（可选）",
+        "permissions": "权限"
+      },
+      "dialog": {
+        "createTitle": "添加角色",
+        "editTitle": "编辑角色",
+        "createDescription": "创建新的系统角色",
+        "editDescription": "修改角色信息",
+        "deleteTitle": "确认删除",
+        "deleteDescription": "确定要删除角色 {{name}} 吗？此操作不可撤销。",
+        "menuTitle": "关联菜单 - {{name}}",
+        "menuDescription": "选择角色 \"{{code}}\" 可访问的菜单"
+      },
+      "messages": {
+        "operationFailed": "操作失败",
+        "noPermissions": "暂无可选权限",
+        "noMenus": "暂无菜单",
+        "submitting": "提交中...",
+        "deleting": "删除中...",
+        "saving": "保存中..."
+      }
+    },
+    "userManagement": {
+      "title": "用户管理",
+      "description": "管理系统用户账户、角色分配和权限设置",
+      "listTitle": "用户列表",
+      "status": {
+        "all": "全部",
+        "active": "启用",
+        "inactive": "禁用"
+      },
+      "columns": {
+        "username": "用户名",
+        "email": "邮箱",
+        "roles": "角色",
+        "status": "状态"
+      },
+      "form": {
+        "username": "用户名",
+        "usernameSearchPlaceholder": "输入用户名搜索...",
+        "email": "邮箱",
+        "password": "密码",
+        "newPassword": "新密码",
+        "status": "状态",
+        "statusPlaceholder": "选择状态",
+        "roles": "角色"
+      },
+      "dialog": {
+        "createTitle": "添加用户",
+        "editTitle": "编辑用户",
+        "createDescription": "创建新的系统用户账户",
+        "editDescription": "修改用户账户信息",
+        "resetPasswordTitle": "重置密码",
+        "resetPasswordDescription": "为用户 {{username}} 设置新密码",
+        "deleteTitle": "确认删除",
+        "deleteDescription": "确定要删除用户 {{username}} 吗？此操作不可撤销。"
+      },
+      "messages": {
+        "operationFailed": "操作失败",
+        "submitting": "提交中...",
+        "processing": "处理中...",
+        "deleting": "删除中..."
+      }
+    },
+    "menuManagement": {
+      "folderTitle": "菜单分类",
+      "rootMenu": "根菜单",
+      "actions": {
+        "addMenu": "添加菜单",
+        "addPermission": "添加权限",
+        "managePermissions": "编辑权限",
+        "close": "关闭"
+      },
+      "columns": {
+        "code": "编码",
+        "name": "名称",
+        "description": "描述",
+        "route": "路由",
+        "sortOrder": "排序",
+        "visible": "可见",
+        "buttonType": "按钮类型"
+      },
+      "form": {
+        "searchFolderPlaceholder": "搜索分类...",
+        "name": "名称",
+        "route": "路由",
+        "icon": "图标",
+        "rolesAllowed": "允许角色（逗号分隔）",
+        "sortOrder": "排序",
+        "type": "类型",
+        "folderType": "目录",
+        "menuType": "菜单",
+        "visible": "可见",
+        "yes": "是",
+        "no": "否"
+      },
+      "dialog": {
+        "createMenuTitle": "新增菜单",
+        "editMenuTitle": "编辑菜单",
+        "permissionTitle": "权限管理 - {{label}}",
+        "permissionDescription": "管理菜单 \"{{key}}\" 的按钮权限",
+        "createPermissionTitle": "新增权限",
+        "editPermissionTitle": "编辑权限",
+        "deleteMenuTitle": "确认删除",
+        "deleteMenuDescription": "确定要删除菜单 \"{{label}}\" 吗？请先删除子菜单和关联权限。",
+        "deletePermissionTitle": "确认删除",
+        "deletePermissionDescription": "确定要删除权限 \"{{name}}\" 吗？此操作不可撤销。"
+      },
+      "messages": {
+        "loadFoldersFailed": "加载菜单分类失败",
+        "operationFailed": "操作失败",
+        "noFolders": "暂无分类",
+        "noMenus": "暂无菜单项",
+        "noPermissions": "暂无权限",
+        "submitting": "提交中...",
+        "deleting": "删除中..."
+      }
+    },
+    "dictManagement": {
+      "categoryTitle": "字典分类",
+      "itemTitle": "字典项",
+      "actions": {
+        "addItem": "添加项"
+      },
+      "status": {
+        "active": "启用",
+        "inactive": "禁用"
+      },
+      "columns": {
+        "code": "编码",
+        "name": "名称",
+        "description": "描述",
+        "value": "值",
+        "remark": "备注",
+        "sortOrder": "排序",
+        "status": "状态"
+      },
+      "form": {
+        "searchCategoryPlaceholder": "搜索分类..."
+      },
+      "dialog": {
+        "createCategoryTitle": "新增分类",
+        "editCategoryTitle": "编辑分类",
+        "createItemTitle": "新增字典项",
+        "editItemTitle": "编辑字典项",
+        "deleteCategoryTitle": "确认删除",
+        "deleteCategoryDescription": "确定要删除分类 \"{{name}}\" 吗？请先删除分类下的字典项。",
+        "deleteItemTitle": "确认删除",
+        "deleteItemDescription": "确定要删除字典项 \"{{name}}\" 吗？此操作不可撤销。"
+      },
+      "messages": {
+        "loadCategoriesFailed": "加载分类失败",
+        "operationFailed": "操作失败",
+        "noCategories": "暂无分类",
+        "selectCategory": "请选择左侧分类",
+        "noItems": "暂无字典项",
+        "submitting": "提交中...",
+        "deleting": "删除中..."
+      }
+    }
   }
 }

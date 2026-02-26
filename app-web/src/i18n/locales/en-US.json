@@ -59,5 +59,190 @@
     "severity": "Severity",
     "status": "Status",
     "createdAt": "Created At"
+  },
+  "pages": {
+    "roleManagement": {
+      "title": "Role Management",
+      "description": "Manage system roles and permission settings",
+      "listTitle": "Role List",
+      "actions": {
+        "associateMenus": "Associate Menus"
+      },
+      "columns": {
+        "code": "Code",
+        "name": "Name",
+        "description": "Description",
+        "permissions": "Permissions",
+        "permissionsCount": "{{count}} permissions"
+      },
+      "form": {
+        "keyword": "Keyword",
+        "keywordPlaceholder": "Search by role name or code...",
+        "code": "Code",
+        "codePlaceholder": "e.g. ROLE_ADMIN",
+        "name": "Name",
+        "namePlaceholder": "e.g. Administrator",
+        "description": "Description",
+        "descriptionPlaceholder": "Role description (optional)",
+        "permissions": "Permissions"
+      },
+      "dialog": {
+        "createTitle": "Add Role",
+        "editTitle": "Edit Role",
+        "createDescription": "Create a new system role",
+        "editDescription": "Update role information",
+        "deleteTitle": "Confirm Deletion",
+        "deleteDescription": "Are you sure you want to delete role {{name}}? This action cannot be undone.",
+        "menuTitle": "Associate Menus - {{name}}",
+        "menuDescription": "Select menus accessible to role \"{{code}}\""
+      },
+      "messages": {
+        "operationFailed": "Operation failed",
+        "noPermissions": "No permissions available",
+        "noMenus": "No menus available",
+        "submitting": "Submitting...",
+        "deleting": "Deleting...",
+        "saving": "Saving..."
+      }
+    },
+    "userManagement": {
+      "title": "User Management",
+      "description": "Manage user accounts, role assignments, and permissions",
+      "listTitle": "User List",
+      "status": {
+        "all": "All",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "columns": {
+        "username": "Username",
+        "email": "Email",
+        "roles": "Roles",
+        "status": "Status"
+      },
+      "form": {
+        "username": "Username",
+        "usernameSearchPlaceholder": "Search by username...",
+        "email": "Email",
+        "password": "Password",
+        "newPassword": "New Password",
+        "status": "Status",
+        "statusPlaceholder": "Select status",
+        "roles": "Roles"
+      },
+      "dialog": {
+        "createTitle": "Add User",
+        "editTitle": "Edit User",
+        "createDescription": "Create a new system user account",
+        "editDescription": "Update user account information",
+        "resetPasswordTitle": "Reset Password",
+        "resetPasswordDescription": "Set a new password for user {{username}}",
+        "deleteTitle": "Confirm Deletion",
+        "deleteDescription": "Are you sure you want to delete user {{username}}? This action cannot be undone.",
+        "confirm": "Confirm"
+      },
+      "messages": {
+        "operationFailed": "Operation failed",
+        "submitting": "Submitting...",
+        "processing": "Processing...",
+        "deleting": "Deleting..."
+      }
+    },
+    "menuManagement": {
+      "folderTitle": "Menu Folders",
+      "rootMenu": "Root Menu",
+      "actions": {
+        "addMenu": "Add Menu",
+        "addPermission": "Add Permission",
+        "managePermissions": "Edit Permissions",
+        "close": "Close"
+      },
+      "columns": {
+        "code": "Code",
+        "name": "Name",
+        "description": "Description",
+        "route": "Route",
+        "sortOrder": "Sort Order",
+        "visible": "Visible",
+        "buttonType": "Button Type"
+      },
+      "form": {
+        "searchFolderPlaceholder": "Search folders...",
+        "name": "Name",
+        "route": "Route",
+        "icon": "Icon",
+        "rolesAllowed": "Allowed Roles (comma-separated)",
+        "sortOrder": "Sort Order",
+        "type": "Type",
+        "folderType": "Folder",
+        "menuType": "Menu",
+        "visible": "Visible",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "dialog": {
+        "createMenuTitle": "Create Menu",
+        "editMenuTitle": "Edit Menu",
+        "permissionTitle": "Permission Management - {{label}}",
+        "permissionDescription": "Manage button permissions for menu \"{{key}}\"",
+        "createPermissionTitle": "Create Permission",
+        "editPermissionTitle": "Edit Permission",
+        "deleteMenuTitle": "Confirm Deletion",
+        "deleteMenuDescription": "Are you sure you want to delete menu \"{{label}}\"? Remove child menus and permissions first.",
+        "deletePermissionTitle": "Confirm Deletion",
+        "deletePermissionDescription": "Are you sure you want to delete permission \"{{name}}\"? This action cannot be undone."
+      },
+      "messages": {
+        "loadFoldersFailed": "Failed to load menu folders",
+        "operationFailed": "Operation failed",
+        "noFolders": "No folders available",
+        "noMenus": "No menu items available",
+        "noPermissions": "No permissions available",
+        "submitting": "Submitting...",
+        "deleting": "Deleting..."
+      }
+    },
+    "dictManagement": {
+      "categoryTitle": "Dictionary Categories",
+      "itemTitle": "Dictionary Items",
+      "actions": {
+        "addItem": "Add Item"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "columns": {
+        "code": "Code",
+        "name": "Name",
+        "description": "Description",
+        "value": "Value",
+        "remark": "Remark",
+        "sortOrder": "Sort Order",
+        "status": "Status"
+      },
+      "form": {
+        "searchCategoryPlaceholder": "Search categories..."
+      },
+      "dialog": {
+        "createCategoryTitle": "Create Category",
+        "editCategoryTitle": "Edit Category",
+        "createItemTitle": "Create Dictionary Item",
+        "editItemTitle": "Edit Dictionary Item",
+        "deleteCategoryTitle": "Confirm Deletion",
+        "deleteCategoryDescription": "Are you sure you want to delete category \"{{name}}\"? Please remove its items first.",
+        "deleteItemTitle": "Confirm Deletion",
+        "deleteItemDescription": "Are you sure you want to delete dictionary item \"{{name}}\"? This action cannot be undone."
+      },
+      "messages": {
+        "loadCategoriesFailed": "Failed to load categories",
+        "operationFailed": "Operation failed",
+        "noCategories": "No categories available",
+        "selectCategory": "Please select a category on the left",
+        "noItems": "No dictionary items available",
+        "submitting": "Submitting...",
+        "deleting": "Deleting..."
+      }
+    }
   }
 }
