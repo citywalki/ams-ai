@@ -30,9 +30,11 @@ public class UserController {
         @QueryParam("size") @DefaultValue("20") int size,
         @QueryParam("username") String username,
         @QueryParam("email") String email,
-        @QueryParam("status") String status
+        @QueryParam("status") String status,
+        @QueryParam("sortBy") @DefaultValue("createdAt") String sortBy,
+        @QueryParam("sortOrder") @DefaultValue("DESC") String sortOrder
     ) {
-        List<UserResponseDto> users = userService.findAll(username, email, status, page, size);
+        List<UserResponseDto> users = userService.findAll(username, email, status, sortBy, sortOrder, page, size);
         long totalCount = userService.count(username, email, status);
         long totalPages = (long) Math.ceil((double) totalCount / size);
         return ResponseBuilder.page(users, totalCount, totalPages, page, size);

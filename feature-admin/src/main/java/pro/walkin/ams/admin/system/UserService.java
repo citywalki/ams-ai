@@ -29,13 +29,13 @@ public class UserService {
     @Inject
     PasswordService passwordService;
 
-    public List<UserResponseDto> findAll(String username, String email, String status, int page, int size) {
+    public List<UserResponseDto> findAll(String username, String email, String status, String sortBy, String sortOrder, int page, int size) {
         Long tenantId = TenantContext.getCurrentTenantId();
         if (tenantId == null) {
             return List.of();
         }
 
-        List<User> users = userRepo.findByFilters(tenantId, username, email, status, page, size);
+        List<User> users = userRepo.findByFilters(tenantId, username, email, status, sortBy, sortOrder, page, size);
         return users.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
