@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Label } from '@/components/ui/label';
+import { FormField, FormFieldInline } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -68,8 +68,7 @@ export function MenuDialog({
             )}
             <form.Field name="key">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="key">Key</Label>
+                <FormField label="Key" required htmlFor="key">
                   <Input
                     id="key"
                     value={field.state.value as string}
@@ -77,13 +76,12 @@ export function MenuDialog({
                     onBlur={field.handleBlur}
                     required
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="label">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="label">{t('pages.menuManagement.form.name')}</Label>
+                <FormField label={t('pages.menuManagement.form.name')} required htmlFor="label">
                   <Input
                     id="label"
                     value={field.state.value as string}
@@ -91,39 +89,36 @@ export function MenuDialog({
                     onBlur={field.handleBlur}
                     required
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="route">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="route">{t('pages.menuManagement.form.route')}</Label>
+                <FormField label={t('pages.menuManagement.form.route')} htmlFor="route">
                   <Input
                     id="route"
                     value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="icon">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="icon">{t('pages.menuManagement.form.icon')}</Label>
+                <FormField label={t('pages.menuManagement.form.icon')} htmlFor="icon">
                   <Input
                     id="icon"
                     value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="rolesAllowed">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="rolesAllowed">{t('pages.menuManagement.form.rolesAllowed')}</Label>
+                <FormField label={t('pages.menuManagement.form.rolesAllowed')} htmlFor="rolesAllowed">
                   <Input
                     id="rolesAllowed"
                     value={field.state.value as string}
@@ -131,14 +126,13 @@ export function MenuDialog({
                     onBlur={field.handleBlur}
                     placeholder="ROLE_ADMIN,ROLE_USER"
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <div className="grid grid-cols-2 gap-4">
               <form.Field name="sortOrder">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="sortOrder">{t('pages.menuManagement.form.sortOrder')}</Label>
+                  <FormField label={t('pages.menuManagement.form.sortOrder')} htmlFor="sortOrder">
                     <Input
                       id="sortOrder"
                       type="number"
@@ -146,13 +140,12 @@ export function MenuDialog({
                       onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
                       onBlur={field.handleBlur}
                     />
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
               <form.Field name="menuType">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="menuType">{t('pages.menuManagement.form.type')}</Label>
+                  <FormField label={t('pages.menuManagement.form.type')} htmlFor="menuType">
                     <Select
                       value={field.state.value as string}
                       onValueChange={(value) => field.handleChange(value as 'FOLDER' | 'MENU')}
@@ -165,20 +158,19 @@ export function MenuDialog({
                         <SelectItem value="MENU">{t('pages.menuManagement.form.menuType')}</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
             </div>
             <form.Field name="isVisible">
               {(field) => (
-                <div className="flex items-center gap-2">
+                <FormFieldInline label={t('pages.menuManagement.form.visible')} htmlFor="isVisible">
                   <Switch
                     id="isVisible"
                     checked={field.state.value as boolean}
                     onCheckedChange={(checked) => field.handleChange(checked)}
                   />
-                  <Label htmlFor="isVisible">{t('pages.menuManagement.form.visible')}</Label>
-                </div>
+                </FormFieldInline>
               )}
             </form.Field>
           </div>

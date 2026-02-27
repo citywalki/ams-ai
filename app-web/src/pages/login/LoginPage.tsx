@@ -6,7 +6,7 @@ import { Shield, Bell, Users, LogIn } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FormField, FormFieldInline } from '@/components/ui/form-field';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,7 @@ export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
   const error = useAuthStore((state) => state.error);
-  
+
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('Admin123!');
   const [rememberMe, setRememberMe] = useState(false);
@@ -92,9 +92,8 @@ export default function LoginPage() {
                       <AlertDescription>{error}</AlertDescription>
                     </Alert>
                   )}
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="username">{t('login.username')}</Label>
+
+                  <FormField label={t('login.username')} required htmlFor="username">
                     <Input
                       id="username"
                       value={username}
@@ -102,10 +101,9 @@ export default function LoginPage() {
                       placeholder={t('login.username')}
                       required
                     />
-                  </div>
+                  </FormField>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password">{t('login.password')}</Label>
+                  <FormField label={t('login.password')} required htmlFor="password">
                     <Input
                       id="password"
                       type="password"
@@ -114,19 +112,16 @@ export default function LoginPage() {
                       placeholder={t('login.password')}
                       required
                     />
-                  </div>
+                  </FormField>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <FormFieldInline label={t('login.rememberMe')} htmlFor="remember" labelClassName="text-sm font-normal">
                       <Checkbox
                         id="remember"
                         checked={rememberMe}
                         onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                       />
-                      <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
-                        {t('login.rememberMe')}
-                      </Label>
-                    </div>
+                    </FormFieldInline>
                     <ToggleGroup
                       type="single"
                       value={currentLang}

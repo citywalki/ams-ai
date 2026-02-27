@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,8 +60,7 @@ export function PermissionDialog({
             )}
             <form.Field name="code">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="code">{t('pages.menuManagement.columns.code')}</Label>
+                <FormField label={t('pages.menuManagement.columns.code')} required htmlFor="code">
                   <Input
                     id="code"
                     value={field.state.value as string}
@@ -69,13 +68,12 @@ export function PermissionDialog({
                     onBlur={field.handleBlur}
                     required
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="name">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t('pages.menuManagement.columns.name')}</Label>
+                <FormField label={t('pages.menuManagement.columns.name')} required htmlFor="name">
                   <Input
                     id="name"
                     value={field.state.value as string}
@@ -83,27 +81,25 @@ export function PermissionDialog({
                     onBlur={field.handleBlur}
                     required
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="description">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="description">{t('pages.menuManagement.columns.description')}</Label>
+                <FormField label={t('pages.menuManagement.columns.description')} htmlFor="description">
                   <Input
                     id="description"
                     value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <div className="grid grid-cols-2 gap-4">
               <form.Field name="sortOrder">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="sortOrder">{t('pages.menuManagement.columns.sortOrder')}</Label>
+                  <FormField label={t('pages.menuManagement.columns.sortOrder')} htmlFor="sortOrder">
                     <Input
                       id="sortOrder"
                       type="number"
@@ -111,13 +107,12 @@ export function PermissionDialog({
                       onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
                       onBlur={field.handleBlur}
                     />
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
               <form.Field name="buttonType">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="buttonType">{t('pages.menuManagement.columns.buttonType')}</Label>
+                  <FormField label={t('pages.menuManagement.columns.buttonType')} htmlFor="buttonType">
                     <Input
                       id="buttonType"
                       value={field.state.value as string}
@@ -125,7 +120,7 @@ export function PermissionDialog({
                       onBlur={field.handleBlur}
                       placeholder="primary, danger..."
                     />
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
             </div>

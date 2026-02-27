@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -68,60 +68,55 @@ export function DictCategoryDialog({
             )}
             <form.Field name="code">
               {(field) => (
-                <div className="space-y-2">
-                  <Label>{t('pages.dictManagement.columns.code')}</Label>
+                <FormField label={t('pages.dictManagement.columns.code')} required>
                   <Input
                     value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                     required
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="name">
               {(field) => (
-                <div className="space-y-2">
-                  <Label>{t('pages.dictManagement.columns.name')}</Label>
+                <FormField label={t('pages.dictManagement.columns.name')} required>
                   <Input
                     value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                     required
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="description">
               {(field) => (
-                <div className="space-y-2">
-                  <Label>{t('pages.dictManagement.columns.description')}</Label>
+                <FormField label={t('pages.dictManagement.columns.description')}>
                   <Textarea
                     value={field.state.value as string}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <div className="grid grid-cols-2 gap-4">
               <form.Field name="sort">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label>{t('pages.dictManagement.columns.sortOrder')}</Label>
+                  <FormField label={t('pages.dictManagement.columns.sortOrder')}>
                     <Input
                       type="number"
                       value={field.state.value as number}
                       onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
                       onBlur={field.handleBlur}
                     />
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
               <form.Field name="status">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label>{t('pages.dictManagement.columns.status')}</Label>
+                  <FormField label={t('pages.dictManagement.columns.status')}>
                     <Select
                       value={String(field.state.value as number)}
                       onValueChange={(v) => field.handleChange(parseInt(v))}
@@ -134,7 +129,7 @@ export function DictCategoryDialog({
                         <SelectItem value="0">{t('pages.dictManagement.status.inactive')}</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
             </div>

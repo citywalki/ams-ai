@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
 import { type RoleOption } from '@/utils/api';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type UserFormData } from '../schemas/user-schema';
@@ -78,8 +79,7 @@ export function UserFormDialog({
             )}
             <form.Field name="username">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="username">{t('pages.userManagement.form.username')}</Label>
+                <FormField label={t('pages.userManagement.form.username')} required htmlFor="username">
                   <Input
                     id="username"
                     value={field.state.value as string}
@@ -87,13 +87,12 @@ export function UserFormDialog({
                     onBlur={field.handleBlur}
                     required
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="email">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t('pages.userManagement.form.email')}</Label>
+                <FormField label={t('pages.userManagement.form.email')} htmlFor="email">
                   <Input
                     id="email"
                     type="email"
@@ -101,14 +100,13 @@ export function UserFormDialog({
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             {mode === 'create' && (
               <form.Field name="password">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="password">{t('pages.userManagement.form.password')}</Label>
+                  <FormField label={t('pages.userManagement.form.password')} required htmlFor="password">
                     <Input
                       id="password"
                       type="password"
@@ -117,14 +115,13 @@ export function UserFormDialog({
                       onBlur={field.handleBlur}
                       required
                     />
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
             )}
             <form.Field name="status">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="status">{t('pages.userManagement.form.status')}</Label>
+                <FormField label={t('pages.userManagement.form.status')} htmlFor="status">
                   <Select
                     value={field.state.value as string}
                     onValueChange={(value) => field.handleChange(value as 'ACTIVE' | 'INACTIVE')}
@@ -137,7 +134,7 @@ export function UserFormDialog({
                       <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="roleIds">

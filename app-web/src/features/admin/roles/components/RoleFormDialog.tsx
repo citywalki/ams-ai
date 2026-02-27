@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
 import { type PermissionItem } from '@/utils/api';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type RoleFormData } from '../schemas/role-schema';
@@ -72,8 +73,7 @@ export function RoleFormDialog({
             <div className="grid grid-cols-2 gap-4">
               <form.Field name="code">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="code">{t('pages.roleManagement.form.code')}</Label>
+                  <FormField label={t('pages.roleManagement.form.code')} required htmlFor="code">
                     <Input
                       id="code"
                       value={field.state.value as string}
@@ -82,13 +82,12 @@ export function RoleFormDialog({
                       placeholder={t('pages.roleManagement.form.codePlaceholder')}
                       required
                     />
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
               <form.Field name="name">
                 {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="name">{t('pages.roleManagement.form.name')}</Label>
+                  <FormField label={t('pages.roleManagement.form.name')} required htmlFor="name">
                     <Input
                       id="name"
                       value={field.state.value as string}
@@ -97,14 +96,13 @@ export function RoleFormDialog({
                       placeholder={t('pages.roleManagement.form.namePlaceholder')}
                       required
                     />
-                  </div>
+                  </FormField>
                 )}
               </form.Field>
             </div>
             <form.Field name="description">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="description">{t('pages.roleManagement.form.description')}</Label>
+                <FormField label={t('pages.roleManagement.form.description')} htmlFor="description">
                   <Input
                     id="description"
                     value={field.state.value as string}
@@ -112,7 +110,7 @@ export function RoleFormDialog({
                     onBlur={field.handleBlur}
                     placeholder={t('pages.roleManagement.form.descriptionPlaceholder')}
                   />
-                </div>
+                </FormField>
               )}
             </form.Field>
             <form.Field name="permissionIds">
