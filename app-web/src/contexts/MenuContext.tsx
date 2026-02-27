@@ -13,18 +13,33 @@ const MenuContext = createContext<MenuContextValue | null>(null);
 
 function normalizeRoute(route?: string): string {
   if (!route) {
-    return '/';
+    return '';
   }
   return route.startsWith('/') ? route : `/${route}`;
 }
 
-function normalizeMenuTree(items: MenuItem[]): MenuItem[] {
+function buildFullPath(parentPath: string, childRoute?: string): string {
+  if (!childRoute) {
+    return parentPath;
+  }
+  const normalizedChild = childRoute.startsWith('/') ? childRoute : `/${childRoute}`;
+  if (parentPath === '/') {
+    return normalizedChild;
+  }
+  return `${parentPath}${normalizedChild}`;
+}
+
+function normalizeMenuTree(items: MenuItem[], parentPath: string = ''): MenuItem[] {
   return items
-    .map((item) => ({
-      ...item,
-      route: normalizeRoute(item.route),
-      children: item.children ? normalizeMenuTree(item.children) : undefined
-    }))
+    .map((item) => {
+      const normalizedRoute = normalizeRoute(item.route);
+      const fullPath = parentPath ? buildFullPath(parentPath, item.route) : normalizedRoute;
+      return {
+        ...item,
+        route: fullPath || undefined,
+        children: item.children ? normalizeMenuTree(item.children, fullPath) : undefined
+      };
+    })
     .filter((item) => item.route);
 }
 
