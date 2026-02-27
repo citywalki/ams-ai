@@ -1,4 +1,4 @@
-package pro.walkin.ams.security;
+package pro.walkin.ams.common.security;
 
 import pro.walkin.ams.persistence.entity.system.Tenant;
 
@@ -119,7 +119,7 @@ public class TenantContext {
     public static boolean isDefaultTenant() {
         return DEFAULT_TENANT.equals(getCurrentTenantCode());
     }
-    
+
     /**
      * 获取默认租户ID
      *
