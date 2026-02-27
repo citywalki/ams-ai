@@ -37,15 +37,12 @@ export default function RoleManagementPage() {
   const {
     dialogOpen: formDialogOpen,
     dialogMode,
-    formState,
-    formLoading,
+    form,
     formError,
     openCreateDialog,
     openEditDialog,
     closeDialog: closeFormDialog,
     togglePermission,
-    updateFormField,
-    handleFormSubmit,
     setDialogOpen: setFormDialogOpen,
   } = useRoleForm();
 
@@ -127,14 +124,11 @@ export default function RoleManagementPage() {
         open={formDialogOpen}
         onOpenChange={setFormDialogOpen}
         mode={dialogMode}
-        formState={formState}
-        loading={formLoading}
+        form={form}
         error={formError}
         permissions={permissions}
-        onSubmit={handleFormSubmit}
         onClose={closeFormDialog}
         onTogglePermission={togglePermission}
-        onUpdateField={updateFormField}
       />
 
       {/* Menu Association Dialog */}
