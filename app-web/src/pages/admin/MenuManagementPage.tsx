@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
-import {ChevronDown, ChevronRight, FolderOpen, Lock, Pencil, Plus, Search, Trash2} from 'lucide-react';
+import {ChevronRight, FolderOpen, Lock, Pencil, Plus, Search, Trash2} from 'lucide-react';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -38,6 +38,7 @@ export default function MenuManagementPage() {
   const [menusLoading, setMenusLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [rootMenuCount, setRootMenuCount] = useState(0);
 
   // Menu form hook
   const menuForm = useMenuForm({
@@ -80,6 +81,8 @@ export default function MenuManagementPage() {
       setFolders(data);
       const folderIds = data.filter(item => item.menuType === 'FOLDER').map(item => item.id);
       setExpandedFolders(new Set(folderIds));
+      const rootMenusData = await fetchMenusByFolder(queryClient, 'root');
+      setRootMenuCount(rootMenusData.length);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('pages.menuManagement.messages.loadFoldersFailed'));
     } finally {
@@ -140,9 +143,6 @@ export default function MenuManagementPage() {
     const isSelected = typeof selectedFolder !== 'string' && selectedFolder?.id === item.id;
 
     const handleClick = () => {
-      if (isFolder && hasChildren) {
-        toggleFolder(item.id);
-      }
       selectFolder(item);
     };
 
@@ -328,6 +328,9 @@ export default function MenuManagementPage() {
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <FolderOpen className="h-4 w-4 flex-shrink-0"/>
                     <span className="truncate text-sm">{t('pages.menuManagement.rootMenu')}</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {rootMenuCount}
+                    </Badge>
                   </div>
                 </div>
                 {(() => {
@@ -374,32 +377,34 @@ export default function MenuManagementPage() {
           </div>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 p-0">
-          {menusLoading ? (
-            <div className="space-y-3 p-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : menus.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              {t('pages.menuManagement.messages.noMenus')}
-            </div>
-          ) : (
-            <ScrollArea className="h-full">
-              <div className="p-4">
-                <Table>
-                  <TableHeader>
+          <ScrollArea className="h-full">
+            <div className="p-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Key</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.name')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.route')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.sortOrder')}</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.visible')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {menusLoading ? (
                     <TableRow>
-                      <TableHead>Key</TableHead>
-                      <TableHead>{t('pages.menuManagement.columns.name')}</TableHead>
-                      <TableHead>{t('pages.menuManagement.columns.route')}</TableHead>
-                      <TableHead>{t('pages.menuManagement.columns.sortOrder')}</TableHead>
-                      <TableHead>{t('pages.menuManagement.columns.visible')}</TableHead>
-                      <TableHead>{t('common.actions')}</TableHead>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        {t('common.loading')}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {menus.filter(menu => menu.menuType !== 'FOLDER').map((menu) => (
+                  ) : menus.filter(menu => menu.menuType !== 'FOLDER').length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        {t('pages.menuManagement.messages.noMenus')}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    menus.filter(menu => menu.menuType !== 'FOLDER').map((menu) => (
                       <TableRow key={menu.id}>
                         <TableCell className="font-mono text-sm">{menu.key}</TableCell>
                         <TableCell>{menu.label}</TableCell>
@@ -440,12 +445,12 @@ export default function MenuManagementPage() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </ScrollArea>
-          )}
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
 
@@ -477,29 +482,31 @@ export default function MenuManagementPage() {
                 {t('pages.menuManagement.actions.addPermission')}
               </Button>
             </div>
-            {permissionsLoading ? (
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
-            ) : permissions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {t('pages.menuManagement.messages.noPermissions')}
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('pages.menuManagement.columns.code')}</TableHead>
+                  <TableHead>{t('pages.menuManagement.columns.name')}</TableHead>
+                  <TableHead>{t('pages.menuManagement.columns.sortOrder')}</TableHead>
+                  <TableHead>{t('pages.menuManagement.columns.buttonType')}</TableHead>
+                  <TableHead>{t('common.actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {permissionsLoading ? (
                   <TableRow>
-                    <TableHead>{t('pages.menuManagement.columns.code')}</TableHead>
-                    <TableHead>{t('pages.menuManagement.columns.name')}</TableHead>
-                    <TableHead>{t('pages.menuManagement.columns.sortOrder')}</TableHead>
-                    <TableHead>{t('pages.menuManagement.columns.buttonType')}</TableHead>
-                    <TableHead>{t('common.actions')}</TableHead>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      {t('common.loading')}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {permissions.map((permission) => (
+                ) : permissions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      {t('pages.menuManagement.messages.noPermissions')}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  permissions.map((permission) => (
                     <TableRow key={permission.id}>
                       <TableCell className="font-mono text-sm">{permission.code}</TableCell>
                       <TableCell>{permission.name}</TableCell>
@@ -527,10 +534,10 @@ export default function MenuManagementPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPermissionDialogOpen(false)}>
