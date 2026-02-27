@@ -13,6 +13,9 @@ dependencies {
 
     implementation(libs.quarkus.arc)
     implementation("io.quarkus:quarkus-rest")
+    implementation("io.quarkus:quarkus-cache")
+    implementation("io.quarkus:quarkus-security-jpa")
+    implementation("io.smallrye:smallrye-jwt")
 
     // Security/JWT dependencies (previously from lib-security)
     implementation(libs.quarkus.smallrye.jwt)

@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pro.walkin.ams.admin.system.query.DictCategoryQuery;
+import pro.walkin.ams.admin.system.query.DictItemQuery;
 import pro.walkin.ams.common.dto.DictItemDto;
 import pro.walkin.ams.common.dto.DictItemResponse;
 import pro.walkin.ams.common.exception.NotFoundException;
@@ -26,16 +28,12 @@ public class DictItemService {
     @Inject
     DictItem.Repo itemRepo;
 
-    @Inject
-    DictCategory.Repo categoryRepo;
+  @Inject DictItemQuery itemQuery;
+
+  @Inject DictCategoryQuery categoryQuery;
 
     public List<DictItemResponse> getByCategoryId(Long categoryId, Long tenantId) {
-        List<DictItem> items;
-        if (tenantId == null) {
-            items = itemRepo.list("categoryId", categoryId);
-        } else {
-            items = itemRepo.list("categoryId = ?1 and (tenant = ?2 or tenant is null)", categoryId, tenantId);
-        }
+    List<DictItem> items = itemQuery.listByCategoryIdAndTenant(categoryId, tenantId);
         return items.stream()
             .sorted(Comparator.comparingInt(i -> i.sort != null ? i.sort : 0))
             .map(this::mapToResponse)
@@ -43,17 +41,12 @@ public class DictItemService {
     }
 
     public List<DictItemResponse> getTreeByCategoryId(Long categoryId, Long tenantId) {
-        List<DictItem> items;
-        if (tenantId == null) {
-            items = itemRepo.list("categoryId = ?1 and status = 1", categoryId);
-        } else {
-            items = itemRepo.list("categoryId = ?1 and status = 1 and (tenant = ?2 or tenant is null)", categoryId, tenantId);
-        }
+    List<DictItem> items = itemQuery.listActiveByCategoryIdAndTenant(categoryId, tenantId);
         return buildTree(items);
     }
 
     public DictItemResponse getById(Long id, Long tenantId) {
-        DictItem item = itemRepo.findById(id);
+    DictItem item = itemQuery.findById(id);
         if (item == null) {
             throw new NotFoundException("DictItem", id.toString());
         }
@@ -64,17 +57,17 @@ public class DictItemService {
     public DictItemResponse create(DictItemDto dto, Long tenantId) {
         Objects.requireNonNull(dto, "字典项数据不能为空");
 
-        DictCategory category = categoryRepo.findById(dto.categoryId());
+    DictCategory category = categoryQuery.findById(dto.categoryId());
         if (category == null) {
             throw new NotFoundException("DictCategory", dto.categoryId().toString());
         }
 
-        if (itemRepo.countByCodeAndCategoryId(dto.code(), dto.categoryId()) > 0) {
+    if (itemQuery.countByCodeAndCategoryId(dto.code(), dto.categoryId()) > 0) {
             throw new ValidationException("项编码在该分类下已存在", "code", dto.code());
         }
 
         if (dto.parentId() != null) {
-            DictItem parent = itemRepo.findById(dto.parentId());
+      DictItem parent = itemQuery.findById(dto.parentId());
             if (parent == null) {
                 throw new NotFoundException("DictItem", dto.parentId().toString());
             }
@@ -100,7 +93,7 @@ public class DictItemService {
     }
 
     public DictItemResponse update(Long id, DictItemDto dto, Long tenantId) {
-        DictItem item = itemRepo.findById(id);
+    DictItem item = itemQuery.findById(id);
         if (item == null) {
             throw new NotFoundException("DictItem", id.toString());
         }
@@ -110,7 +103,7 @@ public class DictItemService {
             throw new ValidationException("不允许修改所属分类", "categoryId", dto.categoryId());
         }
 
-        if (itemRepo.countByCodeAndCategoryIdExcludingId(dto.code(), dto.categoryId(), id) > 0) {
+    if (itemQuery.countByCodeAndCategoryIdExcludingId(dto.code(), dto.categoryId(), id) > 0) {
             throw new ValidationException("项编码在该分类下已存在", "code", dto.code());
         }
 
@@ -118,7 +111,7 @@ public class DictItemService {
             if (dto.parentId().equals(id)) {
                 throw new ValidationException("不能将自己设为父级", "parentId", dto.parentId());
             }
-            DictItem parent = itemRepo.findById(dto.parentId());
+      DictItem parent = itemQuery.findById(dto.parentId());
             if (parent == null) {
                 throw new NotFoundException("DictItem", dto.parentId().toString());
             }
@@ -138,13 +131,13 @@ public class DictItemService {
     }
 
     public void delete(Long id, Long tenantId) {
-        DictItem item = itemRepo.findById(id);
+    DictItem item = itemQuery.findById(id);
         if (item == null) {
             throw new NotFoundException("DictItem", id.toString());
         }
         validateTenantAccess(item, tenantId);
 
-        if (itemRepo.countByParentId(id) > 0) {
+    if (itemQuery.countByParentId(id) > 0) {
             throw new ValidationException("请先删除子级字典项", "id", id);
         }
 

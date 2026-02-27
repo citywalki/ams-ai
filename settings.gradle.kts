@@ -27,8 +27,6 @@ include(
     "feature-core",
     "feature-admin",
     "feature-alert-ingestion",
-    "feature-ai-analysis",
-    "feature-notification",
 
     "app-boot"
 )

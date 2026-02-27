@@ -8,12 +8,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pro.walkin.ams.admin.system.query.DictCategoryQuery;
+import pro.walkin.ams.admin.system.query.DictItemQuery;
 import pro.walkin.ams.common.dto.DictCategoryDto;
 import pro.walkin.ams.common.dto.DictCategoryResponse;
 import pro.walkin.ams.common.exception.NotFoundException;
 import pro.walkin.ams.common.exception.ValidationException;
 import pro.walkin.ams.persistence.entity.system.DictCategory;
-import pro.walkin.ams.persistence.entity.system.DictItem;
 
 @ApplicationScoped
 @Transactional
@@ -23,23 +24,19 @@ public class DictCategoryService {
     @Inject
     DictCategory.Repo categoryRepo;
 
-    @Inject
-    DictItem.Repo itemRepo;
+  @Inject DictItemQuery itemQuery;
+
+  @Inject DictCategoryQuery categoryQuery;
 
     public List<DictCategoryResponse> getAllCategories(Long tenantId) {
-        List<DictCategory> categories;
-        if (tenantId == null) {
-            categories = categoryRepo.listAll();
-        } else {
-            categories = categoryRepo.list("tenant = ?1 or tenant is null", tenantId);
-        }
+    List<DictCategory> categories = categoryQuery.listByTenant(tenantId);
         return categories.stream()
             .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
 
     public DictCategoryResponse getById(Long id, Long tenantId) {
-        DictCategory category = categoryRepo.findById(id);
+    DictCategory category = categoryQuery.findById(id);
         if (category == null) {
             throw new NotFoundException("DictCategory", id.toString());
         }
@@ -50,7 +47,7 @@ public class DictCategoryService {
     public DictCategoryResponse create(DictCategoryDto dto, Long tenantId) {
         Objects.requireNonNull(dto, "分类数据不能为空");
 
-        if (categoryRepo.countByCodeAndTenant(dto.code(), tenantId) > 0) {
+    if (categoryQuery.countByCodeAndTenant(dto.code(), tenantId) > 0) {
             throw new ValidationException("分类编码已存在", "code", dto.code());
         }
 
@@ -68,13 +65,13 @@ public class DictCategoryService {
     }
 
     public DictCategoryResponse update(Long id, DictCategoryDto dto, Long tenantId) {
-        DictCategory category = categoryRepo.findById(id);
+    DictCategory category = categoryQuery.findById(id);
         if (category == null) {
             throw new NotFoundException("DictCategory", id.toString());
         }
         validateTenantAccess(category, tenantId);
 
-        if (categoryRepo.countByCodeAndTenantExcludingId(dto.code(), tenantId, id) > 0) {
+    if (categoryQuery.countByCodeAndTenantExcludingId(dto.code(), tenantId, id) > 0) {
             throw new ValidationException("分类编码已存在", "code", dto.code());
         }
 
@@ -90,13 +87,13 @@ public class DictCategoryService {
     }
 
     public void delete(Long id, Long tenantId) {
-        DictCategory category = categoryRepo.findById(id);
+    DictCategory category = categoryQuery.findById(id);
         if (category == null) {
             throw new NotFoundException("DictCategory", id.toString());
         }
         validateTenantAccess(category, tenantId);
 
-        long itemCount = itemRepo.count("categoryId", id);
+    long itemCount = itemQuery.countByCategoryId(id);
         if (itemCount > 0) {
             throw new ValidationException("请先删除分类下的字典项", "id", id);
         }
@@ -112,7 +109,7 @@ public class DictCategoryService {
     }
 
     private DictCategoryResponse mapToResponse(DictCategory entity) {
-        long itemCount = itemRepo.count("categoryId", entity.id);
+    long itemCount = itemQuery.countByCategoryId(entity.id);
         return new DictCategoryResponse(
             entity.id,
             entity.code,

@@ -8,12 +8,12 @@ import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pro.walkin.ams.admin.auth.dto.AuthenticationResult;
 import pro.walkin.ams.common.Constants;
 import pro.walkin.ams.persistence.entity.system.Tenant;
 import pro.walkin.ams.persistence.entity.system.Tenant_;
 import pro.walkin.ams.persistence.entity.system.User;
 import pro.walkin.ams.persistence.entity.system.User_;
-import pro.walkin.ams.admin.auth.dto.AuthenticationResult;
 
 /** 认证服务 */
 @ApplicationScoped
@@ -36,7 +36,8 @@ public class AuthenticationService {
             .find(
                 "lower(username) = lower(:username) or lower(email) = lower(:email)",
                 Parameters.with("username", username).and("email", username).map())
-            .firstResult();
+            .firstResultOptional()
+            .orElse(null);
 
     if (user == null) {
       LOG.warn("Login failed: User not found for username/email: {}", username);
@@ -94,7 +95,7 @@ public class AuthenticationService {
       return Optional.empty();
     }
 
-    User user = User_.managedBlocking().findById(userId);
+    User user = User_.managedBlocking().findByIdOptional(userId).orElse(null);
     if (user == null) {
       LOG.warn("Token refresh failed: User not found for id: {}", userId);
       return Optional.empty();
@@ -116,15 +117,13 @@ public class AuthenticationService {
   public User registerUser(String username, String email, String password, String roleCode) {
     // 检查用户名和邮箱是否已存在
     User existingByUsername =
-        User_.managedBlocking()
-            .find("lower(username) = lower(?1)", username.toLowerCase())
-            .firstResult();
+        User_.managedBlocking().find("username", username).firstResultOptional().orElse(null);
     if (existingByUsername != null) {
       throw new IllegalArgumentException("Username already exists: " + username);
     }
 
     User existingByEmail =
-        User_.managedBlocking().find("lower(email) = lower(?1)", email.toLowerCase()).firstResult();
+        User_.managedBlocking().find("email", email).firstResultOptional().orElse(null);
     if (existingByEmail != null) {
       throw new IllegalArgumentException("Email already exists: " + email);
     }
@@ -139,7 +138,7 @@ public class AuthenticationService {
     newUser.failedLoginAttempts = 0;
 
     // 设置默认租户
-    Tenant defaultTenant = Tenant_.managedBlocking().find("code = ?1", "default").firstResult();
+    Tenant defaultTenant = Tenant_.managedBlocking().find("code", "default").firstResult();
     if (defaultTenant == null) {
       // 如果没有默认租户，则创建一个
       defaultTenant = new Tenant();
@@ -159,7 +158,7 @@ public class AuthenticationService {
   /** 更改用户密码 */
   @Transactional
   public boolean changePassword(Long userId, String oldPassword, String newPassword) {
-    User user = User_.managedBlocking().findById(userId);
+    User user = User_.managedBlocking().findByIdOptional(userId).orElse(null);
     if (user == null) {
       LOG.warn("Password change failed: User not found for id: {}", userId);
       return false;
@@ -191,7 +190,7 @@ public class AuthenticationService {
   /** 通过ID获取用户，包含角色和权限 */
   public User getUserWithRolesAndPermissions(Long userId) {
     return User_.managedBlocking()
-        .find(
+        .<User>find(
             "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.id = ?1",
             userId)
         .stream()
@@ -202,7 +201,7 @@ public class AuthenticationService {
   /** 通过用户名获取用户，包含角色和权限 */
   public User getUserWithRolesAndPermissionsByUsername(String username) {
     return User_.managedBlocking()
-        .find(
+        .<User>find(
             "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = ?1",
             username)
         .stream()

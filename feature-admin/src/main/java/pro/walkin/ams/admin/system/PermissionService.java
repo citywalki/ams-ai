@@ -5,13 +5,16 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
-import pro.walkin.ams.persistence.entity.system.Permission;
+import pro.walkin.ams.admin.system.query.PermissionQuery;
 import pro.walkin.ams.common.security.TenantContext;
+import pro.walkin.ams.persistence.entity.system.Permission;
 
 @ApplicationScoped
 public class PermissionService {
 
     @Inject Permission.Repo permissionRepo;
+
+  @Inject PermissionQuery permissionQuery;
 
     @Transactional
     public Permission createPermission(Permission permission) {
@@ -20,7 +23,7 @@ public class PermissionService {
     }
 
     public Optional<Permission> findById(Long id) {
-        return permissionRepo.findByIdOptional(id);
+    return permissionQuery.findById(id);
     }
 
     public List<Permission> findAll(int page, int size) {
@@ -32,7 +35,7 @@ public class PermissionService {
         if (tenantId == null) {
             return List.of();
         }
-        return permissionRepo.listByTenant(tenantId, sortBy, sortOrder, page, size);
+    return permissionQuery.listByTenant(tenantId, sortBy, sortOrder, page, size);
     }
 
     public long count() {
@@ -40,7 +43,7 @@ public class PermissionService {
         if (tenantId == null) {
             return 0;
         }
-        return permissionRepo.countByTenant(tenantId);
+    return permissionQuery.countByTenant(tenantId);
     }
 
     @Transactional
@@ -60,6 +63,6 @@ public class PermissionService {
     }
 
     public Optional<Permission> findByCode(String code) {
-        return permissionRepo.findByCode(code);
+    return permissionQuery.findByCode(code);
     }
 }
