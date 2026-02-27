@@ -103,6 +103,26 @@ Backend exposes REST endpoints under `/api`. Frontend proxies `/api` to `http://
 - `PageResponse<T>` with `content`/`items` and `totalElements`/`totalCount`
 - Entity DTOs defined in `lib-common/`
 
+### Query Layer Architecture
+
+```
+Controller ──┬──> Query (查询)
+             │
+             └──> Service (命令/写操作) ──> Repository
+```
+
+**Rules:**
+1. **No caching in Service** - Local cache in cluster environment causes data inconsistency
+2. **All queries in Query class** - Query classes are shared by Controller and Service
+3. **Service cannot call Repository queries** - Only `findById` is allowed
+
+```
+✅ Allowed:  Service → Query
+✅ Allowed:  Service → Repository.findById()
+❌ Forbidden: Service → Repository.findByXxx()
+❌ Forbidden: Service → Local cache
+```
+
 ## Conventions
 
 - **Packages:** `pro.walkin.ams.{module}.{layer}`
