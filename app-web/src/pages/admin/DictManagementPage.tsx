@@ -5,7 +5,6 @@ import { Plus, Pencil, Trash2, FolderOpen, ChevronRight, Search } from 'lucide-r
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,65 +24,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Textarea } from '@/components/ui/textarea';
 import {
   dictApi,
   type DictCategory,
   type DictItem,
-  type DictCategoryPayload,
-  type DictItemPayload,
 } from '@/utils/api';
 import {
   fetchCategories,
   fetchDictItems,
   invalidateDictQueries,
 } from '@/features/admin/dict/queries';
-
-type CategoryFormState = {
-  code: string;
-  name: string;
-  description: string;
-  sort: number;
-  status: number;
-};
-
-type ItemFormState = {
-  categoryId: string;
-  parentId: string | null;
-  code: string;
-  name: string;
-  value: string;
-  sort: number;
-  status: number;
-  remark: string;
-};
-
-const initialCategoryForm: CategoryFormState = {
-  code: '',
-  name: '',
-  description: '',
-  sort: 0,
-  status: 1,
-};
-
-const initialItemForm: ItemFormState = {
-  categoryId: '',
-  parentId: null,
-  code: '',
-  name: '',
-  value: '',
-  sort: 0,
-  status: 1,
-  remark: '',
-};
+import { useDictCategoryForm } from '@/features/admin/dict/hooks/useDictCategoryForm';
+import { useDictItemForm } from '@/features/admin/dict/hooks/useDictItemForm';
+import { DictCategoryDialog } from '@/features/admin/dict/components/DictCategoryDialog';
+import { DictItemDialog } from '@/features/admin/dict/components/DictItemDialog';
 
 export default function DictManagementPage() {
   const queryClient = useQueryClient();
@@ -95,20 +50,6 @@ export default function DictManagementPage() {
   const [loading, setLoading] = useState(false);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [categoryDialogMode, setCategoryDialogMode] = useState<'create' | 'edit'>('create');
-  const [editingCategory, setEditingCategory] = useState<DictCategory | null>(null);
-  const [categoryForm, setCategoryForm] = useState<CategoryFormState>(initialCategoryForm);
-  const [categoryFormLoading, setCategoryFormLoading] = useState(false);
-  const [categoryFormError, setCategoryFormError] = useState<string | null>(null);
-
-  const [itemDialogOpen, setItemDialogOpen] = useState(false);
-  const [itemDialogMode, setItemDialogMode] = useState<'create' | 'edit'>('create');
-  const [editingItem, setEditingItem] = useState<DictItem | null>(null);
-  const [itemForm, setItemForm] = useState<ItemFormState>(initialItemForm);
-  const [itemFormLoading, setItemFormLoading] = useState(false);
-  const [itemFormError, setItemFormError] = useState<string | null>(null);
 
   const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
   const [deleteCategory, setDeleteCategory] = useState<DictCategory | null>(null);
@@ -161,61 +102,17 @@ export default function DictManagementPage() {
     setSelectedCategory(category);
   };
 
-  const openCreateCategoryDialog = () => {
-    setCategoryDialogMode('create');
-    setEditingCategory(null);
-    setCategoryForm(initialCategoryForm);
-    setCategoryFormError(null);
-    setCategoryDialogOpen(true);
-  };
+  // 分类表单 hook
+  const categoryForm = useDictCategoryForm(() => {
+    void loadCategories();
+  });
 
-  const openEditCategoryDialog = (category: DictCategory) => {
-    setCategoryDialogMode('edit');
-    setEditingCategory(category);
-    setCategoryForm({
-      code: category.code,
-      name: category.name,
-      description: category.description || '',
-      sort: category.sort,
-      status: category.status,
-    });
-    setCategoryFormError(null);
-    setCategoryDialogOpen(true);
-  };
-
-  const closeCategoryDialog = () => {
-    setCategoryDialogOpen(false);
-    setEditingCategory(null);
-    setCategoryForm(initialCategoryForm);
-    setCategoryFormError(null);
-  };
-
-  const handleCategoryFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCategoryFormLoading(true);
-    setCategoryFormError(null);
-    try {
-      const payload: DictCategoryPayload = {
-        code: categoryForm.code,
-        name: categoryForm.name,
-        description: categoryForm.description || undefined,
-        sort: categoryForm.sort,
-        status: categoryForm.status,
-      };
-      if (categoryDialogMode === 'create') {
-        await dictApi.createCategory(payload);
-      } else if (editingCategory) {
-        await dictApi.updateCategory(editingCategory.id, payload);
-      }
-      await invalidateDictQueries(queryClient);
-      closeCategoryDialog();
-      void loadCategories();
-    } catch (err) {
-      setCategoryFormError(err instanceof Error ? err.message : t('pages.dictManagement.messages.operationFailed'));
-    } finally {
-      setCategoryFormLoading(false);
+  // 字典项表单 hook
+  const itemForm = useDictItemForm(() => {
+    if (selectedCategory) {
+      void loadItems(selectedCategory.id);
     }
-  };
+  });
 
   const openDeleteCategoryDialog = (category: DictCategory) => {
     setDeleteCategory(category);
@@ -238,74 +135,6 @@ export default function DictManagementPage() {
       console.error(err);
     } finally {
       setDeleteCategoryLoading(false);
-    }
-  };
-
-  const openCreateItemDialog = () => {
-    if (!selectedCategory) return;
-    setItemDialogMode('create');
-    setEditingItem(null);
-    setItemForm({
-      ...initialItemForm,
-      categoryId: selectedCategory.id,
-    });
-    setItemFormError(null);
-    setItemDialogOpen(true);
-  };
-
-  const openEditItemDialog = (item: DictItem) => {
-    setItemDialogMode('edit');
-    setEditingItem(item);
-    setItemForm({
-      categoryId: item.categoryId,
-      parentId: item.parentId || null,
-      code: item.code,
-      name: item.name,
-      value: item.value || '',
-      sort: item.sort,
-      status: item.status,
-      remark: item.remark || '',
-    });
-    setItemFormError(null);
-    setItemDialogOpen(true);
-  };
-
-  const closeItemDialog = () => {
-    setItemDialogOpen(false);
-    setEditingItem(null);
-    setItemForm(initialItemForm);
-    setItemFormError(null);
-  };
-
-  const handleItemFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setItemFormLoading(true);
-    setItemFormError(null);
-    try {
-      const payload: DictItemPayload = {
-        categoryId: itemForm.categoryId,
-        parentId: itemForm.parentId || undefined,
-        code: itemForm.code,
-        name: itemForm.name,
-        value: itemForm.value || undefined,
-        sort: itemForm.sort,
-        status: itemForm.status,
-        remark: itemForm.remark || undefined,
-      };
-      if (itemDialogMode === 'create') {
-        await dictApi.createItem(itemForm.categoryId, payload);
-      } else if (editingItem) {
-        await dictApi.updateItem(editingItem.id, payload);
-      }
-      await invalidateDictQueries(queryClient);
-      closeItemDialog();
-      if (selectedCategory) {
-        void loadItems(selectedCategory.id);
-      }
-    } catch (err) {
-      setItemFormError(err instanceof Error ? err.message : t('pages.dictManagement.messages.operationFailed'));
-    } finally {
-      setItemFormLoading(false);
     }
   };
 
@@ -344,7 +173,7 @@ export default function DictManagementPage() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">{t('pages.dictManagement.categoryTitle')}</CardTitle>
-            <Button size="sm" onClick={openCreateCategoryDialog}>
+            <Button size="sm" onClick={categoryForm.openCreateDialog}>
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -403,7 +232,7 @@ export default function DictManagementPage() {
                         className="h-6 w-6 p-0"
                         onClick={(e) => {
                           e.stopPropagation();
-                          openEditCategoryDialog(category);
+                          categoryForm.openEditDialog(category);
                         }}
                       >
                         <Pencil className="h-3 w-3" />
@@ -450,7 +279,7 @@ export default function DictManagementPage() {
               )}
             </div>
             {selectedCategory && (
-              <Button size="sm" onClick={openCreateItemDialog}>
+              <Button size="sm" onClick={() => itemForm.openCreateDialog(selectedCategory.id)}>
                 <Plus className="h-4 w-4 mr-1" />
                 {t('pages.dictManagement.actions.addItem')}
               </Button>
@@ -500,7 +329,7 @@ export default function DictManagementPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => openEditItemDialog(item)}
+                            onClick={() => itemForm.openEditDialog(item)}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -524,167 +353,24 @@ export default function DictManagementPage() {
       </Card>
 
       {/* Category Dialog */}
-      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-        <DialogContent>
-          <form onSubmit={handleCategoryFormSubmit}>
-            <DialogHeader>
-              <DialogTitle>
-                {categoryDialogMode === 'create'
-                  ? t('pages.dictManagement.dialog.createCategoryTitle')
-                  : t('pages.dictManagement.dialog.editCategoryTitle')}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {categoryFormError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{categoryFormError}</AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-2">
-                <Label>{t('pages.dictManagement.columns.code')}</Label>
-                <Input
-                  value={categoryForm.code}
-                  onChange={(e) => setCategoryForm((p) => ({ ...p, code: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('pages.dictManagement.columns.name')}</Label>
-                <Input
-                  value={categoryForm.name}
-                  onChange={(e) => setCategoryForm((p) => ({ ...p, name: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('pages.dictManagement.columns.description')}</Label>
-                <Textarea
-                  value={categoryForm.description}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCategoryForm((p) => ({ ...p, description: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>{t('pages.dictManagement.columns.sortOrder')}</Label>
-                  <Input
-                    type="number"
-                    value={categoryForm.sort}
-                    onChange={(e) => setCategoryForm((p) => ({ ...p, sort: parseInt(e.target.value) || 0 }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t('pages.dictManagement.columns.status')}</Label>
-                  <Select
-                    value={String(categoryForm.status)}
-                    onValueChange={(v) => setCategoryForm((p) => ({ ...p, status: parseInt(v) }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">{t('pages.dictManagement.status.active')}</SelectItem>
-                      <SelectItem value="0">{t('pages.dictManagement.status.inactive')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeCategoryDialog}>
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={categoryFormLoading}>
-                {categoryFormLoading ? t('pages.dictManagement.messages.submitting') : t('common.confirm')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <DictCategoryDialog
+        open={categoryForm.dialogOpen}
+        onOpenChange={categoryForm.setDialogOpen}
+        mode={categoryForm.dialogMode}
+        form={categoryForm.form}
+        error={categoryForm.formError}
+        onClose={categoryForm.closeDialog}
+      />
 
       {/* Item Dialog */}
-      <Dialog open={itemDialogOpen} onOpenChange={setItemDialogOpen}>
-        <DialogContent>
-          <form onSubmit={handleItemFormSubmit}>
-            <DialogHeader>
-              <DialogTitle>
-                {itemDialogMode === 'create'
-                  ? t('pages.dictManagement.dialog.createItemTitle')
-                  : t('pages.dictManagement.dialog.editItemTitle')}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {itemFormError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{itemFormError}</AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-2">
-                <Label>{t('pages.dictManagement.columns.code')}</Label>
-                <Input
-                  value={itemForm.code}
-                  onChange={(e) => setItemForm((p) => ({ ...p, code: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('pages.dictManagement.columns.name')}</Label>
-                <Input
-                  value={itemForm.name}
-                  onChange={(e) => setItemForm((p) => ({ ...p, name: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('pages.dictManagement.columns.value')}</Label>
-                <Input
-                  value={itemForm.value}
-                  onChange={(e) => setItemForm((p) => ({ ...p, value: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('pages.dictManagement.columns.remark')}</Label>
-                <Textarea
-                  value={itemForm.remark}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setItemForm((p) => ({ ...p, remark: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>{t('pages.dictManagement.columns.sortOrder')}</Label>
-                  <Input
-                    type="number"
-                    value={itemForm.sort}
-                    onChange={(e) => setItemForm((p) => ({ ...p, sort: parseInt(e.target.value) || 0 }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t('pages.dictManagement.columns.status')}</Label>
-                  <Select
-                    value={String(itemForm.status)}
-                    onValueChange={(v) => setItemForm((p) => ({ ...p, status: parseInt(v) }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">{t('pages.dictManagement.status.active')}</SelectItem>
-                      <SelectItem value="0">{t('pages.dictManagement.status.inactive')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeItemDialog}>
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={itemFormLoading}>
-                {itemFormLoading ? t('pages.dictManagement.messages.submitting') : t('common.confirm')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <DictItemDialog
+        open={itemForm.dialogOpen}
+        onOpenChange={itemForm.setDialogOpen}
+        mode={itemForm.dialogMode}
+        form={itemForm.form}
+        error={itemForm.formError}
+        onClose={itemForm.closeDialog}
+      />
 
       {/* Delete Category Dialog */}
       <Dialog open={deleteCategoryOpen} onOpenChange={setDeleteCategoryOpen}>
