@@ -181,6 +181,40 @@ public class RoleController {
     return Response.ok().build();
   }
 
+  /** 获取角色关联的用户列表 */
+  @Path("/{roleId}/users")
+  @GET
+  @RequireRole("ADMIN")
+  public Response getUsersByRole(@PathParam("roleId") Long roleId) {
+    RoleUsersResponseDto response = roleService.getUsersByRole(roleId);
+    return Response.ok(response).build();
+  }
+
+  /** 分配用户到角色 */
+  @Path("/{roleId}/users")
+  @POST
+  @RequireRole("ADMIN")
+  public Response assignUserToRole(@PathParam("roleId") Long roleId, AssignUserToRoleDto dto) {
+    boolean success = roleService.assignUserToRole(roleId, dto.getUserId());
+    if (success) {
+      return Response.ok().build();
+    }
+    return Response.status(Response.Status.NOT_FOUND).build();
+  }
+
+  /** 从角色中移除用户 */
+  @Path("/{roleId}/users/{userId}")
+  @DELETE
+  @RequireRole("ADMIN")
+  public Response removeUserFromRole(
+      @PathParam("roleId") Long roleId, @PathParam("userId") Long userId) {
+    boolean removed = roleService.removeUserFromRole(roleId, userId);
+    if (removed) {
+      return Response.noContent().build();
+    }
+    return Response.status(Response.Status.NOT_FOUND).build();
+  }
+
     private RoleResponseDto convertToResponseDto(Role role) {
         RoleResponseDto dto = new RoleResponseDto();
         dto.setId(role.id);

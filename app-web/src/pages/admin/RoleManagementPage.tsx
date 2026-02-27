@@ -10,6 +10,7 @@ import {
   useRoleSearch,
   useRoleForm,
   useRoleMenuDialog,
+  useRoleUserAssignment,
   useRoleDelete,
   usePermissions,
 } from '@/features/admin/roles/hooks';
@@ -18,6 +19,7 @@ import {
   RoleFormDialog,
   RoleMenuDialog,
   DeleteConfirmDialog,
+  RoleUserAssignmentDialog,
   createColumns,
 } from '@/features/admin/roles/components';
 
@@ -39,6 +41,7 @@ export default function RoleManagementPage() {
     dialogMode,
     form,
     formError,
+    editingRole,
     openCreateDialog,
     openEditDialog,
     closeDialog: closeFormDialog,
@@ -75,6 +78,30 @@ export default function RoleManagementPage() {
     setDialogOpen: setDeleteDialogOpen,
   } = useRoleDelete();
 
+  // User assignment dialog state
+  const {
+    dialogOpen: userAssignmentDialogOpen,
+    editingRole: userAssignmentRole,
+    allUsers,
+    roleUsers,
+    loading: userAssignmentLoading,
+    error: userAssignmentError,
+    searchKeyword: userSearchKeyword,
+    handleSearchChange: handleUserSearchChange,
+    handleAssignUser,
+    handleRemoveUser,
+    openAssignment: openUserAssignmentDialog,
+    closeAssignment: closeUserAssignmentDialog,
+  } = useRoleUserAssignment();
+
+  const setUserAssignmentDialogOpen = (open: boolean) => {
+    if (open) {
+      openUserAssignmentDialog();
+    } else {
+      closeUserAssignmentDialog();
+    }
+  };
+
   // Permissions data
   const { permissions } = usePermissions();
 
@@ -83,12 +110,21 @@ export default function RoleManagementPage() {
     () =>
       createColumns({
         t,
-        onEdit: openEditDialog,
+        onEdit: (role) => {
+          openEditDialog(role);
+        },
         onMenuConfig: openMenuDialog,
+        onUserAssign: (role) => {
+          openUserAssignmentDialog(role);
+        },
         onDelete: openDeleteDialog,
       }),
-    [t, openEditDialog, openMenuDialog, openDeleteDialog]
+    [t, openEditDialog, openMenuDialog, openDeleteDialog, openUserAssignmentDialog]
   );
+
+  const handleCloseFormDialog = () => {
+    closeFormDialog();
+  };
 
   return (
     <div className="h-full min-h-0 flex flex-col gap-3">
@@ -127,8 +163,23 @@ export default function RoleManagementPage() {
         form={form}
         error={formError}
         permissions={permissions}
-        onClose={closeFormDialog}
+        onClose={handleCloseFormDialog}
         onTogglePermission={togglePermission}
+      />
+
+      {/* User Assignment Dialog */}
+      <RoleUserAssignmentDialog
+        open={userAssignmentDialogOpen}
+        onOpenChange={setUserAssignmentDialogOpen}
+        role={userAssignmentRole}
+        allUsers={allUsers}
+        roleUsers={roleUsers}
+        loading={userAssignmentLoading}
+        error={userAssignmentError}
+        searchKeyword={userSearchKeyword}
+        onSearchChange={handleUserSearchChange}
+        onAssignUser={handleAssignUser}
+        onRemoveUser={handleRemoveUser}
       />
 
       {/* Menu Association Dialog */}

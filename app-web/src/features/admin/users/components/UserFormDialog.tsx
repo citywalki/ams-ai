@@ -22,8 +22,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Label } from '@/components/ui/label';
-import { type RoleOption } from '@/utils/api';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type UserFormData } from '../schemas/user-schema';
 
@@ -36,9 +34,7 @@ interface UserFormDialogProps {
   mode: 'create' | 'edit';
   form: UserFormApi;
   error: string | null;
-  roles: RoleOption[];
   onClose: () => void;
-  onToggleRole: (roleId: string) => void;
 }
 
 export function UserFormDialog({
@@ -47,9 +43,7 @@ export function UserFormDialog({
   mode,
   form,
   error,
-  roles,
   onClose,
-  onToggleRole,
 }: UserFormDialogProps) {
   const { t } = useTranslation();
 
@@ -147,26 +141,6 @@ export function UserFormDialog({
                       </SelectContent>
                     </Select>
                   </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <form.Field name="roleIds">
-              {(field) => (
-                <FormItem>
-                  <Label>{t('pages.userManagement.form.roles')}</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {roles.map((role) => (
-                      <Button
-                        key={role.id}
-                        type="button"
-                        variant={(field.state.value as string[]).includes(role.id) ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => onToggleRole(role.id)}
-                      >
-                        {role.name}
-                      </Button>
-                    ))}
-                  </div>
                 </FormItem>
               )}
             </form.Field>

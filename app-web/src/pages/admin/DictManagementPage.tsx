@@ -292,60 +292,64 @@ export default function DictManagementPage() {
               <ChevronRight className="h-4 w-4 mr-2" />
               {t('pages.dictManagement.messages.selectCategory')}
             </div>
-          ) : itemsLoading ? (
-            <div className="space-y-3 p-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : items.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-               {t('pages.dictManagement.messages.noItems')}
-            </div>
           ) : (
             <ScrollArea className="h-full">
               <div className="p-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('pages.dictManagement.columns.code')}</TableHead>
-                    <TableHead>{t('pages.dictManagement.columns.name')}</TableHead>
-                    <TableHead>{t('pages.dictManagement.columns.value')}</TableHead>
-                    <TableHead>{t('pages.dictManagement.columns.sortOrder')}</TableHead>
-                    <TableHead>{t('pages.dictManagement.columns.status')}</TableHead>
-                    <TableHead>{t('common.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-mono text-sm">{item.code}</TableCell>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell className="font-mono text-sm">{item.value || '-'}</TableCell>
-                      <TableCell>{item.sort}</TableCell>
-                      <TableCell>{getStatusBadge(item.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex justify-start gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => itemForm.openEditDialog(item)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openDeleteItemDialog(item)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('pages.dictManagement.columns.code')}</TableHead>
+                      <TableHead>{t('pages.dictManagement.columns.name')}</TableHead>
+                      <TableHead>{t('pages.dictManagement.columns.value')}</TableHead>
+                      <TableHead>{t('pages.dictManagement.columns.sortOrder')}</TableHead>
+                      <TableHead>{t('pages.dictManagement.columns.status')}</TableHead>
+                      <TableHead>{t('common.actions')}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {itemsLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          {t('common.loading')}
+                        </TableCell>
+                      </TableRow>
+                    ) : items.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          {t('pages.dictManagement.messages.noItems')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-mono text-sm">{item.code}</TableCell>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell className="font-mono text-sm">{item.value || '-'}</TableCell>
+                          <TableCell>{item.sort}</TableCell>
+                          <TableCell>{getStatusBadge(item.status)}</TableCell>
+                          <TableCell>
+                            <div className="flex justify-start gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => itemForm.openEditDialog(item)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openDeleteItemDialog(item)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </ScrollArea>
           )}

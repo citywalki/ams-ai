@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Plus, Pencil, Trash2, Key, Search, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -34,13 +34,11 @@ import { ResetPasswordDialog } from '@/features/admin/users/components/ResetPass
 import {
   systemApi,
   type UserItem,
-  type RoleOption,
 } from '@/utils/api';
 
 export default function UserManagementPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [roles, setRoles] = useState<RoleOption[]>([]);
 
   const [searchUsername, setSearchUsername] = useState('');
   const [queryUsername, setQueryUsername] = useState('');
@@ -56,20 +54,6 @@ export default function UserManagementPage() {
   const [deleteUser, setDeleteUser] = useState<UserItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const loadRoles = useCallback(async () => {
-    try {
-      const res = await systemApi.getRoles();
-      const roleList = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
-      setRoles(roleList);
-    } catch {
-      console.error('Failed to load roles');
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadRoles();
-  }, [loadRoles]);
 
   const handleSearch = () => {
     setQueryUsername(searchUsername.trim());
@@ -259,9 +243,7 @@ export default function UserManagementPage() {
         mode={userForm.dialogMode}
         form={userForm.form}
         error={userForm.formError}
-        roles={roles}
         onClose={userForm.closeDialog}
-        onToggleRole={userForm.toggleRole}
       />
 
       {/* Reset Password Dialog */}

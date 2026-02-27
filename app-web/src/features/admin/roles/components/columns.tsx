@@ -1,4 +1,4 @@
-import { Menu, Pencil, Trash2 } from 'lucide-react';
+import { Menu, Users, Pencil, Trash2 } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ interface CreateColumnsOptions {
   t: (key: string, options?: Record<string, unknown>) => string;
   onEdit: (role: RoleItem) => void;
   onMenuConfig: (role: RoleItem) => void;
+  onUserAssign: (role: RoleItem) => void;
   onDelete: (role: RoleItem) => void;
 }
 
@@ -15,6 +16,7 @@ export function createColumns({
   t,
   onEdit,
   onMenuConfig,
+  onUserAssign,
   onDelete,
 }: CreateColumnsOptions): ColumnDef<RoleItem>[] {
   return [
@@ -53,6 +55,17 @@ export function createColumns({
       header: t('common.actions'),
       cell: ({ row }) => (
         <div className="flex justify-start gap-2">
+          <Button variant="ghost" size="sm" onClick={() => onEdit(row.original)}>
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            title={t('pages.roleManagement.actions.associateUsers')}
+            onClick={() => onUserAssign(row.original)}
+          >
+            <Users className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -60,9 +73,6 @@ export function createColumns({
             onClick={() => onMenuConfig(row.original)}
           >
             <Menu className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => onEdit(row.original)}>
-            <Pencil className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"

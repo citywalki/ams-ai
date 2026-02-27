@@ -249,6 +249,12 @@ export const systemApi = {
         apiClient.get<{ menuIds: string[] }>(`/system/roles/${roleId}/menus`),
     updateRoleMenus: (roleId: string, menuIds: string[]) =>
         apiClient.put(`/system/roles/${roleId}/menus`, { menuIds }),
+    getRoleUsers: (roleId: string) =>
+        apiClient.get<UserItem[]>(`/system/roles/${roleId}/users`),
+    assignUserToRole: (roleId: string, userId: string) =>
+        apiClient.post(`/system/roles/${roleId}/users`, { userId }),
+    removeUserFromRole: (roleId: string, userId: string) =>
+        apiClient.delete(`/system/roles/${roleId}/users/${userId}`),
     getPermissions: (params?: PermissionQueryParams) =>
         apiClient.get<PageResponse<PermissionItem> | PermissionItem[]>('/system/permissions', {params})
 };

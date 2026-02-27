@@ -5,7 +5,6 @@ export const userFormSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址').optional().or(z.literal('')),
   password: z.string().min(6, '密码至少6个字符').max(100),
   status: z.enum(['ACTIVE', 'INACTIVE']),
-  roleIds: z.array(z.string()),
 });
 
 export const editUserFormSchema = userFormSchema.omit({ password: true });
@@ -18,5 +17,4 @@ export const initialFormState: UserFormData = {
   email: '',
   password: '',
   status: 'ACTIVE',
-  roleIds: [],
 };

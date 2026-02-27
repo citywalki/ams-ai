@@ -15,7 +15,6 @@ const defaultFormValues: UserFormData = {
   email: '',
   password: '',
   status: 'ACTIVE',
-  roleIds: [],
 };
 
 export function useUserForm() {
@@ -54,7 +53,6 @@ export function useUserForm() {
             email: value.email || undefined,
             password: value.password,
             status: value.status,
-            roleIds: value.roleIds,
           };
           await systemApi.createUser(payload);
         } else if (editingUser) {
@@ -62,7 +60,6 @@ export function useUserForm() {
             username: value.username,
             email: value.email || undefined,
             status: value.status,
-            roleIds: value.roleIds,
           };
           await systemApi.updateUser(editingUser.id, payload);
         }
@@ -87,7 +84,6 @@ export function useUserForm() {
     form.setFieldValue('email', '');
     form.setFieldValue('password', '');
     form.setFieldValue('status', 'ACTIVE' as const);
-    form.setFieldValue('roleIds', []);
     setFormError(null);
     setDialogOpen(true);
   }, [form]);
@@ -99,7 +95,6 @@ export function useUserForm() {
     form.setFieldValue('username', user.username);
     form.setFieldValue('email', user.email ?? '');
     form.setFieldValue('status', (user.status === 'ACTIVE' || user.status === 'INACTIVE' ? user.status : 'ACTIVE') as 'ACTIVE' | 'INACTIVE');
-    form.setFieldValue('roleIds', user.roles?.map((r) => r.id) ?? []);
     setFormError(null);
     setDialogOpen(true);
   }, [form]);
@@ -111,14 +106,6 @@ export function useUserForm() {
     setFormError(null);
   }, [form]);
 
-  const toggleRole = useCallback((roleId: string) => {
-    const currentRoles = form.getFieldValue('roleIds');
-    const newRoles = currentRoles.includes(roleId)
-      ? currentRoles.filter((id) => id !== roleId)
-      : [...currentRoles, roleId];
-    form.setFieldValue('roleIds', newRoles);
-  }, [form]);
-
   return {
     dialogOpen,
     dialogMode,
@@ -128,7 +115,6 @@ export function useUserForm() {
     openCreateDialog,
     openEditDialog,
     closeDialog,
-    toggleRole,
     setDialogOpen,
   };
 }

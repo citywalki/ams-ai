@@ -81,16 +81,6 @@ public class UserService {
         user.status = request.getStatus();
         user.tenant = tenantId;
 
-        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            Set<Role> roles = new HashSet<>();
-            for (Long roleId : request.getRoleIds()) {
-                Role role = roleRepo.findByIdOptional(roleId)
-                    .orElseThrow(() -> new NotFoundException("角色不存在: " + roleId));
-                roles.add(role);
-            }
-            user.roles = roles;
-        }
-
         userRepo.persist(user);
         userRepo.flush();
         return toResponse(user);
@@ -121,16 +111,6 @@ public class UserService {
 
         if (request.getStatus() != null) {
             user.status = request.getStatus();
-        }
-
-        if (request.getRoleIds() != null) {
-            Set<Role> roles = new HashSet<>();
-            for (Long roleId : request.getRoleIds()) {
-                Role role = roleRepo.findByIdOptional(roleId)
-                    .orElseThrow(() -> new NotFoundException("角色不存在: " + roleId));
-                roles.add(role);
-            }
-            user.roles = roles;
         }
 
         return toResponse(user);

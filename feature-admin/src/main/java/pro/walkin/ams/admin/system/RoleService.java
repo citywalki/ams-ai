@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import pro.walkin.ams.common.dto.RoleUsersResponseDto;
 import pro.walkin.ams.common.exception.BusinessException;
 import pro.walkin.ams.persistence.entity.system.Menu;
 import pro.walkin.ams.persistence.entity.system.Menu_;
@@ -209,5 +210,62 @@ public class RoleService {
                 menu.persist();
             }
         }
+    }
+
+    public RoleUsersResponseDto getUsersByRole(Long roleId) {
+        Role role = roleRepo.findById(roleId);
+        if (role == null) {
+            return new RoleUsersResponseDto();
+        }
+
+        RoleUsersResponseDto response = new RoleUsersResponseDto();
+        List<RoleUsersResponseDto.UserInfo> userInfoList = new java.util.ArrayList<>();
+
+        List<User> users = userRepo.list("select u from User u join u.roles r where r.id = ?1", roleId);
+        for (User user : users) {
+            RoleUsersResponseDto.UserInfo userInfo = new RoleUsersResponseDto.UserInfo();
+            userInfo.setId(user.id);
+            userInfo.setUsername(user.username);
+            userInfo.setEmail(user.email);
+            userInfo.setStatus(user.status);
+            userInfoList.add(userInfo);
+        }
+
+        response.setUsers(userInfoList);
+        return response;
+    }
+
+    @Transactional
+    public boolean assignUserToRole(Long roleId, Long userId) {
+        Role role = roleRepo.findById(roleId);
+        User user = userRepo.findById(userId);
+
+        if (role != null && user != null) {
+            if (user.roles == null) {
+                user.roles = new HashSet<>();
+            }
+            boolean exists = user.roles.stream()
+                .anyMatch(r -> r.id != null && r.id.equals(roleId));
+
+            if (!exists) {
+                user.roles.add(role);
+                user.updatedAt = java.time.Instant.now();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Transactional
+    public boolean removeUserFromRole(Long roleId, Long userId) {
+        User user = userRepo.findById(userId);
+        if (user != null && user.roles != null) {
+            boolean removed = user.roles.removeIf(r -> r.id != null && r.id.equals(roleId));
+            if (removed) {
+                user.updatedAt = java.time.Instant.now();
+            }
+            return removed;
+        }
+        return false;
     }
 }
