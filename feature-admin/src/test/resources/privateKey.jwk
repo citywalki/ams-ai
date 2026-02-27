@@ -1,0 +1,13 @@
+{
+  "kty" : "RSA",
+  "kid" : "123",
+  "n" : "2kPjJ5NqY7pM3sRzKdYwXvFgHtJlBcEiAoUxSnVq_G7y9dH4fI6jK8mN0oP2rS4tU6vW8xY0zA1bC3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3xY5z",
+  "e" : "AQAB",
+  "d" : "W8xY0zA1bC3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3xY5zA7B9cD1eF3gH5iJ7kL9mN1oP3qR5sT7uV9wX1yZ3aB5cD7eF9gH1iJ3kL5mN7oP9qR",
+  "p" : "7y9dH4fI6jK8mN0oP2rS4tU6vW8xY0zA1bC3dE5fG7hI9jK1lM3nO5pQ",
+  "q" : "2kPjJ5NqY7pM3sRzKdYwXvFgHtJlBcEiAoUxSnVq_G7y9dH4fI6jK8mN0oP",
+  "dp" : "K8mN0oP2rS4tU6vW8xY0zA1bC3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3x",
+  "dq" : "J5NqY7pM3sRzKdYwXvFgHtJlBcEiAoUxSnVq_G7y9dH4fI6jK8mN0oP2rS4",
+  "qi" : "Y7pM3sRzKdYwXvFgHtJlBcEiAoUxSnVq_G7y9dH4fI6jK8mN0oP2rS4tU6vW",
+  "alg" : "RS256"
+}
