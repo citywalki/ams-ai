@@ -1,5 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { FormField } from '@/components/ui/form-field';
+import {
+  FormItem,
+  FormLabel,
+  FormControl,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -73,49 +77,55 @@ export function RoleFormDialog({
             <div className="grid grid-cols-2 gap-4">
               <form.Field name="code">
                 {(field) => (
-                  <FormField label={t('pages.roleManagement.form.code')} required htmlFor="code">
-                    <Input
-                      id="code"
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder={t('pages.roleManagement.form.codePlaceholder')}
-                      required
-                    />
-                  </FormField>
+                  <FormItem>
+                    <FormLabel required>{t('pages.roleManagement.form.code')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        value={field.state.value as string}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder={t('pages.roleManagement.form.codePlaceholder')}
+                        required
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
               </form.Field>
               <form.Field name="name">
                 {(field) => (
-                  <FormField label={t('pages.roleManagement.form.name')} required htmlFor="name">
-                    <Input
-                      id="name"
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder={t('pages.roleManagement.form.namePlaceholder')}
-                      required
-                    />
-                  </FormField>
+                  <FormItem>
+                    <FormLabel required>{t('pages.roleManagement.form.name')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        value={field.state.value as string}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder={t('pages.roleManagement.form.namePlaceholder')}
+                        required
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
               </form.Field>
             </div>
             <form.Field name="description">
               {(field) => (
-                <FormField label={t('pages.roleManagement.form.description')} htmlFor="description">
-                  <Input
-                    id="description"
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    placeholder={t('pages.roleManagement.form.descriptionPlaceholder')}
-                  />
-                </FormField>
+                <FormItem>
+                  <FormLabel>{t('pages.roleManagement.form.description')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      placeholder={t('pages.roleManagement.form.descriptionPlaceholder')}
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
             <form.Field name="permissionIds">
               {(field) => (
-                <div className="space-y-2">
+                <FormItem>
                   <Label>{t('pages.roleManagement.form.permissions')}</Label>
                   <div className="border rounded-md p-4 max-h-[300px] overflow-y-auto">
                     {permissions.length === 0 ? (
@@ -138,7 +148,7 @@ export function RoleFormDialog({
                       </div>
                     )}
                   </div>
-                </div>
+                </FormItem>
               )}
             </form.Field>
           </div>

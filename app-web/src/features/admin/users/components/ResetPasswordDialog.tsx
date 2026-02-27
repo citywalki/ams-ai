@@ -1,5 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { FormField } from '@/components/ui/form-field';
+import {
+  FormItem,
+  FormLabel,
+  FormControl,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,16 +65,18 @@ export function ResetPasswordDialog({
             )}
             <form.Field name="newPassword">
               {(field) => (
-                <FormField label={t('pages.userManagement.form.newPassword')} required htmlFor="newPassword">
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    required
-                  />
-                </FormField>
+                <FormItem>
+                  <FormLabel required>{t('pages.userManagement.form.newPassword')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      required
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
           </div>

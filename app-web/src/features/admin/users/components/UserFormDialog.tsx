@@ -1,5 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { FormField } from '@/components/ui/form-field';
+import {
+  FormItem,
+  FormLabel,
+  FormControl,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -79,67 +83,76 @@ export function UserFormDialog({
             )}
             <form.Field name="username">
               {(field) => (
-                <FormField label={t('pages.userManagement.form.username')} required htmlFor="username">
-                  <Input
-                    id="username"
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    required
-                  />
-                </FormField>
-              )}
-            </form.Field>
-            <form.Field name="email">
-              {(field) => (
-                <FormField label={t('pages.userManagement.form.email')} htmlFor="email">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                  />
-                </FormField>
-              )}
-            </form.Field>
-            {mode === 'create' && (
-              <form.Field name="password">
-                {(field) => (
-                  <FormField label={t('pages.userManagement.form.password')} required htmlFor="password">
+                <FormItem>
+                  <FormLabel required>{t('pages.userManagement.form.username')}</FormLabel>
+                  <FormControl>
                     <Input
-                      id="password"
-                      type="password"
                       value={field.state.value as string}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
                       required
                     />
-                  </FormField>
+                  </FormControl>
+                </FormItem>
+              )}
+            </form.Field>
+            <form.Field name="email">
+              {(field) => (
+                <FormItem>
+                  <FormLabel>{t('pages.userManagement.form.email')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            </form.Field>
+            {mode === 'create' && (
+              <form.Field name="password">
+                {(field) => (
+                  <FormItem>
+                    <FormLabel required>{t('pages.userManagement.form.password')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        value={field.state.value as string}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        required
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
               </form.Field>
             )}
             <form.Field name="status">
               {(field) => (
-                <FormField label={t('pages.userManagement.form.status')} htmlFor="status">
-                  <Select
-                    value={field.state.value as string}
-                    onValueChange={(value) => field.handleChange(value as 'ACTIVE' | 'INACTIVE')}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
-                      <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormField>
+                <FormItem>
+                  <FormLabel>{t('pages.userManagement.form.status')}</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.state.value as string}
+                      onValueChange={(value) => field.handleChange(value as 'ACTIVE' | 'INACTIVE')}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
+                        <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
             <form.Field name="roleIds">
               {(field) => (
-                <div className="space-y-2">
+                <FormItem>
                   <Label>{t('pages.userManagement.form.roles')}</Label>
                   <div className="flex flex-wrap gap-2">
                     {roles.map((role) => (
@@ -154,7 +167,7 @@ export function UserFormDialog({
                       </Button>
                     ))}
                   </div>
-                </div>
+                </FormItem>
               )}
             </form.Field>
           </div>

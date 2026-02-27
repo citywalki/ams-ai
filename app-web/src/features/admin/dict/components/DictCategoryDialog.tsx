@@ -1,5 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { FormField } from '@/components/ui/form-field';
+import {
+  FormItem,
+  FormLabel,
+  FormControl,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -68,68 +72,83 @@ export function DictCategoryDialog({
             )}
             <form.Field name="code">
               {(field) => (
-                <FormField label={t('pages.dictManagement.columns.code')} required>
-                  <Input
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    required
-                  />
-                </FormField>
+                <FormItem>
+                  <FormLabel required>{t('pages.dictManagement.columns.code')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      required
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
             <form.Field name="name">
               {(field) => (
-                <FormField label={t('pages.dictManagement.columns.name')} required>
-                  <Input
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    required
-                  />
-                </FormField>
+                <FormItem>
+                  <FormLabel required>{t('pages.dictManagement.columns.name')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      required
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
             <form.Field name="description">
               {(field) => (
-                <FormField label={t('pages.dictManagement.columns.description')}>
-                  <Textarea
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                  />
-                </FormField>
+                <FormItem>
+                  <FormLabel>{t('pages.dictManagement.columns.description')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
             <div className="grid grid-cols-2 gap-4">
               <form.Field name="sort">
                 {(field) => (
-                  <FormField label={t('pages.dictManagement.columns.sortOrder')}>
-                    <Input
-                      type="number"
-                      value={field.state.value as number}
-                      onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
-                      onBlur={field.handleBlur}
-                    />
-                  </FormField>
+                  <FormItem>
+                    <FormLabel>{t('pages.dictManagement.columns.sortOrder')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        value={field.state.value as number}
+                        onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
+                        onBlur={field.handleBlur}
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
               </form.Field>
               <form.Field name="status">
                 {(field) => (
-                  <FormField label={t('pages.dictManagement.columns.status')}>
-                    <Select
-                      value={String(field.state.value as number)}
-                      onValueChange={(v) => field.handleChange(parseInt(v))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">{t('pages.dictManagement.status.active')}</SelectItem>
-                        <SelectItem value="0">{t('pages.dictManagement.status.inactive')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormField>
+                  <FormItem>
+                    <FormLabel>{t('pages.dictManagement.columns.status')}</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={String(field.state.value as number)}
+                        onValueChange={(v) => field.handleChange(parseInt(v))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">{t('pages.dictManagement.status.active')}</SelectItem>
+                          <SelectItem value="0">{t('pages.dictManagement.status.inactive')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                  </FormItem>
                 )}
               </form.Field>
             </div>

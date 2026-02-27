@@ -1,5 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { FormField } from '@/components/ui/form-field';
+import {
+  FormItem,
+  FormLabel,
+  FormControl,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,67 +64,77 @@ export function PermissionDialog({
             )}
             <form.Field name="code">
               {(field) => (
-                <FormField label={t('pages.menuManagement.columns.code')} required htmlFor="code">
-                  <Input
-                    id="code"
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    required
-                  />
-                </FormField>
+                <FormItem>
+                  <FormLabel required>{t('pages.menuManagement.columns.code')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      required
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
             <form.Field name="name">
               {(field) => (
-                <FormField label={t('pages.menuManagement.columns.name')} required htmlFor="name">
-                  <Input
-                    id="name"
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    required
-                  />
-                </FormField>
+                <FormItem>
+                  <FormLabel required>{t('pages.menuManagement.columns.name')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      required
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
             <form.Field name="description">
               {(field) => (
-                <FormField label={t('pages.menuManagement.columns.description')} htmlFor="description">
-                  <Input
-                    id="description"
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                  />
-                </FormField>
+                <FormItem>
+                  <FormLabel>{t('pages.menuManagement.columns.description')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={field.state.value as string}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             </form.Field>
             <div className="grid grid-cols-2 gap-4">
               <form.Field name="sortOrder">
                 {(field) => (
-                  <FormField label={t('pages.menuManagement.columns.sortOrder')} htmlFor="sortOrder">
-                    <Input
-                      id="sortOrder"
-                      type="number"
-                      value={field.state.value as number}
-                      onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
-                      onBlur={field.handleBlur}
-                    />
-                  </FormField>
+                  <FormItem>
+                    <FormLabel>{t('pages.menuManagement.columns.sortOrder')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        value={field.state.value as number}
+                        onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
+                        onBlur={field.handleBlur}
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
               </form.Field>
               <form.Field name="buttonType">
                 {(field) => (
-                  <FormField label={t('pages.menuManagement.columns.buttonType')} htmlFor="buttonType">
-                    <Input
-                      id="buttonType"
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder="primary, danger..."
-                    />
-                  </FormField>
+                  <FormItem>
+                    <FormLabel>{t('pages.menuManagement.columns.buttonType')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        value={field.state.value as string}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder="primary, danger..."
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
               </form.Field>
             </div>

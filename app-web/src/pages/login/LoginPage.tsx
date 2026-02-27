@@ -6,11 +6,16 @@ import { Shield, Bell, Users, LogIn } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FormField, FormFieldInline } from '@/components/ui/form-field';
+import {
+  FormItem,
+  FormLabel,
+  FormControl,
+} from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Label } from '@/components/ui/label';
 import { changeLanguage, getCurrentLanguage } from '@/i18n';
 
 const features = [
@@ -93,35 +98,41 @@ export default function LoginPage() {
                     </Alert>
                   )}
 
-                  <FormField label={t('login.username')} required htmlFor="username">
-                    <Input
-                      id="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder={t('login.username')}
-                      required
-                    />
-                  </FormField>
+                  <FormItem>
+                    <FormLabel required>{t('login.username')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder={t('login.username')}
+                        required
+                      />
+                    </FormControl>
+                  </FormItem>
 
-                  <FormField label={t('login.password')} required htmlFor="password">
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder={t('login.password')}
-                      required
-                    />
-                  </FormField>
+                  <FormItem>
+                    <FormLabel required>{t('login.password')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder={t('login.password')}
+                        required
+                      />
+                    </FormControl>
+                  </FormItem>
 
                   <div className="flex items-center justify-between">
-                    <FormFieldInline label={t('login.rememberMe')} htmlFor="remember" labelClassName="text-sm font-normal">
-                      <Checkbox
-                        id="remember"
-                        checked={rememberMe}
-                        onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                      />
-                    </FormFieldInline>
+                    <FormItem className="flex items-center gap-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={rememberMe}
+                          onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                        />
+                      </FormControl>
+                      <Label className="text-sm font-normal cursor-pointer">{t('login.rememberMe')}</Label>
+                    </FormItem>
                     <ToggleGroup
                       type="single"
                       value={currentLang}
