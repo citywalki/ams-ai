@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { dictApi, type DictItem, type DictItemPayload } from '@/utils/api';
-import { invalidateDictQueries } from '../queries';
+import { type DictItem, type DictItemPayload } from '@/utils/api';
+import { useCreateItem, useUpdateItem } from '../mutations';
 import {
   dictItemFormSchema,
   initialDictItemFormState,
@@ -11,12 +10,14 @@ import {
 
 export function useDictItemForm(onSuccess?: () => void) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [editingItem, setEditingItem] = useState<DictItem | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const createMutation = useCreateItem();
+  const updateMutation = useUpdateItem();
 
   const form = useForm({
     defaultValues: initialDictItemFormState,
@@ -43,12 +44,11 @@ export function useDictItemForm(onSuccess?: () => void) {
           remark: value.remark || undefined,
         };
         if (dialogMode === 'create') {
-          await dictApi.createItem(value.categoryId, payload);
+          await createMutation.mutateAsync({ categoryId: value.categoryId, payload });
         } else if (editingItem) {
-          await dictApi.updateItem(editingItem.id, payload);
+          await updateMutation.mutateAsync({ id: editingItem.id, categoryId: editingItem.categoryId, payload });
         }
         closeDialog();
-        await invalidateDictQueries(queryClient);
         onSuccess?.();
       } catch (err) {
         setFormError(
@@ -110,5 +110,6 @@ export function useDictItemForm(onSuccess?: () => void) {
     openEditDialog,
     closeDialog,
     setDialogOpen,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
   };
 }

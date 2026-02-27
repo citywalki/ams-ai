@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@tanstack/react-form';
-import { systemApi, type UserItem } from '@/utils/api';
+import { type UserItem } from '@/utils/api';
+import { useResetUserPassword } from '../mutations';
 import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas/reset-password-schema';
 
 export function useResetPassword() {
@@ -10,6 +11,8 @@ export function useResetPassword() {
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState<UserItem | null>(null);
   const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
+
+  const resetPasswordMutation = useResetUserPassword();
 
   const form = useForm({
     defaultValues: {
@@ -22,7 +25,10 @@ export function useResetPassword() {
       if (!resetPasswordUser) return;
       setResetPasswordError(null);
       try {
-        await systemApi.resetUserPassword(resetPasswordUser.id, value.newPassword);
+        await resetPasswordMutation.mutateAsync({
+          id: resetPasswordUser.id,
+          password: value.newPassword,
+        });
         closeResetPasswordDialog();
       } catch (err) {
         const message =
@@ -57,5 +63,6 @@ export function useResetPassword() {
     openResetPasswordDialog,
     closeResetPasswordDialog,
     setResetPasswordOpen,
+    isSubmitting: resetPasswordMutation.isPending,
   };
 }

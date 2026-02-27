@@ -27,14 +27,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { queryKeys } from '@/lib/queryKeys';
 import { fetchUsersPage, invalidateUserList } from '@/features/admin/users/queries';
+import { useDeleteUser } from '@/features/admin/users/mutations';
 import { useUserForm } from '@/features/admin/users/hooks/useUserForm';
 import { useResetPassword } from '@/features/admin/users/hooks/useResetPassword';
 import { UserFormDialog } from '@/features/admin/users/components/UserFormDialog';
 import { ResetPasswordDialog } from '@/features/admin/users/components/ResetPasswordDialog';
-import {
-  systemApi,
-  type UserItem,
-} from '@/utils/api';
+import { type UserItem } from '@/utils/api';
 
 export default function UserManagementPage() {
   const { t } = useTranslation();
@@ -48,12 +46,11 @@ export default function UserManagementPage() {
   // Use TanStack Form hooks
   const userForm = useUserForm();
   const resetPassword = useResetPassword();
+  const deleteMutation = useDeleteUser();
 
   // Keep delete dialog state (not using TanStack Form)
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState<UserItem | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleSearch = () => {
     setQueryUsername(searchUsername.trim());
@@ -75,24 +72,17 @@ export default function UserManagementPage() {
 
   const openDeleteDialog = (user: UserItem) => {
     setDeleteUser(user);
-    setDeleteError(null);
     setDeleteOpen(true);
   };
 
   const handleDelete = async () => {
     if (!deleteUser) return;
-    setDeleteLoading(true);
-    setDeleteError(null);
     try {
-      await systemApi.deleteUser(deleteUser.id);
+      await deleteMutation.mutateAsync(deleteUser.id);
       setDeleteOpen(false);
       setDeleteUser(null);
-      refreshData();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t('pages.userManagement.messages.operationFailed');
-      setDeleteError(message);
-    } finally {
-      setDeleteLoading(false);
+    } catch {
+      // Error is handled by mutation
     }
   };
 
@@ -264,9 +254,9 @@ export default function UserManagementPage() {
               {t('pages.userManagement.dialog.deleteDescription', { username: deleteUser?.username ?? '-' })}
             </DialogDescription>
           </DialogHeader>
-          {deleteError && (
+          {deleteMutation.error && (
             <Alert variant="destructive">
-              <AlertDescription>{deleteError}</AlertDescription>
+              <AlertDescription>{deleteMutation.error.message}</AlertDescription>
             </Alert>
           )}
           <DialogFooter>
@@ -276,9 +266,9 @@ export default function UserManagementPage() {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={deleteLoading}
+              disabled={deleteMutation.isPending}
             >
-              {deleteLoading ? t('pages.userManagement.messages.deleting') : t('common.delete')}
+              {deleteMutation.isPending ? t('pages.userManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

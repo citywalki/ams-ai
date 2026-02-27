@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
 import { systemApi, type UserItem, type UserCreatePayload, type UserUpdatePayload } from '@/utils/api';
 import { invalidateUserList } from '../queries';
+import { useCreateUser, useUpdateUser } from '../mutations';
 import {
   userFormSchema,
   editUserFormSchema,
@@ -25,6 +26,9 @@ export function useUserForm() {
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const createMutation = useCreateUser();
+  const updateMutation = useUpdateUser();
 
   const form = useForm({
     defaultValues: defaultFormValues,
@@ -54,17 +58,16 @@ export function useUserForm() {
             password: value.password,
             status: value.status,
           };
-          await systemApi.createUser(payload);
+          await createMutation.mutateAsync(payload);
         } else if (editingUser) {
           const payload: UserUpdatePayload = {
             username: value.username,
             email: value.email || undefined,
             status: value.status,
           };
-          await systemApi.updateUser(editingUser.id, payload);
+          await updateMutation.mutateAsync({ id: editingUser.id, payload });
         }
         closeDialog();
-        void invalidateUserList(queryClient);
       } catch (err) {
         setFormError(
           err instanceof Error
@@ -116,5 +119,6 @@ export function useUserForm() {
     openEditDialog,
     closeDialog,
     setDialogOpen,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
   };
 }

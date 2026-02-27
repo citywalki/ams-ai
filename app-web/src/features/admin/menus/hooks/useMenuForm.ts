@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { menuApi, type MenuItem, type MenuPayload } from '@/utils/api';
-import { invalidateMenuQueries } from '../queries';
+import { type MenuItem, type MenuPayload } from '@/utils/api';
+import { useCreateMenu, useUpdateMenu } from '../mutations';
 import {
   menuFormSchema,
   type MenuFormData,
@@ -27,12 +26,14 @@ interface UseMenuFormOptions {
 
 export function useMenuForm(options: UseMenuFormOptions) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [editingMenu, setEditingMenu] = useState<MenuItem | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const createMutation = useCreateMenu();
+  const updateMutation = useUpdateMenu();
 
   const form = useForm({
     defaultValues: defaultFormValues,
@@ -64,12 +65,11 @@ export function useMenuForm(options: UseMenuFormOptions) {
             : undefined,
         };
         if (dialogMode === 'create') {
-          await menuApi.createMenu(payload);
+          await createMutation.mutateAsync(payload);
         } else if (editingMenu) {
-          await menuApi.updateMenu(editingMenu.id, payload);
+          await updateMutation.mutateAsync({ id: editingMenu.id, payload });
         }
         closeDialog();
-        void invalidateMenuQueries(queryClient);
         options.onSuccess?.();
       } catch (err) {
         setFormError(
@@ -115,5 +115,6 @@ export function useMenuForm(options: UseMenuFormOptions) {
     openEditDialog,
     closeDialog,
     setDialogOpen,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
   };
 }

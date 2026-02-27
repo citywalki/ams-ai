@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { dictApi, type DictCategory, type DictCategoryPayload } from '@/utils/api';
-import { invalidateDictQueries } from '../queries';
+import { type DictCategory, type DictCategoryPayload } from '@/utils/api';
+import { useCreateCategory, useUpdateCategory } from '../mutations';
 import {
   dictCategoryFormSchema,
   initialDictCategoryFormState,
@@ -11,12 +10,14 @@ import {
 
 export function useDictCategoryForm(onSuccess?: () => void) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [editingCategory, setEditingCategory] = useState<DictCategory | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const createMutation = useCreateCategory();
+  const updateMutation = useUpdateCategory();
 
   const form = useForm({
     defaultValues: initialDictCategoryFormState,
@@ -40,12 +41,11 @@ export function useDictCategoryForm(onSuccess?: () => void) {
           status: value.status,
         };
         if (dialogMode === 'create') {
-          await dictApi.createCategory(payload);
+          await createMutation.mutateAsync(payload);
         } else if (editingCategory) {
-          await dictApi.updateCategory(editingCategory.id, payload);
+          await updateMutation.mutateAsync({ id: editingCategory.id, payload });
         }
         closeDialog();
-        await invalidateDictQueries(queryClient);
         onSuccess?.();
       } catch (err) {
         setFormError(
@@ -101,5 +101,6 @@ export function useDictCategoryForm(onSuccess?: () => void) {
     openEditDialog,
     closeDialog,
     setDialogOpen,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
   };
 }

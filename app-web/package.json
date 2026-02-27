@@ -11,7 +11,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "codegen": "graffle generate --schema ./schema.graphql --output ./src/lib/graffle"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -33,6 +34,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.3",
+    "graffle": "^8.0.0-next.157",
+    "graphql": "^16.11.0",
     "i18next": "^25.8.13",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.575.0",

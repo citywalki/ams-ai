@@ -1,10 +1,16 @@
 package pro.walkin.ams.graphql.filter;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import pro.walkin.ams.graphql.connection.OrderByInput;
+import pro.walkin.ams.graphql.filter.input.BooleanFilterInput;
 import pro.walkin.ams.graphql.filter.input.DateTimeFilterInput;
 import pro.walkin.ams.graphql.filter.input.EnumFilterInput;
+import pro.walkin.ams.graphql.filter.input.IntFilterInput;
 import pro.walkin.ams.graphql.filter.input.LongFilterInput;
 import pro.walkin.ams.graphql.filter.input.StringFilterInput;
 
@@ -221,6 +227,151 @@ public final class CriteriaFilterHelper {
     }
 
     return predicates.isEmpty() ? null : builder.and(predicates.toArray(new Predicate[0]));
+  }
+
+  public static Predicate translateIntFilter(
+      CriteriaBuilder builder, Path<Integer> path, IntFilterInput filter) {
+    if (filter == null) {
+      return null;
+    }
+
+    List<Predicate> predicates = new ArrayList<>();
+
+    if (filter._eq != null) {
+      predicates.add(builder.equal(path, filter._eq));
+    }
+    if (filter._neq != null) {
+      predicates.add(builder.notEqual(path, filter._neq));
+    }
+    if (filter._gt != null) {
+      predicates.add(builder.greaterThan(path, filter._gt));
+    }
+    if (filter._gte != null) {
+      predicates.add(builder.greaterThanOrEqualTo(path, filter._gte));
+    }
+    if (filter._lt != null) {
+      predicates.add(builder.lessThan(path, filter._lt));
+    }
+    if (filter._lte != null) {
+      predicates.add(builder.lessThanOrEqualTo(path, filter._lte));
+    }
+    if (filter._in != null && !filter._in.isEmpty()) {
+      predicates.add(path.in(filter._in));
+    }
+    if (filter._nin != null && !filter._nin.isEmpty()) {
+      predicates.add(builder.not(path.in(filter._nin)));
+    }
+    if (filter._isNull != null) {
+      predicates.add(filter._isNull ? builder.isNull(path) : builder.isNotNull(path));
+    }
+
+    return predicates.isEmpty() ? null : builder.and(predicates.toArray(new Predicate[0]));
+  }
+
+  public static Predicate translateBooleanFilter(
+      CriteriaBuilder builder, Path<Boolean> path, BooleanFilterInput filter) {
+    if (filter == null) {
+      return null;
+    }
+
+    List<Predicate> predicates = new ArrayList<>();
+
+    if (filter._eq != null) {
+      predicates.add(builder.equal(path, filter._eq));
+    }
+    if (filter._neq != null) {
+      predicates.add(builder.notEqual(path, filter._neq));
+    }
+    if (filter._isNull != null) {
+      predicates.add(filter._isNull ? builder.isNull(path) : builder.isNotNull(path));
+    }
+
+    return predicates.isEmpty() ? null : builder.and(predicates.toArray(new Predicate[0]));
+  }
+
+  public static <T> void addStringPredicate(
+      CriteriaBuilder builder,
+      Root<T> root,
+      String fieldName,
+      StringFilterInput filter,
+      List<Predicate> predicates) {
+    Predicate predicate = translateStringFilter(builder, root.get(fieldName), filter);
+    if (predicate != null) {
+      predicates.add(predicate);
+    }
+  }
+
+  public static <T> void addLongPredicate(
+      CriteriaBuilder builder,
+      Root<T> root,
+      String fieldName,
+      LongFilterInput filter,
+      List<Predicate> predicates) {
+    Predicate predicate = translateLongFilter(builder, root.get(fieldName), filter);
+    if (predicate != null) {
+      predicates.add(predicate);
+    }
+  }
+
+  public static <T> void addIntPredicate(
+      CriteriaBuilder builder,
+      Root<T> root,
+      String fieldName,
+      IntFilterInput filter,
+      List<Predicate> predicates) {
+    Predicate predicate = translateIntFilter(builder, root.get(fieldName), filter);
+    if (predicate != null) {
+      predicates.add(predicate);
+    }
+  }
+
+  public static <T> void addEnumPredicate(
+      CriteriaBuilder builder,
+      Root<T> root,
+      String fieldName,
+      EnumFilterInput filter,
+      List<Predicate> predicates) {
+    Predicate predicate = translateEnumFilter(builder, root.get(fieldName), filter);
+    if (predicate != null) {
+      predicates.add(predicate);
+    }
+  }
+
+  public static <T> void addBooleanPredicate(
+      CriteriaBuilder builder,
+      Root<T> root,
+      String fieldName,
+      BooleanFilterInput filter,
+      List<Predicate> predicates) {
+    Predicate predicate = translateBooleanFilter(builder, root.get(fieldName), filter);
+    if (predicate != null) {
+      predicates.add(predicate);
+    }
+  }
+
+  public static <T> void applyOrderBy(
+      CriteriaBuilder builder,
+      CriteriaQuery<T> query,
+      Root<T> root,
+      List<OrderByInput> orderBy) {
+    if (orderBy == null || orderBy.isEmpty()) {
+      return;
+    }
+
+    List<Order> orders = new ArrayList<>();
+    for (OrderByInput ob : orderBy) {
+      if (ob.field != null) {
+        Order order =
+            "DESC".equalsIgnoreCase(ob.direction)
+                ? builder.desc(root.get(ob.field))
+                : builder.asc(root.get(ob.field));
+        orders.add(order);
+      }
+    }
+
+    if (!orders.isEmpty()) {
+      query.orderBy(orders);
+    }
   }
 
   private static long parseLong(String value) {

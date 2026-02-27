@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { systemApi, type RoleItem, type RolePayload } from '@/utils/api';
-import { invalidateRoleList } from '../queries';
+import { type RoleItem, type RolePayload } from '@/utils/api';
+import { useCreateRole, useUpdateRole } from '../mutations';
 import {
   roleFormSchema,
   type RoleFormData,
@@ -18,12 +17,14 @@ const defaultFormValues: RoleFormData = {
 
 export function useRoleForm() {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [editingRole, setEditingRole] = useState<RoleItem | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const createMutation = useCreateRole();
+  const updateMutation = useUpdateRole();
 
   const form = useForm({
     defaultValues: defaultFormValues,
@@ -46,12 +47,11 @@ export function useRoleForm() {
           permissionIds: value.permissionIds,
         };
         if (dialogMode === 'create') {
-          await systemApi.createRole(payload);
+          await createMutation.mutateAsync(payload);
         } else if (editingRole) {
-          await systemApi.updateRole(editingRole.id, payload);
+          await updateMutation.mutateAsync({ id: editingRole.id, payload });
         }
         closeDialog();
-        void invalidateRoleList(queryClient);
       } catch (err) {
         setFormError(
           err instanceof Error
@@ -113,5 +113,6 @@ export function useRoleForm() {
     closeDialog,
     togglePermission,
     setDialogOpen,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
   };
 }

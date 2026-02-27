@@ -1,4 +1,4 @@
-package pro.walkin.ams.graphql.entity.alarm;
+package pro.walkin.ams.graphql.entity.menu;
 
 import jakarta.inject.Inject;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -10,35 +10,35 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.hibernate.Session;
-import pro.walkin.ams.graphql.connection.AlarmConnection;
+import pro.walkin.ams.graphql.connection.MenuConnection;
 import pro.walkin.ams.graphql.connection.OrderByInput;
-import pro.walkin.ams.persistence.entity.running.Alarm;
+import pro.walkin.ams.persistence.entity.system.Menu;
 
 import java.util.List;
 
 @GraphQLApi
-public class AlarmGraphQLApi {
+public class MenuGraphQLApi {
 
   @Inject Session session;
 
-  @Query("alarms")
-  @Description("查询告警列表，支持动态过滤")
+  @Query("menus")
+  @Description("查询菜单列表，支持动态过滤")
   @Transactional
-  public AlarmConnection alarms(
-      @Name("where") AlarmFilterInput where,
+  public MenuConnection menus(
+      @Name("where") MenuFilterInput where,
       @Name("orderBy") List<OrderByInput> orderBy,
       @DefaultValue("0") @Name("page") int page,
-      @DefaultValue("50") @Name("size") int size) {
+      @DefaultValue("20") @Name("size") int size) {
 
     CriteriaBuilder builder = session.getCriteriaBuilder();
 
-    CriteriaQuery<Alarm> query = AlarmCriteriaTranslator.translate(builder, where, orderBy);
-    List<Alarm> alarms =
+    CriteriaQuery<Menu> query = MenuCriteriaTranslator.translate(builder, where, orderBy);
+    List<Menu> menus =
         session.createQuery(query).setFirstResult(page * size).setMaxResults(size).getResultList();
 
-    CriteriaQuery<Long> countQuery = AlarmCriteriaTranslator.translateCount(builder, where);
+    CriteriaQuery<Long> countQuery = MenuCriteriaTranslator.translateCount(builder, where);
     long total = session.createQuery(countQuery).getSingleResult();
 
-    return new AlarmConnection(alarms, total, page, size);
+    return new MenuConnection(menus, total, page, size);
   }
 }

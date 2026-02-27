@@ -1,0 +1,55 @@
+quarkus:
+  datasource:
+    db-kind: h2
+    jdbc:
+      url: jdbc:h2:mem:ams;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    devservices:
+      enabled: false
+  hibernate-orm:
+    database:
+      generation: drop-and-create
+    dialect: org.hibernate.dialect.H2Dialect
+  liquibase:
+    enabled: false
+  shedlock:
+    enabled: false
+  console:
+    color: true
+  http:
+    port: 8080
+    auth:
+      proactive: false
+  smallrye-graphql:
+    root-path: /graphql
+    ui:
+      enabled: true
+      root-path: /graphql-ui
+    print-data-fetcher-exception: true
+    show-runtime-exception-message: true
+
+mp:
+  jwt:
+    verify:
+      issuer: "ams-ai-auth-service"
+      publickey:
+        location: public-key.pem
+
+smallrye:
+  jwt:
+    sign:
+      key:
+        location: private-key.pem
+
+ams:
+  tenant:
+    enabled: true
+    filter-enabled: true
+    header-name: X-Tenant-Id
+  auth:
+    init-default-data: false
+    jwt:
+      access-token-expiration: 15M
+      refresh-token-expiration: 7D
+      secret: "secret-key-for-development-only-change-in-production"
+      issuer: "ams-ai-auth-service"
+      algorithm: "RS256"

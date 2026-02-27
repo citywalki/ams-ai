@@ -1,0 +1,253 @@
+type Query {
+  users(where: UserFilter, orderBy: [OrderByInput], page: Int = 0, size: Int = 20): UserConnection!
+  roles(where: RoleFilter, orderBy: [OrderByInput], page: Int = 0, size: Int = 20): RoleConnection!
+  menus(where: MenuFilter, orderBy: [OrderByInput], page: Int = 0, size: Int = 20): MenuConnection!
+  dictCategories(where: DictCategoryFilter, orderBy: [OrderByInput], page: Int = 0, size: Int = 20): DictCategoryConnection!
+  dictItems(where: DictItemFilter, orderBy: [OrderByInput], page: Int = 0, size: Int = 20): DictItemConnection!
+}
+
+type UserConnection {
+  content: [User!]!
+  totalElements: Long!
+  totalPages: Int!
+  page: Int!
+  size: Int!
+}
+
+type User {
+  id: String!
+  username: String!
+  email: String
+  status: String!
+  roles: [Role!]!
+  createdAt: String
+  updatedAt: String
+}
+
+type RoleConnection {
+  content: [Role!]!
+  totalElements: Long!
+  totalPages: Int!
+  page: Int!
+  size: Int!
+}
+
+type Role {
+  id: String!
+  code: String!
+  name: String!
+  description: String
+  permissions: [Permission!]
+}
+
+type Permission {
+  id: String!
+  code: String!
+  name: String!
+  description: String
+  menuId: String
+  sortOrder: Int
+  buttonType: String
+}
+
+type MenuConnection {
+  content: [Menu!]!
+  totalElements: Long!
+  totalPages: Int!
+  page: Int!
+  size: Int!
+}
+
+type Menu {
+  id: String!
+  key: String!
+  label: String!
+  route: String
+  parentId: String
+  icon: String
+  sortOrder: Int!
+  isVisible: Boolean!
+  menuType: String!
+  rolesAllowed: [String!]!
+  tenant: String
+  createdAt: String
+  updatedAt: String
+  metadata: String
+  children: [Menu!]
+}
+
+type DictCategoryConnection {
+  content: [DictCategory!]!
+  totalElements: Long!
+  totalPages: Int!
+  page: Int!
+  size: Int!
+}
+
+type DictCategory {
+  id: String!
+  code: String!
+  name: String!
+  description: String
+  sort: Int!
+  status: Int!
+  tenant: String
+  createdAt: String
+  updatedAt: String
+  itemCount: Int!
+}
+
+type DictItemConnection {
+  content: [DictItem!]!
+  totalElements: Long!
+  totalPages: Int!
+  page: Int!
+  size: Int!
+}
+
+type DictItem {
+  id: String!
+  categoryId: String!
+  parentId: String
+  code: String!
+  name: String!
+  value: String
+  sort: Int!
+  status: Int!
+  remark: String
+  tenant: String
+  createdAt: String
+  updatedAt: String
+  children: [DictItem!]
+}
+
+input UserFilter {
+  _and: [UserFilter!]
+  _or: [UserFilter!]
+  id: LongFilter
+  username: StringFilter
+  email: StringFilter
+  status: EnumFilter
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+  roles: RoleFilter
+}
+
+input RoleFilter {
+  _and: [RoleFilter!]
+  _or: [RoleFilter!]
+  id: LongFilter
+  code: StringFilter
+  name: StringFilter
+  description: StringFilter
+  permissions: PermissionFilter
+}
+
+input PermissionFilter {
+  id: LongFilter
+  code: StringFilter
+  name: StringFilter
+}
+
+input MenuFilter {
+  _and: [MenuFilter!]
+  _or: [MenuFilter!]
+  id: LongFilter
+  key: StringFilter
+  label: StringFilter
+  route: StringFilter
+  parentId: LongFilter
+  menuType: EnumFilter
+  isVisible: BooleanFilter
+}
+
+input DictCategoryFilter {
+  _and: [DictCategoryFilter!]
+  _or: [DictCategoryFilter!]
+  id: LongFilter
+  code: StringFilter
+  name: StringFilter
+  description: StringFilter
+  sort: IntFilter
+  status: IntFilter
+}
+
+input DictItemFilter {
+  _and: [DictItemFilter!]
+  _or: [DictItemFilter!]
+  id: LongFilter
+  categoryId: LongFilter
+  parentId: LongFilter
+  code: StringFilter
+  name: StringFilter
+  value: StringFilter
+  sort: IntFilter
+  status: IntFilter
+}
+
+input LongFilter {
+  _eq: String
+  _neq: String
+  _gt: String
+  _gte: String
+  _lt: String
+  _lte: String
+  _in: [String!]
+  _nin: [String!]
+  _isNull: Boolean
+}
+
+input StringFilter {
+  _eq: String
+  _neq: String
+  _like: String
+  _ilike: String
+  _startsWith: String
+  _endsWith: String
+  _in: [String!]
+  _nin: [String!]
+  _isNull: Boolean
+}
+
+input IntFilter {
+  _eq: Int
+  _neq: Int
+  _gt: Int
+  _gte: Int
+  _lt: Int
+  _lte: Int
+  _in: [Int!]
+  _nin: [Int!]
+  _isNull: Boolean
+}
+
+input BooleanFilter {
+  _eq: Boolean
+  _neq: Boolean
+  _isNull: Boolean
+}
+
+input EnumFilter {
+  _eq: String
+  _neq: String
+  _in: [String!]
+  _nin: [String!]
+  _isNull: Boolean
+}
+
+input DateTimeFilter {
+  _eq: String
+  _neq: String
+  _gt: String
+  _gte: String
+  _lt: String
+  _lte: String
+  _isNull: Boolean
+}
+
+input OrderByInput {
+  field: String!
+  direction: String = "ASC"
+}
+
+scalar Long
