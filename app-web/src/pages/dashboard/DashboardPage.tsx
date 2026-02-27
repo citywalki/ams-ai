@@ -110,7 +110,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="bg-gradient-to-r from-sky-600 to-sky-400 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">{t('dashboard.welcome')}</h1>
         <p className="text-sky-100">

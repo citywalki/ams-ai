@@ -187,13 +187,13 @@ export default function UserManagementPage() {
   if (queryStatus !== 'all') searchParams.status = queryStatus;
 
   return (
-    <div className="h-full min-h-0 flex flex-col gap-6">
+    <div className="h-full min-h-0 flex flex-col gap-3">
       <Card className="shrink-0">
         <CardHeader>
           <CardTitle>{t('pages.userManagement.title')}</CardTitle>
           <CardDescription>{t('pages.userManagement.description')}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-[200px] space-y-2">
               <Label>{t('pages.userManagement.form.username')}</Label>

@@ -20,10 +20,10 @@
   --color-card-foreground: hsl(222.2 84% 4.9%);
   --color-popover: hsl(0 0% 100%);
   --color-popover-foreground: hsl(222.2 84% 4.9%);
-  --radius: 0.5rem;
-  --radius-lg: 0.5rem;
-  --radius-md: calc(0.5rem - 2px);
-  --radius-sm: calc(0.5rem - 4px);
+  --radius: 0.25rem;
+  --radius-lg: 0.25rem;
+  --radius-md: calc(0.25rem - 1px);
+  --radius-sm: calc(0.25rem - 2px);
 }
 
 * {
