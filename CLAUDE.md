@@ -139,6 +139,3 @@ Skills are custom instructions for specialized tasks, stored with symlink struct
 - Skipping database migrations (use Liquibase)
 - Using Lombok (incompatible with Panache)
 
-## Detailed Documentation
-
-For comprehensive conventions, code style, and development workflow, see [AGENTS.md](./AGENTS.md).
