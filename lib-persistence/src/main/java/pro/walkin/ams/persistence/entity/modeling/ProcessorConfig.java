@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.modeling;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -49,6 +50,7 @@ public class ProcessorConfig extends BaseEntity {
   /** 处理器配置参数（JSON格式） */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "parameters")
+  @Ignore
   public Map<String, Object> parameters;
 
   /** 版本号（乐观锁） */

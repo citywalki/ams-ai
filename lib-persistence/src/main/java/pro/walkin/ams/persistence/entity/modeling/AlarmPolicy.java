@@ -1,6 +1,7 @@
 package pro.walkin.ams.persistence.entity.modeling;
 
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -56,6 +57,7 @@ public class AlarmPolicy extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "conditions")
+  @Ignore
   Map<String, Object> conditions;
 
   /*
@@ -63,6 +65,7 @@ public class AlarmPolicy extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "actions")
+  @Ignore
   Map<String, Object> actions;
 
   /*

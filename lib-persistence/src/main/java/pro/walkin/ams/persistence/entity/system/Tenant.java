@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.NaturalId;
@@ -52,6 +53,7 @@ public class Tenant extends PanacheEntityBase {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "config")
+  @Ignore
   public Map<String, Object> config;
 
   /*
@@ -59,6 +61,7 @@ public class Tenant extends PanacheEntityBase {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "quota")
+  @Ignore
   public Map<String, Object> quota;
 
   /*

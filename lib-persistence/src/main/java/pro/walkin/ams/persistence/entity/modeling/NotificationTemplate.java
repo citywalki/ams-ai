@@ -1,6 +1,7 @@
 package pro.walkin.ams.persistence.entity.modeling;
 
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -68,5 +69,6 @@ public class NotificationTemplate extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "variables")
+  @Ignore
   Map<String, Object> variables;
 }

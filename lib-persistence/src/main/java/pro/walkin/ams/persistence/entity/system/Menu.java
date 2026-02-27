@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.system;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -92,6 +93,7 @@ public class Menu extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "metadata")
+  @Ignore
   public Map<String, Object> metadata = new HashMap<>();
 
   /*

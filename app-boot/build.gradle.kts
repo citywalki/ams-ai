@@ -11,6 +11,7 @@ dependencies {
     api(project(":feature-core"))
     api(project(":feature-admin"))
     api(project(":feature-alert-ingestion"))
+    api(project(":feature-graphql"))
 
     implementation(enforcedPlatform(libs.quarkus.bom))
 

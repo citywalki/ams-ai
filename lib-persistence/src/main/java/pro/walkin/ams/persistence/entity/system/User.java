@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.system;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -43,6 +44,7 @@ public class User extends BaseEntity {
    * 密码哈希
    */
   @Column(name = "password_hash", nullable = false)
+  @Ignore
   public String passwordHash;
 
   /*
@@ -66,6 +68,7 @@ public class User extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "preferences")
+  @Ignore
   public Map<String, Object> preferences;
 
   /*

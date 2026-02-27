@@ -27,6 +27,7 @@ include(
     "feature-core",
     "feature-admin",
     "feature-alert-ingestion",
+    "feature-graphql",
 
     "app-boot"
 )

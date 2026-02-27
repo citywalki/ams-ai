@@ -3,6 +3,7 @@ package pro.walkin.ams.persistence.entity.running;
 import io.quarkus.hibernate.panache.PanacheRepository;
 import io.quarkus.panache.common.Parameters;
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -82,6 +83,7 @@ public class Alarm extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "metadata")
+  @Ignore
   public Map<String, Object> metadata;
 
   /*

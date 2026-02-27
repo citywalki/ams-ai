@@ -11,6 +11,19 @@ quarkus:
     auth:
       proactive: false
 
+  # GraphQL 配置
+  smallrye-graphql:
+    root-path: /graphql
+    ui:
+      enabled: true
+      root-path: /graphql-ui
+    print-data-fetcher-exception: true
+    show-runtime-exception-message: true
+    schema-include:
+      directives: false
+    non-blocking:
+      enabled: false
+
   # Liquibase 配置
   liquibase:
     migrate-at-start: true

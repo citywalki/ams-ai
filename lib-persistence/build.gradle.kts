@@ -14,4 +14,6 @@ dependencies {
     api("io.quarkus:quarkus-hibernate-panache-next")
     api("io.quarkus:quarkus-hibernate-envers")
     implementation("io.quarkus:quarkus-jackson")
+
+    compileOnly("org.eclipse.microprofile.graphql:microprofile-graphql-api:2.0")
 }

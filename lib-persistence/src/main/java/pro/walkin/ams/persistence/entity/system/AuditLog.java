@@ -1,6 +1,7 @@
 package pro.walkin.ams.persistence.entity.system;
 
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pro.walkin.ams.persistence.entity.BaseEntity;
@@ -47,6 +48,7 @@ public class AuditLog extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "old_values")
+  @Ignore
   Map<String, Object> oldValues;
 
   /*
@@ -54,6 +56,7 @@ public class AuditLog extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "new_values")
+  @Ignore
   Map<String, Object> newValues;
 
   /*
