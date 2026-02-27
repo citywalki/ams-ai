@@ -164,12 +164,14 @@ function MenuItemComponent({
                                renderChild
                            }: MenuItemProps) {
   const Icon = getMenuIcon(item.icon);
-    const isFolder = item.menuType === 'FOLDER' && item.children && item.children.length > 0;
+    const isFolder = item.menuType === 'FOLDER';
     const hasChildren = item.children && item.children.length > 0;
 
     const handleClick = () => {
-        if (isFolder && onToggleExpand) {
-            onToggleExpand();
+        if (isFolder) {
+            if (onToggleExpand) {
+                onToggleExpand();
+            }
         } else {
             onClick();
         }
@@ -259,7 +261,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     };
 
     const renderMenuItem = (item: MenuItem) => {
-        const isFolder = item.menuType === 'FOLDER' && item.children && item.children.length > 0;
+        const isFolder = item.menuType === 'FOLDER';
         const isExpanded = expandedFolders.has(item.id);
         const isActive = item.id === activeId;
 
