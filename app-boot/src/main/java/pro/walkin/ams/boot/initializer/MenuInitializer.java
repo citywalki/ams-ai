@@ -34,9 +34,17 @@ public class MenuInitializer extends DataInitializer {
             tenant, ROOT_MENU_KEY, "Root", null, null, 0,
             List.of(), Menu.MenuType.FOLDER, null);
 
-        Menu adminFolder = createMenu(
-            tenant, "admin", "系统管理", null, "SettingOutlined", 100,
-            List.of("ADMIN"), Menu.MenuType.FOLDER, rootFolder.id);
+    Menu adminFolder =
+        createMenu(
+            tenant,
+            "admin",
+            "系统管理",
+            "/admin",
+            "SettingOutlined",
+            100,
+            List.of("ADMIN"),
+            Menu.MenuType.FOLDER,
+            rootFolder.id);
 
         createMenu(tenant, "dashboard", "仪表盘", "/dashboard", "DashboardOutlined", 10,
             Arrays.asList("USER", "MANAGER", "ADMIN"), Menu.MenuType.MENU, rootFolder.id);
@@ -48,7 +56,7 @@ public class MenuInitializer extends DataInitializer {
         tenant,
         "menus",
         "菜单管理",
-        "/admin/menus",
+        "/menus",
         "MenuOutlined",
         30,
         List.of("ADMIN"),
@@ -59,7 +67,7 @@ public class MenuInitializer extends DataInitializer {
         tenant,
         "roles",
         "角色管理",
-        "/admin/roles",
+        "/roles",
         "TeamOutlined",
         40,
         List.of("ADMIN"),
@@ -68,9 +76,9 @@ public class MenuInitializer extends DataInitializer {
 
     createMenu(
         tenant,
-        "admin:users",
+        "users",
         "用户管理",
-        "/admin/users",
+        "/users",
         "UserOutlined",
         35,
         List.of("ADMIN"),
@@ -79,9 +87,9 @@ public class MenuInitializer extends DataInitializer {
 
     createMenu(
         tenant,
-        "admin:dict",
+        "dict",
         "数据字典",
-        "/admin/dict",
+        "/dict",
         "BookOutlined",
         50,
         List.of("ADMIN"),

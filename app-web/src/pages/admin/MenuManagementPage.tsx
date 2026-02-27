@@ -19,13 +19,9 @@ import {
 } from '@/components/ui/dialog';
 import {Alert, AlertDescription} from '@/components/ui/alert';
 import {menuApi, type MenuItem, type PermissionItem} from '@/utils/api';
-import {
-  fetchFolders,
-  fetchMenuPermissions,
-  fetchMenusByFolder,
-} from '@/features/admin/menus/queries';
-import { useMenuForm, usePermissionForm } from '@/features/admin/menus/hooks';
-import { MenuDialog, PermissionDialog } from '@/features/admin/menus/components';
+import {fetchFolders, fetchMenuPermissions, fetchMenusByFolder,} from '@/features/admin/menus/queries';
+import {useMenuForm, usePermissionForm} from '@/features/admin/menus/hooks';
+import {MenuDialog, PermissionDialog} from '@/features/admin/menus/components';
 
 export default function MenuManagementPage() {
   const queryClient = useQueryClient();
@@ -170,12 +166,19 @@ export default function MenuManagementPage() {
               <div className="w-3 h-3 flex-shrink-0" />
             )}
             <FolderOpen className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate text-sm">{item.label}</span>
-            {isFolder && (
-              <Badge variant="secondary" className="text-xs">
-                {getMenuCountBadge(item)}
-              </Badge>
-            )}
+              <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                      <span className="truncate text-sm">{item.label}</span>
+                      {isFolder && (
+                          <Badge variant="secondary" className="text-xs">
+                              {getMenuCountBadge(item)}
+                          </Badge>
+                      )}
+                  </div>
+                  {item.route && (
+                      <span className="text-xs text-muted-foreground truncate font-mono">{item.route}</span>
+                  )}
+              </div>
           </div>
           <div className="hidden group-hover:flex items-center gap-1">
             <Button
