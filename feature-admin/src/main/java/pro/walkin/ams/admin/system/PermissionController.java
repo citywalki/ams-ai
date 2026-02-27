@@ -19,7 +19,7 @@ import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.security.service.MenuService;
 import pro.walkin.ams.security.service.RbacService;
-import pro.walkin.ams.security.util.SecurityUtils;
+import pro.walkin.ams.common.security.util.SecurityUtils;
 
 @Path("/api/system/permissions")
 public class PermissionController {

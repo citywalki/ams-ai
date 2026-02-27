@@ -1,4 +1,4 @@
-package pro.walkin.ams.security.util;
+package pro.walkin.ams.common.security.util;
 
 import io.smallrye.jwt.auth.principal.JWTCallerPrincipal;
 import jakarta.ws.rs.core.SecurityContext;

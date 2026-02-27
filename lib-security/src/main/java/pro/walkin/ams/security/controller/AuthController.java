@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import pro.walkin.ams.common.Constants.ErrorCode;
 import pro.walkin.ams.common.dto.ErrorResponse;
 import pro.walkin.ams.security.service.AuthenticationService;
-import pro.walkin.ams.security.util.SecurityUtils;
+import pro.walkin.ams.common.security.util.SecurityUtils;
 
 /** 认证控制器 */
 @Path("/api/auth")
