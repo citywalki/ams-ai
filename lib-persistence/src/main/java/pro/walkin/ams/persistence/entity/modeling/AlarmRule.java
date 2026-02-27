@@ -2,15 +2,16 @@ package pro.walkin.ams.persistence.entity.modeling;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import org.hibernate.type.SqlTypes;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 告警规则实体

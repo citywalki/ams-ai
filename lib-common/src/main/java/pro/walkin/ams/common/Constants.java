@@ -3,7 +3,7 @@ package pro.walkin.ams.common;
 /**
  * 系统常量定义
  *
- * 已添加SEVERITY_WARNING和SEVERITY_UNKNOWN常量 4. 已删除重复的AlarmPolicy类
+ * <p>已添加SEVERITY_WARNING和SEVERITY_UNKNOWN常量 4. 已删除重复的AlarmPolicy类
  *
  * <p>注意：重复常量值相同但语义不同，已添加注释说明。
  */
@@ -268,12 +268,12 @@ public final class Constants {
 
     // 权限相关常量
     public static final String PERMISSION_SEPARATOR = ",";
-    
+
     // 内置角色
     public static final String ROLE_ADMIN = "ADMIN";
     public static final String ROLE_USER = "USER";
     public static final String ROLE_MANAGER = "MANAGER";
-    
+
     // 权限码前缀
     public static final String PERMISSION_ALARM_READ = "ALARM_READ";
     public static final String PERMISSION_ALARM_WRITE = "ALARM_WRITE";
@@ -282,7 +282,7 @@ public final class Constants {
     public static final String PERMISSION_USER_WRITE = "USER_WRITE";
     public static final String PERMISSION_TENANT_MANAGE = "TENANT_MANAGE";
     public static final String PERMISSION_ADMIN_USERS = "admin:users";
-    
+
     // JWT声明字段
     public static final String CLAIM_ROLES = "groups";
     public static final String CLAIM_PERMISSIONS = "permissions";
@@ -294,7 +294,7 @@ public final class Constants {
   /** 错误码常量 */
   public static final class ErrorCode {
     private ErrorCode() {}
-    
+
     // 系统错误
     public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
     public static final String SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE";
@@ -306,7 +306,7 @@ public final class Constants {
     public static final String BAD_REQUEST = "BAD_REQUEST";
     public static final String METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED";
     public static final String UNSUPPORTED_MEDIA_TYPE = "UNSUPPORTED_MEDIA_TYPE";
-    
+
     // 业务错误
     public static final String AUTHENTICATION_FAILED = "AUTHENTICATION_FAILED";
     public static final String INVALID_TOKEN = "INVALID_TOKEN";

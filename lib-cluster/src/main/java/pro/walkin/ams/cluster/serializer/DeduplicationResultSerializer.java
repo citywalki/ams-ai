@@ -3,8 +3,8 @@ package pro.walkin.ams.cluster.serializer;
 import com.hazelcast.nio.serialization.compact.CompactReader;
 import com.hazelcast.nio.serialization.compact.CompactSerializer;
 import com.hazelcast.nio.serialization.compact.CompactWriter;
-import pro.walkin.ams.common.dto.ingestion.DeduplicationResult;
 import pro.walkin.ams.common.dto.AlertEvent;
+import pro.walkin.ams.common.dto.ingestion.DeduplicationResult;
 
 import java.time.LocalDateTime;
 

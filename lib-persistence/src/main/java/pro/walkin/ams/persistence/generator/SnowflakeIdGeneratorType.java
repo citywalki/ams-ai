@@ -1,10 +1,11 @@
 package pro.walkin.ams.persistence.generator;
 
+import org.hibernate.annotations.IdGeneratorType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.hibernate.annotations.IdGeneratorType;
 
 /** Snowflake ID 生成器注解，符合 Hibernate 6.5+ 标准 使用 @IdGeneratorType 元注解，替代旧版 @GenericGenerator 方式 */
 @IdGeneratorType(SnowflakeIdGenerator.class)

@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.cluster.cache.LabelMappingCacher;
 import pro.walkin.ams.common.dto.AlertEvent;
-import pro.walkin.ams.ingestion.AlertMapper;
 
 import java.util.*;
 

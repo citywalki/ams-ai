@@ -2,13 +2,14 @@ package pro.walkin.ams.persistence.entity.modeling;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 标签映射规则表

@@ -1,35 +1,33 @@
 package pro.walkin.ams.admin.system;
 
+import io.quarkus.test.InjectMock;
+import io.quarkus.test.component.QuarkusComponentTest;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import pro.walkin.ams.admin.system.service.RbacService;
+import pro.walkin.ams.common.dto.RoleDto;
+import pro.walkin.ams.common.exception.BusinessException;
+import pro.walkin.ams.persistence.entity.system.Role;
+
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.quarkus.test.InjectMock;
-import io.quarkus.test.component.QuarkusComponentTest;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
-import java.util.List;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import pro.walkin.ams.common.dto.RoleDto;
-import pro.walkin.ams.common.exception.BusinessException;
-import pro.walkin.ams.persistence.entity.system.Role;
-import pro.walkin.ams.admin.system.service.RbacService;
-
 @QuarkusComponentTest
 class RoleControllerTest {
 
-  @Inject
-  RoleController roleController;
+  @Inject RoleController roleController;
 
-  @InjectMock
-  RoleService roleService;
+  @InjectMock RoleService roleService;
 
-  @InjectMock
-  RbacService rbacService;
+  @InjectMock RbacService rbacService;
 
   @Nested
   @DisplayName("findAll")

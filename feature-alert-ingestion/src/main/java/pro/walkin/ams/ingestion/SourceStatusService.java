@@ -7,10 +7,11 @@ import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.persistence.entity.modeling.AlertSource_;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 来源状态服务：管理告警源的在线/离线状态
@@ -46,7 +47,8 @@ public class SourceStatusService {
     if (clusterStatusMap.isEmpty()) {
       log.info("Initial boot: loading source status from database...");
 
-      AlertSource_.managedBlocking().findAll()
+      AlertSource_.managedBlocking()
+          .findAll()
           .list()
           .forEach(
               source -> {

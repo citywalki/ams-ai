@@ -1,12 +1,13 @@
 package pro.walkin.ams.persistence.entity.running;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Map;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * AI分析结果实体

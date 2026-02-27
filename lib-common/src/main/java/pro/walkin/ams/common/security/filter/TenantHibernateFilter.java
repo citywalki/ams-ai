@@ -22,8 +22,7 @@ public class TenantHibernateFilter implements ContainerRequestFilter, ContainerR
 
   private static final Logger LOG = LoggerFactory.getLogger(TenantHibernateFilter.class);
 
-  @Inject
-  EntityManager entityManager;
+  @Inject EntityManager entityManager;
 
   @Override
   public void filter(ContainerRequestContext requestContext) {
@@ -53,7 +52,8 @@ public class TenantHibernateFilter implements ContainerRequestFilter, ContainerR
   }
 
   @Override
-  public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
+  public void filter(
+      ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
     try {
       Session session = entityManager.unwrap(Session.class);
       if (session.getEnabledFilter("tenant-filter") != null) {

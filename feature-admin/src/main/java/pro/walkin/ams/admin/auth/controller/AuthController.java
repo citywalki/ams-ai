@@ -9,14 +9,15 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pro.walkin.ams.admin.auth.service.AuthenticationService;
 import pro.walkin.ams.common.Constants.ErrorCode;
 import pro.walkin.ams.common.dto.ErrorResponse;
-import pro.walkin.ams.admin.auth.service.AuthenticationService;
 import pro.walkin.ams.common.security.util.SecurityUtils;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** 认证控制器 */
 @Path("/api/auth")
@@ -120,18 +121,17 @@ public class AuthController {
         user.roles == null
             ? Set.of()
             : user.roles.stream()
-                .flatMap(role -> role.permissions == null ? java.util.stream.Stream.empty() : role.permissions.stream())
+                .flatMap(
+                    role ->
+                        role.permissions == null
+                            ? java.util.stream.Stream.empty()
+                            : role.permissions.stream())
                 .map(permission -> permission.code)
                 .collect(Collectors.toSet());
 
     return Response.ok(
             new CurrentUserResponse(
-                user.id,
-                user.username,
-                user.email,
-                roles,
-                permissions,
-                user.tenant))
+                user.id, user.username, user.email, roles, permissions, user.tenant))
         .build();
   }
 

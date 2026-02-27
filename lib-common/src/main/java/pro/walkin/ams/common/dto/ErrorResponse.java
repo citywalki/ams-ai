@@ -1,9 +1,10 @@
 package pro.walkin.ams.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import pro.walkin.ams.common.Constants;
+
 import java.time.Instant;
 import java.util.List;
-import pro.walkin.ams.common.Constants;
 
 /**
  * 统一的错误响应DTO

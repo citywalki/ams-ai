@@ -2,14 +2,15 @@ package pro.walkin.ams.persistence.entity.system;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * 权限实体
@@ -82,11 +83,14 @@ public class Permission extends BaseEntity {
     default List<Permission> listByMenuId(Long menuId) {
       return list("menu.id", menuId);
     }
-    
-    default List<Permission> listByTenant(Long tenantId, String sortBy, String sortOrder, int page, int size) {
+
+    default List<Permission> listByTenant(
+        Long tenantId, String sortBy, String sortOrder, int page, int size) {
       String sortField = mapSortField(sortBy);
       String direction = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
-      return find("tenant = ?1 order by " + sortField + " " + direction, tenantId).page(page, size).list();
+      return find("tenant = ?1 order by " + sortField + " " + direction, tenantId)
+          .page(page, size)
+          .list();
     }
 
     default String mapSortField(String sortBy) {
@@ -101,9 +105,9 @@ public class Permission extends BaseEntity {
         default -> "createdAt";
       };
     }
-    
+
     default long countByTenant(Long tenantId) {
-        return count("tenant", tenantId);
+      return count("tenant", tenantId);
     }
   }
 }

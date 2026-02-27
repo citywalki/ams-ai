@@ -20,8 +20,7 @@ public class JwtAuthFilter implements ContainerRequestFilter {
 
   private static final Logger LOG = Logger.getLogger(JwtAuthFilter.class);
 
-  @Inject
-  TokenService tokenService;
+  @Inject TokenService tokenService;
 
   @Override
   public void filter(ContainerRequestContext requestContext) {
@@ -36,7 +35,8 @@ public class JwtAuthFilter implements ContainerRequestFilter {
     String authHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
 
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-      requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
+      requestContext.abortWith(
+          Response.status(Response.Status.UNAUTHORIZED)
               .entity("{\"error\":\"Missing or invalid Authorization header\"}")
               .build());
       return;
@@ -67,49 +67,50 @@ public class JwtAuthFilter implements ContainerRequestFilter {
       TenantContext.setCurrentTenantId(Long.valueOf(tenantId));
 
       final JWTCallerPrincipal finalPrincipal = principal;
-      SecurityContext securityContext = new SecurityContext() {
-        @Override
-        public java.security.Principal getUserPrincipal() {
-          return finalPrincipal;
-        }
+      SecurityContext securityContext =
+          new SecurityContext() {
+            @Override
+            public java.security.Principal getUserPrincipal() {
+              return finalPrincipal;
+            }
 
-        @Override
-        public boolean isUserInRole(String role) {
-          return principal.getGroups() != null && principal.getGroups().contains(role);
-        }
+            @Override
+            public boolean isUserInRole(String role) {
+              return principal.getGroups() != null && principal.getGroups().contains(role);
+            }
 
-        @Override
-        public boolean isSecure() {
-          return true;
-        }
+            @Override
+            public boolean isSecure() {
+              return true;
+            }
 
-        @Override
-        public String getAuthenticationScheme() {
-          return "Bearer";
-        }
-      };
+            @Override
+            public String getAuthenticationScheme() {
+              return "Bearer";
+            }
+          };
 
       requestContext.setSecurityContext(securityContext);
 
     } catch (Exception e) {
       LOG.errorf("JWT validation failed: %s", e.getMessage());
-      requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
+      requestContext.abortWith(
+          Response.status(Response.Status.UNAUTHORIZED)
               .entity("{\"error\":\"Invalid or expired token\"}")
               .build());
     }
   }
 
-  /**
-   * 判断是否为公共端点（无需认证）
-   */
+  /** 判断是否为公共端点（无需认证） */
   private boolean isPublicEndpoint(String path) {
     // 登录和注册端点不需要认证
-    return path.startsWith("/api/auth/login") ||
-           path.startsWith("/api/auth/register") ||
-           path.startsWith("/api/auth/refresh") ||
-           path.startsWith("/health") ||
-           path.startsWith("/openapi") ||
-           path.startsWith("/q/") || // Quarkus管理端点
-           path.equals("/");
+    return path.startsWith("/api/auth/login")
+        || path.startsWith("/api/auth/register")
+        || path.startsWith("/api/auth/refresh")
+        || path.startsWith("/health")
+        || path.startsWith("/openapi")
+        || path.startsWith("/q/")
+        || // Quarkus管理端点
+        path.equals("/");
   }
 }

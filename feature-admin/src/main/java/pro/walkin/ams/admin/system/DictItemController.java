@@ -14,31 +14,30 @@ import pro.walkin.ams.common.security.annotation.RequireRole;
 @Consumes(MediaType.APPLICATION_JSON)
 public class DictItemController {
 
-    @Inject
-    DictItemService itemService;
+  @Inject DictItemService itemService;
 
-    @GET
-    @Path("/items/{id}")
-    @RequireRole("ADMIN")
-    public Response findById(@PathParam("id") Long id) {
-        Long tenantId = TenantContext.getCurrentTenantId();
-        return ResponseBuilder.of(itemService.getById(id, tenantId));
-    }
+  @GET
+  @Path("/items/{id}")
+  @RequireRole("ADMIN")
+  public Response findById(@PathParam("id") Long id) {
+    Long tenantId = TenantContext.getCurrentTenantId();
+    return ResponseBuilder.of(itemService.getById(id, tenantId));
+  }
 
-    @PUT
-    @Path("/items/{id}")
-    @RequireRole("ADMIN")
-    public Response update(@PathParam("id") Long id, DictItemDto dto) {
-        Long tenantId = TenantContext.getCurrentTenantId();
-        return ResponseBuilder.of(itemService.update(id, dto, tenantId));
-    }
+  @PUT
+  @Path("/items/{id}")
+  @RequireRole("ADMIN")
+  public Response update(@PathParam("id") Long id, DictItemDto dto) {
+    Long tenantId = TenantContext.getCurrentTenantId();
+    return ResponseBuilder.of(itemService.update(id, dto, tenantId));
+  }
 
-    @DELETE
-    @Path("/items/{id}")
-    @RequireRole("ADMIN")
-    public Response delete(@PathParam("id") Long id) {
-        Long tenantId = TenantContext.getCurrentTenantId();
-        itemService.delete(id, tenantId);
-        return Response.noContent().build();
-    }
+  @DELETE
+  @Path("/items/{id}")
+  @RequireRole("ADMIN")
+  public Response delete(@PathParam("id") Long id) {
+    Long tenantId = TenantContext.getCurrentTenantId();
+    itemService.delete(id, tenantId);
+    return Response.noContent().build();
+  }
 }

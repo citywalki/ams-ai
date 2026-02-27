@@ -3,11 +3,12 @@ package pro.walkin.ams.persistence.entity.system;
 import io.quarkus.hibernate.panache.PanacheEntityBase;
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.processing.Find;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.processing.Find;
 
 @Entity
 @Table(name = "user_roles")

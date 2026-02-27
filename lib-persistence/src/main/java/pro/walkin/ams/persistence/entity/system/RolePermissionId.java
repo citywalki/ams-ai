@@ -1,6 +1,7 @@
 package pro.walkin.ams.persistence.entity.system;
 
 import jakarta.persistence.Embeddable;
+
 import java.io.Serializable;
 import java.util.Objects;
 

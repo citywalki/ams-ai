@@ -6,8 +6,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Instant;
-import java.util.Map;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.NaturalId;
@@ -15,6 +13,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import org.hibernate.type.SqlTypes;
 import pro.walkin.ams.persistence.generator.SnowflakeIdGeneratorType;
+
+import java.time.Instant;
+import java.util.Map;
 
 /**
  * 租户实体

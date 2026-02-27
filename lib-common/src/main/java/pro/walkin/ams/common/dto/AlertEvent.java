@@ -1,7 +1,5 @@
 package pro.walkin.ams.common.dto;
 
-import pro.walkin.ams.common.Constants;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;

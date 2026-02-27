@@ -17,9 +17,8 @@ public record DictItemResponse(
     Long tenant,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
-    List<DictItemResponse> children
-) {
-    public DictItemResponse {
-        if (children == null) children = new ArrayList<>();
-    }
+    List<DictItemResponse> children) {
+  public DictItemResponse {
+    if (children == null) children = new ArrayList<>();
+  }
 }

@@ -2,11 +2,6 @@ package pro.walkin.ams.persistence.entity.system;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -14,6 +9,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import org.hibernate.type.SqlTypes;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 菜单实体
@@ -25,7 +26,10 @@ import pro.walkin.ams.persistence.entity.BaseEntity;
 @Filter(name = "tenant-filter")
 public class Menu extends BaseEntity {
 
-  public enum MenuType { FOLDER, MENU }
+  public enum MenuType {
+    FOLDER,
+    MENU
+  }
 
   /*
    * 菜单标识符

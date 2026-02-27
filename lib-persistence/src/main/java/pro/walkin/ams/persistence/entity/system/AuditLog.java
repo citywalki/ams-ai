@@ -1,11 +1,12 @@
 package pro.walkin.ams.persistence.entity.system;
 
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.Map;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.time.Instant;
+import java.util.Map;
 
 /**
  * 审计日志实体

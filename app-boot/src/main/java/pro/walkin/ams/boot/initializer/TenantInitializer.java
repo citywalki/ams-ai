@@ -9,30 +9,30 @@ import pro.walkin.ams.persistence.entity.system.Tenant_;
 @ApplicationScoped
 public class TenantInitializer extends DataInitializer {
 
-    @ConfigProperty(name = "ams.auth.init-default-data", defaultValue = "true")
-    boolean initDefaultData;
+  @ConfigProperty(name = "ams.auth.init-default-data", defaultValue = "true")
+  boolean initDefaultData;
 
-    private Tenant defaultTenant;
+  private Tenant defaultTenant;
 
   @Override
   @Transactional
   public void initialize() {
-        if (!initDefaultData) {
-            return;
-        }
-        
-        defaultTenant = Tenant_.repo().findByCode("default");
-        if (defaultTenant == null) {
-            defaultTenant = new Tenant();
-            defaultTenant.code = "default";
-            defaultTenant.name = "Default Tenant";
-            defaultTenant.status = "ACTIVE";
-            defaultTenant.persistAndFlush();
-            log.info("Created default tenant");
-        }
+    if (!initDefaultData) {
+      return;
     }
 
-    public Tenant getDefaultTenant() {
-        return defaultTenant;
+    defaultTenant = Tenant_.repo().findByCode("default");
+    if (defaultTenant == null) {
+      defaultTenant = new Tenant();
+      defaultTenant.code = "default";
+      defaultTenant.name = "Default Tenant";
+      defaultTenant.status = "ACTIVE";
+      defaultTenant.persistAndFlush();
+      log.info("Created default tenant");
     }
+  }
+
+  public Tenant getDefaultTenant() {
+    return defaultTenant;
+  }
 }

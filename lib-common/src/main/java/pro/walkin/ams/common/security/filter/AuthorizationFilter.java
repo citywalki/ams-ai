@@ -10,15 +10,16 @@ import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.common.security.annotation.RequirePermission;
 import pro.walkin.ams.common.security.annotation.RequirePermissions;
 import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.common.security.service.RbacService;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * 授权过滤器

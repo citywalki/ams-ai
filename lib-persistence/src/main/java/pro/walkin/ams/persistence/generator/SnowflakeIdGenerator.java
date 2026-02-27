@@ -1,9 +1,10 @@
 package pro.walkin.ams.persistence.generator;
 
-import java.io.Serializable;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 import pro.walkin.ams.common.util.IdWorker;
+
+import java.io.Serializable;
 
 /**
  * Snowflake ID 生成器实现，符合 Hibernate 6.5+ 标准 生成分布式的唯一 ID，适用于高并发场景 结构: 时间戳(41位) + 数据中心ID(5位) + 机器ID(5位)

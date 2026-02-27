@@ -8,6 +8,14 @@ import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pro.walkin.ams.common.dto.MenuDto;
+import pro.walkin.ams.common.dto.MenuResponseDto;
+import pro.walkin.ams.common.exception.NotFoundException;
+import pro.walkin.ams.common.exception.ValidationException;
+import pro.walkin.ams.persistence.entity.system.Menu;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,13 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import pro.walkin.ams.common.dto.MenuDto;
-import pro.walkin.ams.common.dto.MenuResponseDto;
-import pro.walkin.ams.common.exception.NotFoundException;
-import pro.walkin.ams.common.exception.ValidationException;
-import pro.walkin.ams.persistence.entity.system.Menu;
 
 @ApplicationScoped
 @Transactional
@@ -171,12 +172,14 @@ public class MenuService {
 
   public List<MenuResponseDto> getFolders(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
-    List<Menu> folders = menuRepo.list("menuType = ?1 and tenant = ?2", Menu.MenuType.FOLDER, tenantId);
+    List<Menu> folders =
+        menuRepo.list("menuType = ?1 and tenant = ?2", Menu.MenuType.FOLDER, tenantId);
 
     // 过滤掉根目录菜单
-    folders = folders.stream()
-        .filter(folder -> !ROOT_MENU_KEY.equals(folder.key))
-        .collect(Collectors.toList());
+    folders =
+        folders.stream()
+            .filter(folder -> !ROOT_MENU_KEY.equals(folder.key))
+            .collect(Collectors.toList());
 
     Map<Long, Long> childCountByParent =
         menuRepo.list("parentId is not null and tenant = ?1", tenantId).stream()
@@ -214,7 +217,8 @@ public class MenuService {
     List<Menu> menus;
     if (parentId == null) {
       // 获取根目录的子菜单
-      Menu rootMenu = menuRepo.find("key = ?1 and tenant = ?2", ROOT_MENU_KEY, tenantId).firstResult();
+      Menu rootMenu =
+          menuRepo.find("key = ?1 and tenant = ?2", ROOT_MENU_KEY, tenantId).firstResult();
       if (rootMenu != null) {
         menus = menuRepo.list("parentId = ?1 and tenant = ?2", rootMenu.id, tenantId);
       } else {
@@ -292,16 +296,13 @@ public class MenuService {
         entity.tenant,
         entity.createdAt,
         entity.updatedAt,
-        new ArrayList<>()
-        );
+        new ArrayList<>());
   }
 
   private List<MenuResponseDto> buildMenuTree(List<Menu> menus, Set<String> userRoles) {
     // 找到根目录菜单
-    Menu rootMenu = menus.stream()
-        .filter(menu -> ROOT_MENU_KEY.equals(menu.key))
-        .findFirst()
-        .orElse(null);
+    Menu rootMenu =
+        menus.stream().filter(menu -> ROOT_MENU_KEY.equals(menu.key)).findFirst().orElse(null);
 
     Long rootId = rootMenu != null ? rootMenu.id : null;
 
@@ -321,18 +322,20 @@ public class MenuService {
     // 构建树形结构：如果有根目录，则返回根目录的子菜单作为顶级菜单
     List<MenuResponseDto> rootMenus;
     if (rootId != null) {
-      rootMenus = accessibleMenus.stream()
-          .filter(menu -> rootId.equals(menu.parentId))
-          .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
-          .map(menu -> buildMenuItemTree(menu, childrenByParentId, userRoles))
-          .collect(Collectors.toList());
+      rootMenus =
+          accessibleMenus.stream()
+              .filter(menu -> rootId.equals(menu.parentId))
+              .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
+              .map(menu -> buildMenuItemTree(menu, childrenByParentId, userRoles))
+              .collect(Collectors.toList());
     } else {
       // 兼容旧数据：如果没有根目录，则返回 parentId 为 null 的菜单
-      rootMenus = accessibleMenus.stream()
-          .filter(menu -> menu.parentId == null)
-          .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
-          .map(menu -> buildMenuItemTree(menu, childrenByParentId, userRoles))
-          .collect(Collectors.toList());
+      rootMenus =
+          accessibleMenus.stream()
+              .filter(menu -> menu.parentId == null)
+              .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
+              .map(menu -> buildMenuItemTree(menu, childrenByParentId, userRoles))
+              .collect(Collectors.toList());
     }
 
     return rootMenus;
@@ -407,16 +410,15 @@ public class MenuService {
 
   private List<MenuResponseDto> buildMenuTreeForAdmin(List<Menu> menus) {
     // 找到根目录菜单
-    Menu rootMenu = menus.stream()
-        .filter(menu -> ROOT_MENU_KEY.equals(menu.key))
-        .findFirst()
-        .orElse(null);
+    Menu rootMenu =
+        menus.stream().filter(menu -> ROOT_MENU_KEY.equals(menu.key)).findFirst().orElse(null);
 
     Long rootId = rootMenu != null ? rootMenu.id : null;
 
-    Map<Long, List<Menu>> childrenByParentId = menus.stream()
-        .filter(menu -> menu.parentId != null)
-        .collect(Collectors.groupingBy(menu -> menu.parentId));
+    Map<Long, List<Menu>> childrenByParentId =
+        menus.stream()
+            .filter(menu -> menu.parentId != null)
+            .collect(Collectors.groupingBy(menu -> menu.parentId));
 
     // 如果有根目录，则返回根目录的子菜单作为顶级菜单，并排除根目录本身
     if (rootId != null) {
@@ -435,19 +437,32 @@ public class MenuService {
     }
   }
 
-  private MenuResponseDto buildMenuItemTreeForAdmin(Menu menu, Map<Long, List<Menu>> childrenByParentId) {
+  private MenuResponseDto buildMenuItemTreeForAdmin(
+      Menu menu, Map<Long, List<Menu>> childrenByParentId) {
     MenuResponseDto dto = mapEntityToResponseDto(menu);
 
     List<Menu> children = childrenByParentId.getOrDefault(menu.id, new ArrayList<>());
-    List<MenuResponseDto> childDtos = children.stream()
-        .sorted(Comparator.comparingInt(child -> child.sortOrder != null ? child.sortOrder : 0))
-        .map(child -> buildMenuItemTreeForAdmin(child, childrenByParentId))
-        .collect(Collectors.toList());
+    List<MenuResponseDto> childDtos =
+        children.stream()
+            .sorted(Comparator.comparingInt(child -> child.sortOrder != null ? child.sortOrder : 0))
+            .map(child -> buildMenuItemTreeForAdmin(child, childrenByParentId))
+            .collect(Collectors.toList());
 
     return new MenuResponseDto(
-        dto.id(), dto.key(), dto.label(), dto.route(), dto.parentId(),
-        dto.icon(), dto.sortOrder(), dto.isVisible(), dto.menuType(),
-        dto.rolesAllowed(), dto.metadata(), dto.tenant(),
-        dto.createdAt(), dto.updatedAt(), childDtos);
+        dto.id(),
+        dto.key(),
+        dto.label(),
+        dto.route(),
+        dto.parentId(),
+        dto.icon(),
+        dto.sortOrder(),
+        dto.isVisible(),
+        dto.menuType(),
+        dto.rolesAllowed(),
+        dto.metadata(),
+        dto.tenant(),
+        dto.createdAt(),
+        dto.updatedAt(),
+        childDtos);
   }
 }

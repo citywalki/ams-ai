@@ -9,10 +9,10 @@ import static org.assertj.core.api.Assertions.*;
 @QuarkusTest
 class ApplicationIT {
 
-    @Test
-    @DisplayName("application should start successfully")
-    void shouldStartApplication() {
-        // If the application starts, this test passes
-        assertThat(true).isTrue();
-    }
+  @Test
+  @DisplayName("application should start successfully")
+  void shouldStartApplication() {
+    // If the application starts, this test passes
+    assertThat(true).isTrue();
+  }
 }

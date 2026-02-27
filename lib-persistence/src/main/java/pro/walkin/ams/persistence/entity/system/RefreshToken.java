@@ -1,9 +1,10 @@
 package pro.walkin.ams.persistence.entity.system;
 
 import jakarta.persistence.*;
-import java.time.Instant;
 import org.hibernate.annotations.CreationTimestamp;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "refresh_tokens")

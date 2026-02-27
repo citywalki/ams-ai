@@ -4,11 +4,12 @@ import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheName;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.persistence.entity.modeling.LabelMapping;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class LabelMappingCacher {

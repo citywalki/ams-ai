@@ -12,5 +12,4 @@ public record DictCategoryResponse(
     Long tenant,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
-    Long itemCount
-) {}
+    Long itemCount) {}

@@ -13,41 +13,40 @@ import static org.assertj.core.api.Assertions.*;
 @TestConfigProperty(key = "smallrye.jwt.sign.key.location", value = "privateKey.jwk")
 class RbacServiceTest {
 
-    @Inject
-    RbacService rbacService;
+  @Inject RbacService rbacService;
 
-    @Nested
-    @DisplayName("Injection")
-    class Injection {
-        
-        @Test
-        @DisplayName("should be injectable")
-        void shouldBeInjectable() {
-            assertThat(rbacService).isNotNull();
-        }
+  @Nested
+  @DisplayName("Injection")
+  class Injection {
+
+    @Test
+    @DisplayName("should be injectable")
+    void shouldBeInjectable() {
+      assertThat(rbacService).isNotNull();
     }
-    
-    @Nested
-    @DisplayName("hasPermission without tenant context")
-    class HasPermissionWithoutTenant {
-        
-        @Test
-        @DisplayName("should return false when no tenant context")
-        void shouldReturnFalseWhenNoTenantContext() {
-            boolean result = rbacService.hasPermission(1L, "view:dashboard");
-            assertThat(result).isFalse();
-        }
+  }
+
+  @Nested
+  @DisplayName("hasPermission without tenant context")
+  class HasPermissionWithoutTenant {
+
+    @Test
+    @DisplayName("should return false when no tenant context")
+    void shouldReturnFalseWhenNoTenantContext() {
+      boolean result = rbacService.hasPermission(1L, "view:dashboard");
+      assertThat(result).isFalse();
     }
-    
-    @Nested
-    @DisplayName("hasRole without tenant context")
-    class HasRoleWithoutTenant {
-        
-        @Test
-        @DisplayName("should return false when no tenant context")
-        void shouldReturnFalseWhenNoTenantContext() {
-            boolean result = rbacService.hasRole(1L, "USER");
-            assertThat(result).isFalse();
-        }
+  }
+
+  @Nested
+  @DisplayName("hasRole without tenant context")
+  class HasRoleWithoutTenant {
+
+    @Test
+    @DisplayName("should return false when no tenant context")
+    void shouldReturnFalseWhenNoTenantContext() {
+      boolean result = rbacService.hasRole(1L, "USER");
+      assertThat(result).isFalse();
     }
+  }
 }

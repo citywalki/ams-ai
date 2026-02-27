@@ -1,8 +1,9 @@
 package pro.walkin.ams.core.event;
 
-import java.time.Instant;
 import pro.walkin.ams.common.Constants;
 import pro.walkin.ams.persistence.entity.running.Alarm;
+
+import java.time.Instant;
 
 /** 告警状态变更事件 */
 public record AlarmStatusChangedEvent(

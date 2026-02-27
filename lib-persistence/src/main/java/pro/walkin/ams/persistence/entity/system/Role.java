@@ -2,16 +2,17 @@ package pro.walkin.ams.persistence.entity.system;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * 角色实体
@@ -69,12 +70,13 @@ public class Role extends BaseEntity {
 
     @Find
     Optional<Role> findByCode(String code);
-    
+
     default List<Role> listByTenant(Long tenantId, int page, int size) {
-        return find("tenant", tenantId).page(page, size).list();
+      return find("tenant", tenantId).page(page, size).list();
     }
 
-    default List<Role> listByTenantAndKeyword(Long tenantId, String keyword, String sortBy, String sortOrder, int page, int size) {
+    default List<Role> listByTenantAndKeyword(
+        Long tenantId, String keyword, String sortBy, String sortOrder, int page, int size) {
       StringBuilder query = new StringBuilder("tenant = :tenantId");
       java.util.HashMap<String, Object> params = new java.util.HashMap<>();
       params.put("tenantId", tenantId);
@@ -104,9 +106,9 @@ public class Role extends BaseEntity {
         default -> "createdAt";
       };
     }
-    
+
     default long countByTenant(Long tenantId) {
-        return count("tenant", tenantId);
+      return count("tenant", tenantId);
     }
 
     default long countByTenantAndKeyword(Long tenantId, String keyword) {

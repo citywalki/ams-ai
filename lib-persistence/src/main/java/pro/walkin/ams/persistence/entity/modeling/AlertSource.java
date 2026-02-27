@@ -1,10 +1,11 @@
 package pro.walkin.ams.persistence.entity.modeling;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import pro.walkin.ams.persistence.entity.BaseEntity;
+
+import java.time.LocalDateTime;
 
 /**
  * 告警来源实体

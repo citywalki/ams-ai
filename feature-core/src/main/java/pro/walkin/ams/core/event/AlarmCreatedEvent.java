@@ -1,8 +1,9 @@
 package pro.walkin.ams.core.event;
 
-import java.time.LocalDateTime;
 import pro.walkin.ams.common.Constants;
 import pro.walkin.ams.persistence.entity.running.Alarm;
+
+import java.time.LocalDateTime;
 
 /** 告警创建事件 */
 public record AlarmCreatedEvent(

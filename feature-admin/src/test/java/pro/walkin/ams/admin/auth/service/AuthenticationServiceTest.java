@@ -13,17 +13,16 @@ import static org.assertj.core.api.Assertions.*;
 @TestConfigProperty(key = "smallrye.jwt.sign.key.location", value = "privateKey.jwk")
 class AuthenticationServiceTest {
 
-    @Inject
-    AuthenticationService authService;
+  @Inject AuthenticationService authService;
 
-    @Nested
-    @DisplayName("Injection")
-    class Injection {
-        
-        @Test
-        @DisplayName("should be injectable")
-        void shouldBeInjectable() {
-            assertThat(authService).isNotNull();
-        }
+  @Nested
+  @DisplayName("Injection")
+  class Injection {
+
+    @Test
+    @DisplayName("should be injectable")
+    void shouldBeInjectable() {
+      assertThat(authService).isNotNull();
     }
+  }
 }

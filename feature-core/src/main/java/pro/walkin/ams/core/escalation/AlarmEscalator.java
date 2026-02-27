@@ -6,11 +6,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import net.javacrumbs.shedlock.cdi.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +14,12 @@ import pro.walkin.ams.core.event.AlarmEscalatedEvent;
 import pro.walkin.ams.core.metrics.CoreMetrics;
 import pro.walkin.ams.core.processor.PriorityCalculator;
 import pro.walkin.ams.persistence.entity.running.Alarm;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 告警升级器
@@ -40,8 +41,7 @@ public class AlarmEscalator {
   private final Event<AlarmEscalatedEvent> alarmEscalatedEvent;
   private final CoreMetrics metrics;
 
-  @Inject
-  public Alarm.Repo alarmRepo;
+  @Inject public Alarm.Repo alarmRepo;
 
   @Inject
   public AlarmEscalator(
