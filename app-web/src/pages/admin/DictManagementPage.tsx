@@ -168,7 +168,7 @@ export default function DictManagementPage() {
   };
 
   return (
-    <div className="h-full min-h-0 flex gap-4">
+    <div className="h-full min-h-0 flex gap-2">
       <Card className="w-[280px] min-h-0 flex-shrink-0 flex flex-col">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
