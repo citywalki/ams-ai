@@ -1,7 +1,5 @@
 package pro.walkin.ams.common.security;
 
-import pro.walkin.ams.persistence.entity.system.Tenant;
-
 /**
  * 租户上下文管理器
  *
@@ -86,19 +84,6 @@ public class TenantContext {
             CURRENT_TENANT_CODE.remove();
         } else {
             CURRENT_TENANT_CODE.set(tenantCode);
-        }
-    }
-
-    /**
-     * 从租户实体设置租户上下文
-     *
-     * @param tenant 租户实体
-     */
-    public static void setFromTenant(Tenant tenant) {
-        if (tenant != null) {
-            setCurrentTenantId(tenant.id);
-            setCurrentTenant(tenant.id != null ? tenant.id.toString() : DEFAULT_TENANT);
-            setCurrentTenantCode(tenant.code);
         }
     }
 
