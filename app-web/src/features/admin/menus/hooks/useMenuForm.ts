@@ -52,7 +52,9 @@ export function useMenuForm(options: UseMenuFormOptions) {
           key: value.key,
           label: value.label,
           route: value.route || undefined,
-          parentId: options.selectedFolder === 'root' ? undefined : options.selectedFolder?.id,
+          parentId: dialogMode === 'edit' && editingMenu
+            ? editingMenu.parentId
+            : (options.selectedFolder === 'root' ? undefined : options.selectedFolder?.id),
           icon: value.icon || undefined,
           sortOrder: value.sortOrder,
           isVisible: value.isVisible,
