@@ -27,29 +27,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { queryKeys } from '@/lib/queryKeys';
 import { fetchUsersPage, invalidateUserList } from '@/features/admin/users/queries';
+import { useUserForm } from '@/features/admin/users/hooks/useUserForm';
+import { useResetPassword } from '@/features/admin/users/hooks/useResetPassword';
+import { UserFormDialog } from '@/features/admin/users/components/UserFormDialog';
+import { ResetPasswordDialog } from '@/features/admin/users/components/ResetPasswordDialog';
 import {
   systemApi,
   type UserItem,
   type RoleOption,
-  type UserCreatePayload,
-  type UserUpdatePayload,
 } from '@/utils/api';
-
-type UserFormState = {
-  username: string;
-  email: string;
-  password: string;
-  status: string;
-  roleIds: string[];
-};
-
-const initialFormState: UserFormState = {
-  username: '',
-  email: '',
-  password: '',
-  status: 'ACTIVE',
-  roleIds: [],
-};
 
 export default function UserManagementPage() {
   const { t } = useTranslation();
@@ -61,19 +47,11 @@ export default function UserManagementPage() {
   const [searchStatus, setSearchStatus] = useState<string>('all');
   const [queryStatus, setQueryStatus] = useState<string>('all');
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
-  const [editingUser, setEditingUser] = useState<UserItem | null>(null);
-  const [formState, setFormState] = useState<UserFormState>(initialFormState);
-  const [formLoading, setFormLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  // Use TanStack Form hooks
+  const userForm = useUserForm();
+  const resetPassword = useResetPassword();
 
-  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
-  const [resetPasswordUser, setResetPasswordUser] = useState<UserItem | null>(null);
-  const [newPassword, setNewPassword] = useState('');
-  const [resetLoading, setResetLoading] = useState(false);
-  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
-
+  // Keep delete dialog state (not using TanStack Form)
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState<UserItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -107,93 +85,9 @@ export default function UserManagementPage() {
     void invalidateUserList(queryClient);
   };
 
-  const openCreateDialog = () => {
-    setDialogMode('create');
-    setEditingUser(null);
-    setFormState(initialFormState);
-    setFormError(null);
-    setDialogOpen(true);
-  };
-
-  const openEditDialog = (user: UserItem) => {
-    setDialogMode('edit');
-    setEditingUser(user);
-    setFormState({
-      username: user.username,
-      email: user.email ?? '',
-      password: '',
-      status: user.status,
-      roleIds: user.roles?.map((r) => r.id) ?? [],
-    });
-    setFormError(null);
-    setDialogOpen(true);
-  };
-
-  const closeDialog = () => {
-    setDialogOpen(false);
-    setEditingUser(null);
-    setFormState(initialFormState);
-    setFormError(null);
-  };
-
   const refreshData = useCallback(() => {
     void invalidateUserList(queryClient);
   }, [queryClient]);
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormLoading(true);
-    setFormError(null);
-    try {
-      if (dialogMode === 'create') {
-        const payload: UserCreatePayload = {
-          username: formState.username,
-          email: formState.email || undefined,
-          password: formState.password,
-          status: formState.status,
-          roleIds: formState.roleIds,
-        };
-        await systemApi.createUser(payload);
-      } else if (editingUser) {
-        const payload: UserUpdatePayload = {
-          username: formState.username,
-          email: formState.email || undefined,
-          status: formState.status,
-          roleIds: formState.roleIds,
-        };
-        await systemApi.updateUser(editingUser.id, payload);
-      }
-      closeDialog();
-      refreshData();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : t('pages.userManagement.messages.operationFailed'));
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  const openResetPasswordDialog = (user: UserItem) => {
-    setResetPasswordUser(user);
-    setNewPassword('');
-    setResetPasswordError(null);
-    setResetPasswordOpen(true);
-  };
-
-  const handleResetPassword = async () => {
-    if (!resetPasswordUser || !newPassword) return;
-    setResetLoading(true);
-    setResetPasswordError(null);
-    try {
-      await systemApi.resetUserPassword(resetPasswordUser.id, newPassword);
-      setResetPasswordOpen(false);
-      setResetPasswordUser(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t('pages.userManagement.messages.operationFailed');
-      setResetPasswordError(message);
-    } finally {
-      setResetLoading(false);
-    }
-  };
 
   const openDeleteDialog = (user: UserItem) => {
     setDeleteUser(user);
@@ -216,15 +110,6 @@ export default function UserManagementPage() {
     } finally {
       setDeleteLoading(false);
     }
-  };
-
-  const toggleRole = (roleId: string) => {
-    setFormState((prev) => ({
-      ...prev,
-      roleIds: prev.roleIds.includes(roleId)
-        ? prev.roleIds.filter((id) => id !== roleId)
-        : [...prev.roleIds, roleId],
-    }));
   };
 
   const getStatusBadge = (status: string) => {
@@ -274,14 +159,14 @@ export default function UserManagementPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => openEditDialog(row.original)}
+            onClick={() => userForm.openEditDialog(row.original)}
           >
             <Pencil className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => openResetPasswordDialog(row.original)}
+            onClick={() => resetPassword.openResetPasswordDialog(row.original)}
           >
             <Key className="h-4 w-4" />
           </Button>
@@ -352,7 +237,7 @@ export default function UserManagementPage() {
       <Card className="flex-1 min-h-0 flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{t('pages.userManagement.listTitle')}</CardTitle>
-          <Button variant="ghost" onClick={openCreateDialog}>
+          <Button variant="ghost" onClick={userForm.openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
             {t('common.add')}
           </Button>
@@ -368,149 +253,25 @@ export default function UserManagementPage() {
       </Card>
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <form onSubmit={handleFormSubmit}>
-            <DialogHeader>
-              <DialogTitle>
-                {dialogMode === 'create'
-                  ? t('pages.userManagement.dialog.createTitle')
-                  : t('pages.userManagement.dialog.editTitle')}
-              </DialogTitle>
-              <DialogDescription>
-                {dialogMode === 'create'
-                  ? t('pages.userManagement.dialog.createDescription')
-                  : t('pages.userManagement.dialog.editDescription')}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {formError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{formError}</AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="username">{t('pages.userManagement.form.username')}</Label>
-                <Input
-                  id="username"
-                  value={formState.username}
-                  onChange={(e) =>
-                    setFormState((prev) => ({ ...prev, username: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">{t('pages.userManagement.form.email')}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formState.email}
-                  onChange={(e) =>
-                    setFormState((prev) => ({ ...prev, email: e.target.value }))
-                  }
-                />
-              </div>
-              {dialogMode === 'create' && (
-                <div className="space-y-2">
-                  <Label htmlFor="password">{t('pages.userManagement.form.password')}</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formState.password}
-                    onChange={(e) =>
-                      setFormState((prev) => ({ ...prev, password: e.target.value }))
-                    }
-                    required
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="status">{t('pages.userManagement.form.status')}</Label>
-                <Select
-                  value={formState.status}
-                  onValueChange={(value) =>
-                    setFormState((prev) => ({ ...prev, status: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
-                    <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('pages.userManagement.form.roles')}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {roles.map((role) => (
-                    <Button
-                      key={role.id}
-                      type="button"
-                      variant={
-                        formState.roleIds.includes(role.id) ? 'default' : 'outline'
-                      }
-                      size="sm"
-                      onClick={() => toggleRole(role.id)}
-                    >
-                      {role.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeDialog}>
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={formLoading}>
-                {formLoading ? t('pages.userManagement.messages.submitting') : t('common.confirm')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <UserFormDialog
+        open={userForm.dialogOpen}
+        onOpenChange={userForm.setDialogOpen}
+        mode={userForm.dialogMode}
+        form={userForm.form}
+        error={userForm.formError}
+        roles={roles}
+        onClose={userForm.closeDialog}
+        onToggleRole={userForm.toggleRole}
+      />
 
       {/* Reset Password Dialog */}
-      <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('pages.userManagement.dialog.resetPasswordTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('pages.userManagement.dialog.resetPasswordDescription', { username: resetPasswordUser?.username ?? '-' })}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {resetPasswordError && (
-              <Alert variant="destructive">
-                <AlertDescription>{resetPasswordError}</AlertDescription>
-              </Alert>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">{t('pages.userManagement.form.newPassword')}</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setResetPasswordOpen(false)}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={handleResetPassword} disabled={resetLoading}>
-              {resetLoading ? t('pages.userManagement.messages.processing') : t('common.confirm')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ResetPasswordDialog
+        open={resetPassword.resetPasswordOpen}
+        onOpenChange={resetPassword.setResetPasswordOpen}
+        user={resetPassword.resetPasswordUser}
+        form={resetPassword.form}
+        error={resetPassword.resetPasswordError}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

@@ -1,11 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm, type ReactFormExtendedApi } from '@tanstack/react-form';
+import { useForm } from '@tanstack/react-form';
 import { systemApi, type UserItem } from '@/utils/api';
 import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas/reset-password-schema';
-
-// Export form type for use in components
-export type ResetPasswordFormApi = ReactFormExtendedApi<ResetPasswordFormData, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined>;
 
 export function useResetPassword() {
   const { t } = useTranslation();

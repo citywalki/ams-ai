@@ -15,11 +15,14 @@ import { type UserItem } from '@/utils/api';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type ResetPasswordFormData } from '../schemas/reset-password-schema';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ResetPasswordFormApi = ReactFormExtendedApi<ResetPasswordFormData, any, any, any, any, any, any, any, any, any, any, any>;
+
 interface ResetPasswordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: UserItem | null;
-  form: ReactFormExtendedApi<ResetPasswordFormData, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined>;
+  form: ResetPasswordFormApi;
   error: string | null;
 }
 

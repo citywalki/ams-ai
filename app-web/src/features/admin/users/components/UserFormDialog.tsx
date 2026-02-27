@@ -22,7 +22,8 @@ import { type RoleOption } from '@/utils/api';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type UserFormData } from '../schemas/user-schema';
 
-type UserFormApi = ReactFormExtendedApi<UserFormData, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type UserFormApi = ReactFormExtendedApi<UserFormData, any, any, any, any, any, any, any, any, any, any, any>;
 
 interface UserFormDialogProps {
   open: boolean;
