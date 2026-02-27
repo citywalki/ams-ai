@@ -112,6 +112,25 @@ Backend exposes REST endpoints under `/api`. Frontend proxies `/api` to `http://
 - **Transactions:** `@Transactional` on Service layer
 - **No Lombok:** Incompatible with Panache pattern
 
+## Skills Management
+
+Skills are custom instructions for specialized tasks, stored with symlink structure:
+
+```
+.agents/skills/
+├── frontend-development/SKILL.md
+├── frontend-ui-verification/SKILL.md
+└── ...
+
+.claude/skills/  (symlinks)
+├── frontend-development -> ../../.agents/skills/frontend-development
+└── ...
+```
+
+- **Location:** All skills stored in `.agents/skills/` with each skill in its own folder
+- **Linking:** Symlink to `.claude/skills/` for Claude Code to discover them
+- **Language:** Skills must be written in English
+
 ## Anti-Patterns (Forbidden)
 
 - Microservices splitting (maintain monolith)
