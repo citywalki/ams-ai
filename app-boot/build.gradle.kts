@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(project(":lib-common"))
+    implementation(project(":lib-persistence"))
     implementation(project(":lib-cluster"))
     api(project(":feature-core"))
     api(project(":feature-admin"))

@@ -7,13 +7,18 @@ plugins {
 dependencies {
     implementation(project(":lib-common"))
     implementation(project(":lib-persistence"))
-    implementation(project(":lib-security"))
     implementation(project(":lib-cluster"))
 
     implementation(enforcedPlatform(libs.quarkus.bom))
 
     implementation(libs.quarkus.arc)
     implementation("io.quarkus:quarkus-rest")
+
+    // Security/JWT dependencies (previously from lib-security)
+    implementation(libs.quarkus.smallrye.jwt)
+    implementation(libs.quarkus.smallrye.jwt.build)
+    implementation("io.quarkus:quarkus-cache")
+    implementation("io.quarkus:quarkus-hibernate-orm")
 
     implementation(libs.quarkus.micrometer)
     implementation(libs.micrometer.core)

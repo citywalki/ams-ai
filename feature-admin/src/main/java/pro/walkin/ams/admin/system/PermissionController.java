@@ -17,8 +17,8 @@ import pro.walkin.ams.persistence.entity.system.Permission;
 import pro.walkin.ams.persistence.entity.system.Permission.Repo;
 import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.common.security.annotation.RequireRole;
-import pro.walkin.ams.security.service.MenuService;
-import pro.walkin.ams.security.service.RbacService;
+import pro.walkin.ams.admin.system.service.MenuService;
+import pro.walkin.ams.admin.system.service.RbacService;
 import pro.walkin.ams.common.security.util.SecurityUtils;
 
 @Path("/api/system/permissions")

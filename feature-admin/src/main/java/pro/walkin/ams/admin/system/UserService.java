@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import pro.walkin.ams.admin.system.query.UserQuery;
 import pro.walkin.ams.common.dto.UserDto;
 import pro.walkin.ams.common.dto.UserResponseDto;
 import pro.walkin.ams.common.dto.UserUpdateDto;
@@ -14,7 +15,7 @@ import pro.walkin.ams.common.exception.BusinessException;
 import pro.walkin.ams.common.exception.NotFoundException;
 import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.User;
-import pro.walkin.ams.security.PasswordService;
+import pro.walkin.ams.admin.auth.service.PasswordService;
 import pro.walkin.ams.common.security.TenantContext;
 
 @ApplicationScoped
@@ -29,13 +30,16 @@ public class UserService {
     @Inject
     PasswordService passwordService;
 
+    @Inject
+    UserQuery userQuery;
+
     public List<UserResponseDto> findAll(String username, String email, String status, String sortBy, String sortOrder, int page, int size) {
         Long tenantId = TenantContext.getCurrentTenantId();
         if (tenantId == null) {
             return List.of();
         }
 
-        List<User> users = userRepo.findByFilters(tenantId, username, email, status, sortBy, sortOrder, page, size);
+        List<User> users = userQuery.findByFilters(tenantId, username, email, status, sortBy, sortOrder, page, size);
         return users.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -44,11 +48,11 @@ public class UserService {
         if (tenantId == null) {
             return 0;
         }
-        return userRepo.countByFilters(tenantId, username, email, status);
+        return userQuery.countByFilters(tenantId, username, email, status);
     }
 
     public UserResponseDto findById(Long id) {
-        User user = userRepo.findByIdOptional(id)
+        User user = userQuery.findById(id)
             .orElseThrow(() -> new NotFoundException("用户不存在"));
         return toResponse(user);
     }
@@ -60,12 +64,12 @@ public class UserService {
             throw new BusinessException("租户信息缺失");
         }
 
-        if (userRepo.findByUsername(request.getUsername()).isPresent()) {
+        if (userQuery.findByUsername(request.getUsername()).isPresent()) {
             throw new BusinessException("用户名已存在");
         }
 
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            if (userRepo.findByEmail(request.getEmail()).isPresent()) {
+            if (userQuery.findByEmail(request.getEmail()).isPresent()) {
                 throw new BusinessException("邮箱已被使用");
             }
         }
@@ -98,7 +102,7 @@ public class UserService {
             .orElseThrow(() -> new NotFoundException("用户不存在"));
 
         if (request.getUsername() != null && !request.getUsername().equals(user.username)) {
-            if (userRepo.findByUsername(request.getUsername()).isPresent()) {
+            if (userQuery.findByUsername(request.getUsername()).isPresent()) {
                 throw new BusinessException("用户名已存在");
             }
             user.username = request.getUsername();
@@ -107,7 +111,7 @@ public class UserService {
         if (request.getEmail() != null) {
             if (!request.getEmail().equals(user.email)) {
                 if (request.getEmail() != null && !request.getEmail().isBlank()) {
-                    if (userRepo.findByEmail(request.getEmail()).isPresent()) {
+                    if (userQuery.findByEmail(request.getEmail()).isPresent()) {
                         throw new BusinessException("邮箱已被使用");
                     }
                 }

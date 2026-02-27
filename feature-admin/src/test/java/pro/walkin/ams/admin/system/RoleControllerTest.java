@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import pro.walkin.ams.common.dto.RoleDto;
 import pro.walkin.ams.common.exception.BusinessException;
 import pro.walkin.ams.persistence.entity.system.Role;
-import pro.walkin.ams.security.service.RbacService;
+import pro.walkin.ams.admin.system.service.RbacService;
 
 @QuarkusComponentTest
 class RoleControllerTest {
