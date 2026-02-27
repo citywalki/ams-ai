@@ -13,7 +13,7 @@ export const editUserFormSchema = userFormSchema.omit({ password: true });
 export type UserFormData = z.infer<typeof userFormSchema>;
 export type EditUserFormData = z.infer<typeof editUserFormSchema>;
 
-export const initialUserFormState: UserFormData = {
+export const initialFormState: UserFormData = {
   username: '',
   email: '',
   password: '',
