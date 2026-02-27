@@ -1,4 +1,4 @@
-package pro.walkin.ams.security.filter;
+package pro.walkin.ams.common.security.filter;
 
 import io.smallrye.jwt.auth.principal.JWTCallerPrincipal;
 import jakarta.annotation.Priority;
@@ -12,7 +12,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.ext.Provider;
 import org.jboss.logging.Logger;
 import pro.walkin.ams.common.security.TenantContext;
-import pro.walkin.ams.security.service.TokenService;
+import pro.walkin.ams.common.security.service.TokenService;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
@@ -27,7 +27,7 @@ public class JwtAuthFilter implements ContainerRequestFilter {
   public void filter(ContainerRequestContext requestContext) {
     // 获取请求路径
     String path = requestContext.getUriInfo().getPath();
-    
+
     // 跳过公共端点的认证
     if (isPublicEndpoint(path)) {
       return;

@@ -1,4 +1,4 @@
-package pro.walkin.ams.security.filter;
+package pro.walkin.ams.common.security.filter;
 
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;

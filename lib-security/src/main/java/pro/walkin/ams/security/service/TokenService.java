@@ -19,7 +19,7 @@ import pro.walkin.ams.persistence.entity.system.User;
 
 /** JWT令牌服务 */
 @ApplicationScoped
-public class TokenService {
+public class TokenService implements pro.walkin.ams.common.security.service.TokenService {
 
   @Inject JWTParser jwtParser;
 

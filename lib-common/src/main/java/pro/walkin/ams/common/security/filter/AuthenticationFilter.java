@@ -1,4 +1,4 @@
-package pro.walkin.ams.security.filter;
+package pro.walkin.ams.common.security.filter;
 
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -10,8 +10,8 @@ import jakarta.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.common.Constants;
-import pro.walkin.ams.security.service.TokenService;
-import pro.walkin.ams.security.service.RbacService;
+import pro.walkin.ams.common.security.service.TokenService;
+import pro.walkin.ams.common.security.service.RbacService;
 import pro.walkin.ams.common.security.TenantContext;
 
 import java.io.IOException;

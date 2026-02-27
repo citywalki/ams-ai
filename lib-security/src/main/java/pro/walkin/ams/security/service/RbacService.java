@@ -19,7 +19,7 @@ import pro.walkin.ams.common.security.TenantContext;
 
 @ApplicationScoped
 @Transactional
-public class RbacService {
+public class RbacService implements pro.walkin.ams.common.security.service.RbacService {
     private static final Logger LOG = LoggerFactory.getLogger(RbacService.class);
     private static final String USER_PERMISSIONS_CACHE = "user-permissions";
 

@@ -1,4 +1,4 @@
-package pro.walkin.ams.security.filter;
+package pro.walkin.ams.common.security.filter;
 
 import jakarta.annotation.Priority;
 import jakarta.annotation.security.PermitAll;
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import pro.walkin.ams.common.security.annotation.RequirePermission;
 import pro.walkin.ams.common.security.annotation.RequirePermissions;
 import pro.walkin.ams.common.security.annotation.RequireRole;
-import pro.walkin.ams.security.service.RbacService;
+import pro.walkin.ams.common.security.service.RbacService;
 
 /**
  * 授权过滤器

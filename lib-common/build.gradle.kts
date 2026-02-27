@@ -16,6 +16,10 @@ dependencies {
     implementation(libs.quarkus.rest)
     implementation(libs.quarkus.rest.jackson)
 
+    // Security filters dependencies
+    implementation("io.quarkus:quarkus-hibernate-orm")
+    implementation(libs.quarkus.smallrye.jwt)
+
     // Jackson (JSON处理)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.datatype.jsr310)
