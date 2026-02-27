@@ -1,46 +1,46 @@
 ---
 name: frontend-development
-description: 前端开发规范 - 创建或修改 AMS-AI React 页面/组件时使用，包含表单开发、页面结构、i18n、API调用等完整规范
+description: Frontend development conventions - Use when creating or modifying AMS-AI React pages/components, including form development, page structure, i18n, and API integration
 ---
 
-# AMS-AI 前端开发规范
+# AMS-AI Frontend Development Conventions
 
-## 概述
+## Overview
 
-参考实现：`app-web/src/pages/admin/RoleManagementPage.tsx`
+Reference implementation: `app-web/src/pages/admin/RoleManagementPage.tsx`
 
-标准 CRUD 页面特性：
-- 搜索输入状态与查询状态分离
-- 服务端分页 (`page`, `size`, `x-total-count`)
-- Dialog 方式的创建/编辑，支持关联选择
+Standard CRUD page features:
+- Separate search input state from query state
+- Server-side pagination (`page`, `size`, `x-total-count`)
+- Dialog-based create/edit with relationship selection
 
-## 开发工作流
+## Development Workflow
 
 ```dot
 digraph frontend_dev {
     rankdir=TB;
-    "定义类型" [shape=box];
-    "添加 i18n" [shape=box];
-    "添加 API" [shape=box];
-    "构建页面" [shape=box];
-    "配置路由" [shape=box];
-    "浏览器验证" [shape=box];
+    "Define Types" [shape=box];
+    "Add i18n" [shape=box];
+    "Add API" [shape=box];
+    "Build Page" [shape=box];
+    "Configure Routes" [shape=box];
+    "Browser Verification" [shape=box];
 
-    "定义类型" -> "添加 i18n";
-    "添加 i18n" -> "添加 API";
-    "添加 API" -> "构建页面";
-    "构建页面" -> "配置路由";
-    "配置路由" -> "浏览器验证";
+    "Define Types" -> "Add i18n";
+    "Add i18n" -> "Add API";
+    "Add API" -> "Build Page";
+    "Build Page" -> "Configure Routes";
+    "Configure Routes" -> "Browser Verification";
 }
 ```
 
-## 国际化 (i18n)
+## Internationalization (i18n)
 
-**所有用户可见文本必须使用 i18n**
+**All user-visible text must use i18n**
 
-### 添加翻译 Key
+### Adding Translation Keys
 
-在两个语言文件中添加：
+Add keys to both language files:
 - `app-web/src/i18n/locales/zh-CN.json`
 - `app-web/src/i18n/locales/en-US.json`
 
@@ -48,69 +48,69 @@ digraph frontend_dev {
 {
   "pages": {
     "xManagement": {
-      "title": "X管理",
-      "searchPlaceholder": "搜索名称或编码...",
-      "addButton": "新增X",
+      "title": "X Management",
+      "searchPlaceholder": "Search by name or code...",
+      "addButton": "Add X",
       "columns": {
-        "code": "编码",
-        "name": "名称",
-        "description": "描述",
-        "actions": "操作"
+        "code": "Code",
+        "name": "Name",
+        "description": "Description",
+        "actions": "Actions"
       },
       "dialog": {
-        "createTitle": "新增X",
-        "editTitle": "编辑X"
+        "createTitle": "Create X",
+        "editTitle": "Edit X"
       },
       "form": {
-        "code": "编码",
-        "codePlaceholder": "请输入编码"
+        "code": "Code",
+        "codePlaceholder": "Please enter code"
       },
       "messages": {
-        "createSuccess": "创建成功",
-        "updateSuccess": "更新成功",
-        "deleteSuccess": "删除成功"
+        "createSuccess": "Created successfully",
+        "updateSuccess": "Updated successfully",
+        "deleteSuccess": "Deleted successfully"
       }
     }
   }
 }
 ```
 
-### 命名规范
+### Naming Conventions
 
 | Pattern | Example | Description |
 |---------|---------|-------------|
-| `pages.{pageName}.title` | `pages.roleManagement.title` | 页面标题 |
-| `pages.{pageName}.columns.{field}` | `pages.roleManagement.columns.name` | 表格列 |
-| `pages.{pageName}.form.{field}` | `pages.roleManagement.form.name` | 表单标签 |
-| `pages.{pageName}.dialog.{action}` | `pages.roleManagement.dialog.createTitle` | 弹窗标题 |
-| `pages.{pageName}.messages.{type}` | `pages.roleManagement.messages.createSuccess` | Toast 消息 |
+| `pages.{pageName}.title` | `pages.roleManagement.title` | Page title |
+| `pages.{pageName}.columns.{field}` | `pages.roleManagement.columns.name` | Table columns |
+| `pages.{pageName}.form.{field}` | `pages.roleManagement.form.name` | Form labels |
+| `pages.{pageName}.dialog.{action}` | `pages.roleManagement.dialog.createTitle` | Dialog titles |
+| `pages.{pageName}.messages.{type}` | `pages.roleManagement.messages.createSuccess` | Toast messages |
 
-### 使用方式
+### Usage
 
 ```tsx
 import { useTranslation } from 'react-i18next';
 
 const { t } = useTranslation();
 
-// 页面标题
+// Page title
 <CardTitle>{t('pages.xManagement.title')}</CardTitle>
 
-// 输入框占位符
+// Input placeholder
 <Input placeholder={t('pages.xManagement.searchPlaceholder')} />
 
-// Toast 消息
+// Toast message
 toast.success(t('pages.xManagement.messages.createSuccess'));
 ```
 
-### 预定义通用 Key
+### Predefined Common Keys
 
-使用 `common.*` 通用键：
+Use `common.*` keys for shared elements:
 - `common.loading`, `common.submit`, `common.cancel`, `common.confirm`
 - `common.save`, `common.delete`, `common.edit`, `common.add`, `common.search`
 
-## 类型定义
+## Type Definitions
 
-在 `app-web/src/utils/api.ts` 添加：
+Add in `app-web/src/utils/api.ts`:
 
 ```typescript
 export interface XQueryParams {
@@ -143,9 +143,9 @@ export interface PageResponse<T> {
 }
 ```
 
-## API 方法
+## API Methods
 
-在 `app-web/src/utils/api.ts` 添加：
+Add in `app-web/src/utils/api.ts`:
 
 ```typescript
 export const xApi = {
@@ -160,11 +160,11 @@ export const xApi = {
 };
 ```
 
-## 表单开发规范
+## Form Development Conventions
 
-### shadcn Form 组件
+### shadcn Form Components
 
-项目使用 shadcn 风格的 Form 组件，适配 TanStack Form：
+The project uses shadcn-style Form components adapted for TanStack Form:
 
 ```tsx
 import {
@@ -176,7 +176,7 @@ import {
 } from '@/components/ui/form';
 ```
 
-### 基本用法
+### Basic Usage
 
 ```tsx
 <form.Field name="fieldName">
@@ -198,13 +198,13 @@ import {
 </form.Field>
 ```
 
-### 必填项标记规则
+### Required Field Markers
 
-- **必填项**：设置 `<FormLabel required>` 自动显示红色星号 `*`
-- 必填项的 Input 也需要设置 `required` 属性
+- **Required fields**: Set `<FormLabel required>` to automatically show red asterisk `*`
+- Required field inputs should also have the `required` attribute
 
 ```tsx
-// ✅ 正确
+// ✅ Correct
 <FormItem>
   <FormLabel required>{t('pages.xxx.form.username')}</FormLabel>
   <FormControl>
@@ -212,16 +212,16 @@ import {
   </FormControl>
 </FormItem>
 
-// ❌ 错误 - 不要手动添加星号
+// ❌ Wrong - Do not manually add asterisk
 <FormItem>
-  <FormLabel>用户名*</FormLabel>
+  <FormLabel>Username*</FormLabel>
   <FormControl>
     <Input required />
   </FormControl>
 </FormItem>
 ```
 
-### 内联控件（Switch/Checkbox）
+### Inline Controls (Switch/Checkbox)
 
 ```tsx
 <FormItem className="flex items-center gap-2 space-y-0">
@@ -232,45 +232,45 @@ import {
 </FormItem>
 ```
 
-### 支持的输入控件
+### Supported Input Controls
 
-FormControl 支持所有标准输入控件：
-- `Input` - 文本输入
-- `Textarea` - 多行文本
-- `Select` - 下拉选择
-- `Switch` - 开关
-- `Checkbox` - 复选框
-- 自定义组件
+FormControl supports all standard input controls:
+- `Input` - Text input
+- `Textarea` - Multi-line text
+- `Select` - Dropdown selection
+- `Switch` - Toggle switch
+- `Checkbox` - Checkbox
+- Custom components
 
-## 页面组件构建
+## Page Component Construction
 
-### 1) 状态模式
+### 1) State Patterns
 
 ```typescript
 const [items, setItems] = useState<XItem[]>([]);
 const [loading, setLoading] = useState(false);
 const [error, setError] = useState<string | null>(null);
 
-// 搜索：输入状态与查询状态分离
+// Search: Separate input state from query state
 const [searchKeyword, setSearchKeyword] = useState('');
 const [queryKeyword, setQueryKeyword] = useState('');
 
-// 分页：UI 使用 1-based
+// Pagination: UI uses 1-based
 const [currentPage, setCurrentPage] = useState(1);
 const [pageSize, setPageSize] = useState(20);
 const [total, setTotal] = useState(0);
 
-// 弹窗
+// Dialog
 const [dialogOpen, setDialogOpen] = useState(false);
 const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
 const [editingItem, setEditingItem] = useState<XItem | null>(null);
 
-// 删除确认
+// Delete confirmation
 const [deleteOpen, setDeleteOpen] = useState(false);
 const [deleteItem, setDeleteItem] = useState<XItem | null>(null);
 ```
 
-### 2) 加载模式（分页）
+### 2) Loading Pattern (Pagination)
 
 ```typescript
 const loadItems = useCallback(async (
@@ -282,7 +282,7 @@ const loadItems = useCallback(async (
   setError(null);
   try {
     const params: { page: number; size: number; keyword?: string } = {
-      page: Math.max(targetPage - 1, 0),  // 转换为 zero-based
+      page: Math.max(targetPage - 1, 0),  // Convert to zero-based
       size: targetPageSize,
     };
     if (targetKeyword) params.keyword = targetKeyword;
@@ -290,7 +290,7 @@ const loadItems = useCallback(async (
     const res = await xApi.getList(params);
     const list = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
 
-    // 优先从 header 读取总数
+    // Prefer reading total from header
     const totalHeader =
       (res.headers?.['x-total-count'] as string | number | undefined)
       ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
@@ -316,7 +316,7 @@ const loadItems = useCallback(async (
 }, [currentPage, pageSize, queryKeyword]);
 ```
 
-### 3) 搜索和重置
+### 3) Search and Reset
 
 ```typescript
 const handleSearch = () => {
@@ -332,9 +332,9 @@ const handleReset = () => {
 };
 ```
 
-### 4) 关联选择（权限/标签）
+### 4) Relationship Selection (Permissions/Tags)
 
-对于角色类页面，使用 ID 列表管理选中状态：
+For role-like pages, use ID arrays to manage selection state:
 
 ```typescript
 const toggleRelated = (id: Id) => {
@@ -347,17 +347,17 @@ const toggleRelated = (id: Id) => {
 };
 ```
 
-## UI 结构标准
+## UI Structure Standard
 
-1. 搜索卡片
-2. 列表卡片（标题 + 新增按钮 + 表格）
-3. 创建/编辑弹窗
-4. 删除确认弹窗
-5. 分页区域（列表底部）
+1. Search card
+2. List card (title + add button + table)
+3. Create/edit dialog
+4. Delete confirmation dialog
+5. Pagination area (below list)
 
-## 路由配置
+## Route Configuration
 
-在 `app-web/src/Router.tsx` 添加：
+Add in `app-web/src/Router.tsx`:
 
 ```typescript
 import XManagementPage from '@/pages/module/XManagementPage';
@@ -365,30 +365,30 @@ import XManagementPage from '@/pages/module/XManagementPage';
 <Route path="module/x" element={<XManagementPage />} />
 ```
 
-## 样式规范
+## Style Conventions
 
-- 使用 Tailwind CSS 4
-- 表单容器间距：`space-y-4`
-- 两列布局：`grid grid-cols-2 gap-4`
-- 必填星号颜色：`text-destructive`
+- Use Tailwind CSS 4
+- Form container spacing: `space-y-4`
+- Two-column layout: `grid grid-cols-2 gap-4`
+- Required asterisk color: `text-destructive`
 
-## 常见错误
+## Common Mistakes
 
-| 错误 | 修正 |
-|------|------|
-| 组件内硬编码中文 | 所有用户文本使用 `t('pages.xxx.key')` |
-| 只在一个语言文件添加 key | 必须同时添加到 `zh-CN.json` 和 `en-US.json` |
-| 加载时直接使用 `searchKeyword` | 保持 `queryKeyword` 与输入状态分离 |
-| 发送 1-based `page` 给后端 | 使用 `Math.max(currentPage - 1, 0)` 转换 |
-| 忽略 `x-total-count` | 优先读取响应头，然后回退到 body |
-| JS 长整型精度问题 | ID 字段使用 `string` 或 `number \| string` |
-| 删除后重载未处理空页 | 当前页变空时，回退一页 |
+| Mistake | Correction |
+|---------|------------|
+| Hardcoded text in components | Use `t('pages.xxx.key')` for all user text |
+| Adding key to only one language file | Must add to both `zh-CN.json` and `en-US.json` |
+| Using `searchKeyword` directly when loading | Keep `queryKeyword` separate from input state |
+| Sending 1-based `page` to backend | Use `Math.max(currentPage - 1, 0)` to convert |
+| Ignoring `x-total-count` | Prefer response header, then fallback to body |
+| JS long integer precision issues | Use `string` or `number \| string` for ID fields |
+| Not handling empty page after delete | Go back one page when current page becomes empty |
 
-## 验证
+## Verification
 
 ```bash
 cd app-web && pnpm lint
 cd app-web && pnpm build
 ```
 
-完成后使用 `frontend-ui-verification` skill 进行浏览器验证。
+After completion, use the `frontend-ui-verification` skill for browser verification.
