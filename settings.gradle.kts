@@ -22,7 +22,6 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(
     "lib-common",
     "lib-persistence",
-    "lib-security",
     "lib-cluster",
 
     "feature-core",

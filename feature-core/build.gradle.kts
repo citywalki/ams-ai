@@ -7,7 +7,6 @@ plugins {
 dependencies {
     implementation(project(":lib-common"))
     implementation(project(":lib-persistence"))
-    implementation(project(":lib-security"))
     implementation(project(":lib-cluster"))
 
     implementation(enforcedPlatform(libs.quarkus.bom))
