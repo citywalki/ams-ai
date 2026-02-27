@@ -16,8 +16,8 @@ import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.*;
 import pro.walkin.ams.persistence.entity.system.Permission;
 import pro.walkin.ams.persistence.entity.system.Role;
-import pro.walkin.ams.security.TenantContext;
-import pro.walkin.ams.security.annotation.RequireRole;
+import pro.walkin.ams.common.security.TenantContext;
+import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.security.service.RbacService;
 import pro.walkin.ams.security.util.SecurityUtils;
 

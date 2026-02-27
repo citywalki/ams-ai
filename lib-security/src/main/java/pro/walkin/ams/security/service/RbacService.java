@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import pro.walkin.ams.persistence.entity.system.RolePermission;
 import pro.walkin.ams.persistence.entity.system.User;
 import pro.walkin.ams.persistence.entity.system.UserRole;
-import pro.walkin.ams.security.TenantContext;
+import pro.walkin.ams.common.security.TenantContext;
 
 @ApplicationScoped
 @Transactional

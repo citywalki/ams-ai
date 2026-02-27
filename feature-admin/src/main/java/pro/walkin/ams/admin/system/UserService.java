@@ -15,7 +15,7 @@ import pro.walkin.ams.common.exception.NotFoundException;
 import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.User;
 import pro.walkin.ams.security.PasswordService;
-import pro.walkin.ams.security.TenantContext;
+import pro.walkin.ams.common.security.TenantContext;
 
 @ApplicationScoped
 public class UserService {

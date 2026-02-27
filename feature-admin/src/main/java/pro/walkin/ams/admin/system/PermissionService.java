@@ -6,7 +6,7 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import pro.walkin.ams.persistence.entity.system.Permission;
-import pro.walkin.ams.security.TenantContext;
+import pro.walkin.ams.common.security.TenantContext;
 
 @ApplicationScoped
 public class PermissionService {

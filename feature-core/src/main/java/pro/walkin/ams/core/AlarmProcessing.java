@@ -21,7 +21,7 @@ import pro.walkin.ams.core.processor.AlarmProcessor;
 import pro.walkin.ams.persistence.entity.running.Alarm;
 import pro.walkin.ams.persistence.entity.system.Tenant;
 import pro.walkin.ams.persistence.entity.system.Tenant_;
-import pro.walkin.ams.security.TenantContext;
+import pro.walkin.ams.common.security.TenantContext;
 
 /**
  * 告警处理流水线

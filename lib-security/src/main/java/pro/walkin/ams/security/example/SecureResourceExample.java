@@ -5,8 +5,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
-import pro.walkin.ams.security.annotation.RequirePermission;
-import pro.walkin.ams.security.annotation.RequirePermissions;
+import pro.walkin.ams.common.security.annotation.RequirePermission;
+import pro.walkin.ams.common.security.annotation.RequirePermissions;
 import pro.walkin.ams.security.service.RbacService;
 
 /**

@@ -13,7 +13,7 @@ import pro.walkin.ams.persistence.entity.system.Menu_;
 import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.Permission;
 import pro.walkin.ams.persistence.entity.system.User;
-import pro.walkin.ams.security.TenantContext;
+import pro.walkin.ams.common.security.TenantContext;
 
 @ApplicationScoped
 public class RoleService {

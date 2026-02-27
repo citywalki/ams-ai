@@ -8,7 +8,7 @@ import java.util.List;
 import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.DictCategoryResponse;
 import pro.walkin.ams.common.dto.DictItemResponse;
-import pro.walkin.ams.security.TenantContext;
+import pro.walkin.ams.common.security.TenantContext;
 
 @Path("/api/dict")
 @Produces(MediaType.APPLICATION_JSON)

@@ -10,8 +10,8 @@ import pro.walkin.ams.common.dto.DictCategoryDto;
 import pro.walkin.ams.common.dto.DictCategoryResponse;
 import pro.walkin.ams.common.dto.DictItemDto;
 import pro.walkin.ams.common.dto.DictItemResponse;
-import pro.walkin.ams.security.TenantContext;
-import pro.walkin.ams.security.annotation.RequireRole;
+import pro.walkin.ams.common.security.TenantContext;
+import pro.walkin.ams.common.security.annotation.RequireRole;
 
 @Path("/api/system/dict/categories")
 @Produces(MediaType.APPLICATION_JSON)

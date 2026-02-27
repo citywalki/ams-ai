@@ -15,9 +15,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pro.walkin.ams.security.annotation.RequirePermission;
-import pro.walkin.ams.security.annotation.RequirePermissions;
-import pro.walkin.ams.security.annotation.RequireRole;
+import pro.walkin.ams.common.security.annotation.RequirePermission;
+import pro.walkin.ams.common.security.annotation.RequirePermissions;
+import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.security.service.RbacService;
 
 /**

@@ -13,7 +13,7 @@ import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.UserDto;
 import pro.walkin.ams.common.dto.UserResponseDto;
 import pro.walkin.ams.common.dto.UserUpdateDto;
-import pro.walkin.ams.security.annotation.RequireRole;
+import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.security.util.SecurityUtils;
 
 @Path("/api/system/users")

@@ -10,8 +10,8 @@ import java.util.List;
 import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.MenuDto;
 import pro.walkin.ams.common.dto.MenuResponseDto;
-import pro.walkin.ams.security.TenantContext;
-import pro.walkin.ams.security.annotation.RequireRole;
+import pro.walkin.ams.common.security.TenantContext;
+import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.security.service.MenuService;
 import pro.walkin.ams.security.util.SecurityUtils;
 

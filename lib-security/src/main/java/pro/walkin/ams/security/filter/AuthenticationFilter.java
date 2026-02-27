@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import pro.walkin.ams.common.Constants;
 import pro.walkin.ams.security.service.TokenService;
 import pro.walkin.ams.security.service.RbacService;
-import pro.walkin.ams.security.TenantContext;
+import pro.walkin.ams.common.security.TenantContext;
 
 import java.io.IOException;
 

@@ -6,8 +6,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.DictItemDto;
-import pro.walkin.ams.security.TenantContext;
-import pro.walkin.ams.security.annotation.RequireRole;
+import pro.walkin.ams.common.security.TenantContext;
+import pro.walkin.ams.common.security.annotation.RequireRole;
 
 @Path("/api/system/dict")
 @Produces(MediaType.APPLICATION_JSON)

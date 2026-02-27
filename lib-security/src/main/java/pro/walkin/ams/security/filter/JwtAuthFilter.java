@@ -11,7 +11,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.ext.Provider;
 import org.jboss.logging.Logger;
-import pro.walkin.ams.security.TenantContext;
+import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.security.service.TokenService;
 
 @Provider
