@@ -1,4 +1,4 @@
-package pro.walkin.ams.security.annotation;
+package pro.walkin.ams.common.security.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
