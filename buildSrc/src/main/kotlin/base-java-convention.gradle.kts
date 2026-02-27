@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    id("google-java-format-convention")
 }
 
 group = "pro.walkin.ams"

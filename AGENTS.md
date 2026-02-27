@@ -88,6 +88,12 @@ cd app-web && pnpm install  # 安装依赖
 ./gradlew check                        # 运行所有检查任务
 ```
 
+### 代码格式化命令
+```bash
+./gradlew spotlessApply                 # 格式化所有Java文件
+./gradlew spotlessCheck                 # 验证代码格式（CI用）
+```
+
 ## CODE STYLE GUIDELINES
 
 ### 文件组织
