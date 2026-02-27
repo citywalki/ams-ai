@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
-import {FolderOpen, Lock, Pencil, Plus, Search, Trash2} from 'lucide-react';
+import {ChevronDown, ChevronRight, FolderOpen, Lock, Pencil, Plus, Search, Trash2} from 'lucide-react';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -37,6 +37,7 @@ export default function MenuManagementPage() {
   const [loading, setLoading] = useState(false);
   const [menusLoading, setMenusLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   // Menu form hook
   const menuForm = useMenuForm({
@@ -77,6 +78,8 @@ export default function MenuManagementPage() {
     try {
       const data = await fetchFolders(queryClient);
       setFolders(data);
+      const folderIds = data.filter(item => item.menuType === 'FOLDER').map(item => item.id);
+      setExpandedFolders(new Set(folderIds));
     } catch (err) {
       setError(err instanceof Error ? err.message : t('pages.menuManagement.messages.loadFoldersFailed'));
     } finally {
@@ -96,6 +99,118 @@ export default function MenuManagementPage() {
       setMenusLoading(false);
     }
   }, [queryClient]);
+
+  const buildMenuTree = useCallback((menuItems: MenuItem[]): MenuItem[] => {
+    const map = new Map<string, MenuItem>();
+    menuItems.forEach(item => {
+      map.set(item.id, { ...item, children: [] });
+    });
+
+    const rootItems: MenuItem[] = [];
+    menuItems.forEach(item => {
+      const node = map.get(item.id)!;
+      if (item.parentId && map.has(item.parentId)) {
+        const parent = map.get(item.parentId)!;
+        if (!parent.children) parent.children = [];
+        parent.children.push(node);
+      } else {
+        rootItems.push(node);
+      }
+    });
+
+    return rootItems;
+  }, []);
+
+  const toggleFolder = (folderId: string) => {
+    setExpandedFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  };
+
+  const renderTreeItem = (item: MenuItem, level: number = 0) => {
+    const isFolder = item.menuType === 'FOLDER';
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedFolders.has(item.id);
+    const isSelected = typeof selectedFolder !== 'string' && selectedFolder?.id === item.id;
+
+    const handleClick = () => {
+      if (isFolder && hasChildren) {
+        toggleFolder(item.id);
+      }
+      selectFolder(item);
+    };
+
+    return (
+      <div key={item.id}>
+        <div
+          className={`flex items-center justify-between p-2 rounded-md cursor-pointer group ${
+            isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+          }`}
+          style={{ paddingLeft: `${12 + level * 16}px` }}
+          onClick={handleClick}
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {isFolder && hasChildren ? (
+              <ChevronRight
+                className={`h-3 w-3 flex-shrink-0 transition-transform ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFolder(item.id);
+                }}
+              />
+            ) : (
+              <div className="w-3 h-3 flex-shrink-0" />
+            )}
+            <FolderOpen className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate text-sm">{item.label}</span>
+            {isFolder && (
+              <Badge variant="secondary" className="text-xs">
+                {getMenuCountBadge(item)}
+              </Badge>
+            )}
+          </div>
+          <div className="hidden group-hover:flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                menuForm.openEditDialog(item);
+              }}
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteMenu(item);
+                setDeleteMenuOpen(true);
+              }}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+        {isFolder && isExpanded && hasChildren && (
+          <div className="space-y-1">
+            {item.children!.map(child => renderTreeItem(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   useEffect(() => {
     void loadFolders();
@@ -215,57 +330,16 @@ export default function MenuManagementPage() {
                     <span className="truncate text-sm">{t('pages.menuManagement.rootMenu')}</span>
                   </div>
                 </div>
-                {folders
-                  .filter((f) =>
+                {(() => {
+                  const filteredFolders = folders.filter((f) =>
                     folderSearch
                       ? f.label.toLowerCase().includes(folderSearch.toLowerCase()) ||
                         f.key.toLowerCase().includes(folderSearch.toLowerCase())
                       : true
-                  )
-                  .map((folder) => (
-                    <div
-                      key={folder.id}
-                      className={`flex items-center justify-between p-2 rounded-md cursor-pointer group ${
-                        typeof selectedFolder !== 'string' && selectedFolder?.id === folder.id
-                          ? 'bg-primary/10 text-primary'
-                          : 'hover:bg-muted'
-                      }`}
-                      onClick={() => selectFolder(folder)}
-                    >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <FolderOpen className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate text-sm">{folder.label}</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {getMenuCountBadge(folder)}
-                        </Badge>
-                      </div>
-                      <div className="hidden group-hover:flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            menuForm.openEditDialog(folder);
-                          }}
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteMenu(folder);
-                            setDeleteMenuOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                  );
+                  const treeData = buildMenuTree(filteredFolders);
+                  return treeData.map(folder => renderTreeItem(folder, 0));
+                })()}
                 {folders.filter((f) =>
                   folderSearch
                     ? f.label.toLowerCase().includes(folderSearch.toLowerCase()) ||
@@ -325,7 +399,7 @@ export default function MenuManagementPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {menus.map((menu) => (
+                    {menus.filter(menu => menu.menuType !== 'FOLDER').map((menu) => (
                       <TableRow key={menu.id}>
                         <TableCell className="font-mono text-sm">{menu.key}</TableCell>
                         <TableCell>{menu.label}</TableCell>
