@@ -420,17 +420,17 @@ export default function MenuManagementPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              title={t('pages.menuManagement.actions.managePermissions')}
-                              onClick={() => openPermissionDialog(menu)}
+                              onClick={() => menuForm.openEditDialog(menu)}
                             >
-                              <Lock className="h-4 w-4" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => menuForm.openEditDialog(menu)}
+                              title={t('pages.menuManagement.actions.managePermissions')}
+                              onClick={() => openPermissionDialog(menu)}
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Lock className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -462,6 +462,7 @@ export default function MenuManagementPage() {
         form={menuForm.form}
         error={menuForm.formError}
         onClose={menuForm.closeDialog}
+        editingMenu={menuForm.editingMenu}
       />
 
       {/* Permission List Dialog */}

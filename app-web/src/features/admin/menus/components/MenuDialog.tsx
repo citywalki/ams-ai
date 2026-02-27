@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FormItem,
@@ -23,8 +24,10 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
+import { IconPicker } from '@/components/ui/icon-picker';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type MenuFormData } from '../schemas/menu-schema';
+import { type MenuItem } from '@/utils/api';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MenuFormApi = ReactFormExtendedApi<MenuFormData, any, any, any, any, any, any, any, any, any, any, any>;
@@ -36,6 +39,7 @@ interface MenuDialogProps {
   form: MenuFormApi;
   error: string | null;
   onClose: () => void;
+  editingMenu?: MenuItem | null;
 }
 
 export function MenuDialog({
@@ -45,8 +49,22 @@ export function MenuDialog({
   form,
   error,
   onClose,
+  editingMenu,
 }: MenuDialogProps) {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (open && editingMenu) {
+      form.setFieldValue('key', editingMenu.key);
+      form.setFieldValue('label', editingMenu.label);
+      form.setFieldValue('route', editingMenu.route || '');
+      form.setFieldValue('icon', editingMenu.icon || '');
+      form.setFieldValue('sortOrder', editingMenu.sortOrder);
+      form.setFieldValue('isVisible', editingMenu.isVisible);
+      form.setFieldValue('menuType', editingMenu.menuType);
+      form.setFieldValue('rolesAllowed', (editingMenu.rolesAllowed || []).join(','));
+    }
+  }, [open, editingMenu, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -117,16 +135,11 @@ export function MenuDialog({
             </form.Field>
             <form.Field name="icon">
               {(field) => (
-                <FormItem>
-                  <FormLabel>{t('pages.menuManagement.form.icon')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                  </FormControl>
-                </FormItem>
+                <IconPicker
+                  value={field.state.value as string}
+                  onChange={(value) => field.handleChange(value)}
+                  label={t('pages.menuManagement.form.icon')}
+                />
               )}
             </form.Field>
             <form.Field name="rolesAllowed">

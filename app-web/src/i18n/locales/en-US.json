@@ -11,7 +11,10 @@
     "search": "Search",
     "more": "More",
     "reset": "Reset",
-    "actions": "Actions"
+    "actions": "Actions",
+    "selectIcon": "Select icon",
+    "searchIcon": "Search icons...",
+    "noIconsFound": "No icons found"
   },
   "table": {
     "pageSize": "Show",
@@ -66,7 +69,8 @@
       "description": "Manage system roles and permission settings",
       "listTitle": "Role List",
       "actions": {
-        "associateMenus": "Associate Menus"
+        "associateMenus": "Associate Menus",
+        "associateUsers": "User Assignment"
       },
       "columns": {
         "code": "Code",
@@ -84,7 +88,11 @@
         "namePlaceholder": "e.g. Administrator",
         "description": "Description",
         "descriptionPlaceholder": "Role description (optional)",
-        "permissions": "Permissions"
+        "permissions": "Permissions",
+        "userAssignment": "User Assignment",
+        "searchUsers": "Search users...",
+        "assignedUsers": "Assigned Users",
+        "availableUsers": "Available Users"
       },
       "dialog": {
         "createTitle": "Add Role",
@@ -94,7 +102,8 @@
         "deleteTitle": "Confirm Deletion",
         "deleteDescription": "Are you sure you want to delete role {{name}}? This action cannot be undone.",
         "menuTitle": "Associate Menus - {{name}}",
-        "menuDescription": "Select menus accessible to role \"{{code}}\""
+        "menuDescription": "Select menus accessible to role \"{{code}}\"",
+        "userAssignmentDescription": "Assign or unassign users to the role"
       },
       "messages": {
         "operationFailed": "Operation failed",
@@ -104,6 +113,9 @@
         "saveFailed": "Save failed",
         "noPermissions": "No permissions available",
         "noMenus": "No menus available",
+        "noUsers": "No users available",
+        "assignUserFailed": "Failed to assign user",
+        "removeUserFailed": "Failed to remove user",
         "submitting": "Submitting...",
         "deleting": "Deleting...",
         "saving": "Saving..."
