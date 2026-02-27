@@ -166,6 +166,29 @@ public class Alarm extends BaseEntity {
 - **测试驱动**: 新功能必须包含相应测试
 - **文档更新**: 修改代码时同步更新相关文档
 
+## SKILLS 规范
+
+### 目录结构
+- **存放位置**: 所有 skills 存放在 `.agents/skills/` 目录下，每个 skill 有独立的子文件夹
+- **链接方式**: 通过符号链接（symlink）将 skills 链接到 `.claude/skills/` 目录
+- **文件命名**: 每个 skill 文件夹包含 `SKILL.md` 文件
+
+```
+.agents/skills/
+├── frontend-development/SKILL.md
+├── frontend-ui-verification/SKILL.md
+├── vercel-react-best-practices/SKILL.md
+└── ...
+
+.claude/skills/  (符号链接)
+├── frontend-development -> ../../.agents/skills/frontend-development
+├── frontend-ui-verification -> ../../.agents/skills/frontend-ui-verification
+└── ...
+```
+
+### 编写规范
+- **语言**: Skills 内容使用英文编写，确保通用性和可维护性
+
 ---
 *最后更新: 2026年2月24日
 
