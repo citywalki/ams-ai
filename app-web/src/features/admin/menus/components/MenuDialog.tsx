@@ -92,7 +92,7 @@ export function MenuDialog({
             <form.Field name="key">
               {(field) => (
                 <FormItem>
-                  <FormLabel required>Key</FormLabel>
+                  <FormLabel required>{t('pages.menuManagement.form.key')}</FormLabel>
                   <FormControl>
                     <Input
                       value={field.state.value as string}
@@ -151,7 +151,7 @@ export function MenuDialog({
                       value={field.state.value as string}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
-                      placeholder="ROLE_ADMIN,ROLE_USER"
+                      placeholder={t('pages.menuManagement.form.rolesAllowedPlaceholder')}
                     />
                   </FormControl>
                 </FormItem>

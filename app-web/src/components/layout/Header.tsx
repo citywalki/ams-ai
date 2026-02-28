@@ -38,7 +38,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           </div>
           <div className="hidden sm:block">
             <div className="font-semibold text-slate-800">AMS</div>
-            <div className="text-xs text-slate-400 -mt-0.5">告警管理系统</div>
+            <div className="text-xs text-slate-400 -mt-0.5">{t('layout.systemName')}</div>
           </div>
         </div>
       </div>

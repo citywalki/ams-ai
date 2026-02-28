@@ -1,6 +1,8 @@
 {
   "common": {
     "loading": "加载中...",
+    "zh": "中文",
+    "en": "EN",
     "submit": "提交",
     "cancel": "取消",
     "confirm": "确认",
@@ -55,6 +57,7 @@
     "loadFailed": "加载告警数据失败"
   },
   "layout": {
+    "systemName": "告警管理系统",
     "notifications": "通知",
     "profile": "个人中心",
     "logout": "退出登录",
@@ -67,6 +70,11 @@
     "createdAt": "创建时间"
   },
   "pages": {
+    "featureHost": {
+      "title": "功能页面",
+      "currentRoute": "当前路由：",
+      "description": "该页面已纳入 MainLayout 壳层，可按需接入实际功能组件。"
+    },
     "roleManagement": {
       "title": "角色管理",
       "description": "管理系统角色和权限配置",
@@ -76,6 +84,7 @@
         "associateUsers": "用户分配"
       },
       "columns": {
+        "key": "Key",
         "code": "编码",
         "name": "名称",
         "description": "描述",
@@ -176,20 +185,24 @@
         "close": "关闭"
       },
       "columns": {
+        "key": "Key",
         "code": "编码",
         "name": "名称",
         "description": "描述",
         "route": "路由",
         "sortOrder": "排序",
         "visible": "可见",
-        "buttonType": "按钮类型"
+        "buttonType": "按钮类型",
+        "buttonTypePlaceholder": "如：primary, danger..."
       },
       "form": {
         "searchFolderPlaceholder": "搜索分类...",
+        "key": "Key",
         "name": "名称",
         "route": "路由",
         "icon": "图标",
         "rolesAllowed": "允许角色（逗号分隔）",
+        "rolesAllowedPlaceholder": "如：ROLE_ADMIN,ROLE_USER",
         "sortOrder": "排序",
         "type": "类型",
         "folderType": "目录",
@@ -231,6 +244,7 @@
         "inactive": "禁用"
       },
       "columns": {
+        "key": "Key",
         "code": "编码",
         "name": "名称",
         "description": "描述",

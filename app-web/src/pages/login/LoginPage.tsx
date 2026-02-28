@@ -143,10 +143,10 @@ export default function LoginPage() {
                       size="xs"
                     >
                       <ToggleGroupItem value="zh-CN">
-                        中文
+                        {t('common.zh')}
                       </ToggleGroupItem>
                       <ToggleGroupItem value="en-US">
-                        EN
+                        {t('common.en')}
                       </ToggleGroupItem>
                     </ToggleGroup>
                   </div>

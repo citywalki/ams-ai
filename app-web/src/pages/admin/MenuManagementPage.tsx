@@ -403,7 +403,7 @@ export default function MenuManagementPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Key</TableHead>
+                    <TableHead>{t('pages.menuManagement.columns.key')}</TableHead>
                     <TableHead>{t('pages.menuManagement.columns.name')}</TableHead>
                     <TableHead>{t('pages.menuManagement.columns.route')}</TableHead>
                     <TableHead>{t('pages.menuManagement.columns.sortOrder')}</TableHead>

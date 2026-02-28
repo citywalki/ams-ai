@@ -1,6 +1,8 @@
 {
   "common": {
     "loading": "Loading...",
+    "zh": "中文",
+    "en": "EN",
     "submit": "Submit",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -55,6 +57,7 @@
     "loadFailed": "Failed to load alarm data"
   },
   "layout": {
+    "systemName": "Alarm Management System",
     "notifications": "Notifications",
     "profile": "Profile",
     "logout": "Logout",
@@ -67,6 +70,11 @@
     "createdAt": "Created At"
   },
   "pages": {
+    "featureHost": {
+      "title": "Feature Page",
+      "currentRoute": "Current route: ",
+      "description": "This page has been integrated into the MainLayout shell. You can connect actual feature components as needed."
+    },
     "roleManagement": {
       "title": "Role Management",
       "description": "Manage system roles and permission settings",
@@ -76,6 +84,7 @@
         "associateUsers": "User Assignment"
       },
       "columns": {
+        "key": "Key",
         "code": "Code",
         "name": "Name",
         "description": "Description",
@@ -177,20 +186,24 @@
         "close": "Close"
       },
       "columns": {
+        "key": "Key",
         "code": "Code",
         "name": "Name",
         "description": "Description",
         "route": "Route",
         "sortOrder": "Sort Order",
         "visible": "Visible",
-        "buttonType": "Button Type"
+        "buttonType": "Button Type",
+        "buttonTypePlaceholder": "e.g. primary, danger..."
       },
       "form": {
         "searchFolderPlaceholder": "Search folders...",
+        "key": "Key",
         "name": "Name",
         "route": "Route",
         "icon": "Icon",
         "rolesAllowed": "Allowed Roles (comma-separated)",
+        "rolesAllowedPlaceholder": "e.g. ROLE_ADMIN,ROLE_USER",
         "sortOrder": "Sort Order",
         "type": "Type",
         "folderType": "Folder",
@@ -232,6 +245,7 @@
         "inactive": "Inactive"
       },
       "columns": {
+        "key": "Key",
         "code": "Code",
         "name": "Name",
         "description": "Description",

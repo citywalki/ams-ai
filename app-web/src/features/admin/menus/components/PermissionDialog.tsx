@@ -131,7 +131,7 @@ export function PermissionDialog({
                         value={field.state.value as string}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
-                        placeholder="primary, danger..."
+                        placeholder={t('pages.menuManagement.form.buttonTypePlaceholder')}
                       />
                     </FormControl>
                   </FormItem>
