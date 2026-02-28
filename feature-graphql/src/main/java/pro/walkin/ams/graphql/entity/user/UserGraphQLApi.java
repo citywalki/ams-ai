@@ -9,12 +9,18 @@ import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 import org.hibernate.Session;
 import pro.walkin.ams.graphql.connection.OrderByInput;
 import pro.walkin.ams.graphql.connection.UserConnection;
+import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.User;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @GraphQLApi
 public class UserGraphQLApi {
@@ -40,5 +46,37 @@ public class UserGraphQLApi {
     long total = session.createQuery(countQuery).getSingleResult();
 
     return new UserConnection(users, total, page, size);
+  }
+
+  @Transactional
+  public List<Set<Role>> roles(@Source List<User> users) {
+    if (users.isEmpty()) {
+      return List.of();
+    }
+
+    List<Long> userIds = users.stream().map(u -> u.id).toList();
+    Map<Long, Set<Role>> rolesByUser = loadRolesByUserIds(userIds);
+
+    return users.stream().map(u -> rolesByUser.getOrDefault(u.id, Set.of())).toList();
+  }
+
+  private Map<Long, Set<Role>> loadRolesByUserIds(List<Long> userIds) {
+    String jpql = "SELECT u.id, r FROM User u JOIN u.roles r WHERE u.id IN :userIds";
+
+    List<Object[]> results =
+        session.createQuery(jpql, Object[].class).setParameter("userIds", userIds).getResultList();
+
+    Map<Long, Set<Role>> map = new HashMap<>();
+    for (Object[] row : results) {
+      Long userId = (Long) row[0];
+      Role role = (Role) row[1];
+      map.computeIfAbsent(userId, k -> new HashSet<>()).add(role);
+    }
+
+    for (Long userId : userIds) {
+      map.putIfAbsent(userId, Set.of());
+    }
+
+    return map;
   }
 }

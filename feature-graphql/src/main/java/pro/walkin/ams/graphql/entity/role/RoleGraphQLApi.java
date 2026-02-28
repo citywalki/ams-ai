@@ -9,12 +9,18 @@ import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 import org.hibernate.Session;
 import pro.walkin.ams.graphql.connection.OrderByInput;
 import pro.walkin.ams.graphql.connection.RoleConnection;
+import pro.walkin.ams.persistence.entity.system.Permission;
 import pro.walkin.ams.persistence.entity.system.Role;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @GraphQLApi
 public class RoleGraphQLApi {
@@ -40,5 +46,37 @@ public class RoleGraphQLApi {
     long total = session.createQuery(countQuery).getSingleResult();
 
     return new RoleConnection(roles, total, page, size);
+  }
+
+  @Transactional
+  public List<Set<Permission>> permissions(@Source List<Role> roles) {
+    if (roles.isEmpty()) {
+      return List.of();
+    }
+
+    List<Long> roleIds = roles.stream().map(r -> r.id).toList();
+    Map<Long, Set<Permission>> permsByRole = loadPermissionsByRoleIds(roleIds);
+
+    return roles.stream().map(r -> permsByRole.getOrDefault(r.id, Set.of())).toList();
+  }
+
+  private Map<Long, Set<Permission>> loadPermissionsByRoleIds(List<Long> roleIds) {
+    String jpql = "SELECT r.id, p FROM Role r JOIN r.permissions p WHERE r.id IN :roleIds";
+
+    List<Object[]> results =
+        session.createQuery(jpql, Object[].class).setParameter("roleIds", roleIds).getResultList();
+
+    Map<Long, Set<Permission>> map = new HashMap<>();
+    for (Object[] row : results) {
+      Long roleId = (Long) row[0];
+      Permission perm = (Permission) row[1];
+      map.computeIfAbsent(roleId, k -> new HashSet<>()).add(perm);
+    }
+
+    for (Long roleId : roleIds) {
+      map.putIfAbsent(roleId, Set.of());
+    }
+
+    return map;
   }
 }

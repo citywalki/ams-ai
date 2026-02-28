@@ -9,12 +9,16 @@ import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 import org.hibernate.Session;
 import pro.walkin.ams.graphql.connection.OrderByInput;
 import pro.walkin.ams.graphql.connection.PermissionConnection;
+import pro.walkin.ams.persistence.entity.system.Menu;
 import pro.walkin.ams.persistence.entity.system.Permission;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @GraphQLApi
 public class PermissionGraphQLApi {
@@ -41,5 +45,43 @@ public class PermissionGraphQLApi {
     long total = session.createQuery(countQuery).getSingleResult();
 
     return new PermissionConnection(permissions, total, page, size);
+  }
+
+  @Transactional
+  public List<Menu> menu(@Source List<Permission> permissions) {
+    if (permissions.isEmpty()) {
+      return List.of();
+    }
+
+    List<Long> menuIds =
+        permissions.stream()
+            .map(p -> p.menu != null ? p.menu.id : null)
+            .filter(id -> id != null)
+            .distinct()
+            .toList();
+
+    if (menuIds.isEmpty()) {
+      return permissions.stream().map(p -> (Menu) null).toList();
+    }
+
+    Map<Long, Menu> menuMap = loadMenusByIds(menuIds);
+
+    return permissions.stream().map(p -> p.menu != null ? menuMap.get(p.menu.id) : null).toList();
+  }
+
+  private Map<Long, Menu> loadMenusByIds(List<Long> menuIds) {
+    if (menuIds.isEmpty()) {
+      return Map.of();
+    }
+
+    String jpql = "SELECT m FROM Menu m WHERE m.id IN :menuIds";
+    List<Menu> menus =
+        session.createQuery(jpql, Menu.class).setParameter("menuIds", menuIds).getResultList();
+
+    Map<Long, Menu> map = new HashMap<>();
+    for (Menu menu : menus) {
+      map.put(menu.id, menu);
+    }
+    return map;
   }
 }
