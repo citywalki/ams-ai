@@ -183,12 +183,14 @@ public class Alarm extends BaseEntity {
 .agents/skills/
 ├── frontend-development/SKILL.md
 ├── frontend-ui-verification/SKILL.md
+├── graphql-rest-architecture/SKILL.md
 ├── vercel-react-best-practices/SKILL.md
 └── ...
 
 .claude/skills/  (符号链接)
 ├── frontend-development -> ../../.agents/skills/frontend-development
 ├── frontend-ui-verification -> ../../.agents/skills/frontend-ui-verification
+├── graphql-rest-architecture -> ../../.agents/skills/graphql-rest-architecture
 └── ...
 ```
 
@@ -196,7 +198,7 @@ public class Alarm extends BaseEntity {
 - **语言**: Skills 内容使用英文编写，确保通用性和可维护性
 
 ---
-*最后更新: 2026年2月24日
+*最后更新: 2026年2月28日
 
 ## AGENTS.md 子目录索引
 
@@ -217,6 +219,14 @@ public class Alarm extends BaseEntity {
 - 管理后台：用户、角色、权限、菜单CRUD功能
 - 权限过滤：手动租户过滤实现
 - 前端页面：React组件与API集成
+
+### feature-graphql/
+
+- GraphQL API：Users、Roles、Menus、Dict 查询
+- Connection 类型：分页响应封装
+- FilterInput：动态过滤条件
+- CriteriaTranslator：JPA Criteria 查询转换
+- CriteriaFilterHelper：通用谓词构建器
 
 ### lib-security/
 

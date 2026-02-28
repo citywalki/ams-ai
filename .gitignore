@@ -110,3 +110,6 @@ app-boot/build/
 
 
 .worktrees/
+
+# Claude Code (symlinks to skills)
+.claude/
