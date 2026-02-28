@@ -54,6 +54,13 @@ public class AuthController {
     }
   }
 
+  /** 用户登出 */
+  @POST
+  @Path("/logout")
+  public Response logout() {
+    return Response.ok(new SuccessResponse("Logged out successfully")).build();
+  }
+
   /** 刷新访问令牌 */
   @POST
   @Path("/refresh")

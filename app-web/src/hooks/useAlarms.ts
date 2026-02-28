@@ -21,7 +21,7 @@ export type AlarmConnection = {
 };
 
 const ALARMS_QUERY = `
-  query Alarms($page: Int, $size: Int, $orderBy: [OrderByInputInput]) {
+  query Alarms($page: Int, $size: Int, $orderBy: [OrderByInput]) {
     alarms(page: $page, size: $size, orderBy: $orderBy) {
       content {
         id
