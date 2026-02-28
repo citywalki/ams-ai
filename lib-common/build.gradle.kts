@@ -1,6 +1,7 @@
 plugins {
     id("base-java-convention")
     id("code-quality-convention")
+    alias(libs.plugins.gradle.jandex)
 }
 
 tasks.withType<Jar> {

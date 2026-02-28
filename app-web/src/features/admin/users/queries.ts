@@ -2,7 +2,21 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { QueryParams, PageResponse } from '@/types/table';
 import { queryKeys } from '@/lib/queryKeys';
 import { type UserItem } from '@/utils/api';
-import { graffle } from '@/lib/graffleClient';
+import { graphqlClient } from '@/lib/graphqlClient';
+
+const USERS_FRAGMENT = `
+  id
+  username
+  email
+  status
+  createdAt
+  updatedAt
+  roles {
+    id
+    code
+    name
+  }
+`;
 
 export async function fetchUsersPage(
   params: QueryParams,
@@ -14,33 +28,34 @@ export async function fetchUsersPage(
   const where = buildUserFilter(searchParams);
   const orderBy = buildOrderBy(params);
 
-  const result = await graffle.query.users({
-    $: { where, orderBy, page, size },
-    content: {
-      id: true,
-      username: true,
-      email: true,
-      status: true,
-      createdAt: true,
-      updatedAt: true,
-      roles: {
-        id: true,
-        code: true,
-        name: true,
-      },
-    },
-    totalElements: true,
-    totalPages: true,
-    page: true,
-    size: true,
-  });
+  const query = `
+    query Users($where: UserFilter, $orderBy: [OrderByInput], $page: Int, $size: Int) {
+      users(where: $where, orderBy: $orderBy, page: $page, size: $size) {
+        content { ${USERS_FRAGMENT} }
+        totalElements
+        totalPages
+        page
+        size
+      }
+    }
+  `;
+
+  const result = await graphqlClient.request<{
+    users: {
+      content: UserItem[];
+      totalElements: number;
+      totalPages: number;
+      page: number;
+      size: number;
+    };
+  }>(query, { where, orderBy, page, size });
 
   return {
-    content: result.content as UserItem[],
-    totalElements: result.totalElements,
-    totalPages: result.totalPages,
-    size: result.size,
-    number: result.page,
+    content: result.users.content,
+    totalElements: result.users.totalElements,
+    totalPages: result.users.totalPages,
+    size: result.users.size,
+    number: result.users.page,
   };
 }
 
@@ -70,4 +85,3 @@ function buildOrderBy(params: QueryParams) {
 export function invalidateUserList(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ queryKey: queryKeys.users.listRoot() });
 }
-

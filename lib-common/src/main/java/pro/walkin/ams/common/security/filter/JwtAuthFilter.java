@@ -24,10 +24,8 @@ public class JwtAuthFilter implements ContainerRequestFilter {
 
   @Override
   public void filter(ContainerRequestContext requestContext) {
-    // 获取请求路径
     String path = requestContext.getUriInfo().getPath();
 
-    // 跳过公共端点的认证
     if (isPublicEndpoint(path)) {
       return;
     }

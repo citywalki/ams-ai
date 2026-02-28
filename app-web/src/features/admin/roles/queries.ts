@@ -2,7 +2,19 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { QueryParams, PageResponse } from '@/types/table';
 import { queryKeys } from '@/lib/queryKeys';
 import { type RoleItem } from '@/utils/api';
-import { graffle } from '@/lib/graffleClient';
+import { graphqlClient } from '@/lib/graphqlClient';
+
+const ROLES_FRAGMENT = `
+  id
+  code
+  name
+  description
+  permissions {
+    id
+    code
+    name
+  }
+`;
 
 export async function fetchRolesPage(
   params: QueryParams,
@@ -14,31 +26,34 @@ export async function fetchRolesPage(
   const where = buildRoleFilter(searchParams);
   const orderBy = buildOrderBy(params);
 
-  const result = await graffle.query.roles({
-    $: { where, orderBy, page, size },
-    content: {
-      id: true,
-      code: true,
-      name: true,
-      description: true,
-      permissions: {
-        id: true,
-        code: true,
-        name: true,
-      },
-    },
-    totalElements: true,
-    totalPages: true,
-    page: true,
-    size: true,
-  });
+  const query = `
+    query Roles($where: RoleFilter, $orderBy: [OrderByInput], $page: Int, $size: Int) {
+      roles(where: $where, orderBy: $orderBy, page: $page, size: $size) {
+        content { ${ROLES_FRAGMENT} }
+        totalElements
+        totalPages
+        page
+        size
+      }
+    }
+  `;
+
+  const result = await graphqlClient.request<{
+    roles: {
+      content: RoleItem[];
+      totalElements: number;
+      totalPages: number;
+      page: number;
+      size: number;
+    };
+  }>(query, { where, orderBy, page, size });
 
   return {
-    content: result.content as RoleItem[],
-    totalElements: result.totalElements,
-    totalPages: result.totalPages,
-    size: result.size,
-    number: result.page,
+    content: result.roles.content,
+    totalElements: result.roles.totalElements,
+    totalPages: result.roles.totalPages,
+    size: result.roles.size,
+    number: result.roles.page,
   };
 }
 

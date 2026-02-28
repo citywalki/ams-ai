@@ -1,7 +1,35 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 import { type MenuItem, type PermissionItem } from '@/utils/api';
-import { graffle } from '@/lib/graffleClient';
+import { graphqlClient } from '@/lib/graphqlClient';
+
+const MENUS_FRAGMENT = `
+  id
+  key
+  label
+  route
+  parentId
+  icon
+  sortOrder
+  isVisible
+  menuType
+  rolesAllowed
+  createdAt
+  updatedAt
+`;
+
+const MENUS_BRIEF_FRAGMENT = `
+  id
+  key
+  label
+  route
+  parentId
+  icon
+  sortOrder
+  isVisible
+  menuType
+  rolesAllowed
+`;
 
 export async function fetchMenusPage(
   params: { page?: number; size?: number },
@@ -12,34 +40,34 @@ export async function fetchMenusPage(
 
   const where = buildMenuFilter(searchParams);
 
-  const result = await graffle.query.menus({
-    $: { where, page, size },
-    content: {
-      id: true,
-      key: true,
-      label: true,
-      route: true,
-      parentId: true,
-      icon: true,
-      sortOrder: true,
-      isVisible: true,
-      menuType: true,
-      rolesAllowed: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    totalElements: true,
-    totalPages: true,
-    page: true,
-    size: true,
-  });
+  const query = `
+    query Menus($where: MenuFilter, $page: Int, $size: Int) {
+      menus(where: $where, page: $page, size: $size) {
+        content { ${MENUS_FRAGMENT} }
+        totalElements
+        totalPages
+        page
+        size
+      }
+    }
+  `;
+
+  const result = await graphqlClient.request<{
+    menus: {
+      content: MenuItem[];
+      totalElements: number;
+      totalPages: number;
+      page: number;
+      size: number;
+    };
+  }>(query, { where, page, size });
 
   return {
-    content: result.content as MenuItem[],
-    totalElements: result.totalElements,
-    totalPages: result.totalPages,
-    size: result.size,
-    number: result.page,
+    content: result.menus.content,
+    totalElements: result.menus.totalElements,
+    totalPages: result.menus.totalPages,
+    size: result.menus.size,
+    number: result.menus.page,
   };
 }
 
@@ -66,22 +94,15 @@ export function fetchFolders(queryClient: QueryClient) {
   return queryClient.fetchQuery<MenuItem[]>({
     queryKey: queryKeys.menus.folders(),
     queryFn: async () => {
-      const result = await graffle.query.menus({
-        $: { where: { menuType: { _eq: 'FOLDER' } }, size: 100 },
-        content: {
-          id: true,
-          key: true,
-          label: true,
-          route: true,
-          parentId: true,
-          icon: true,
-          sortOrder: true,
-          isVisible: true,
-          menuType: true,
-          rolesAllowed: true,
-        },
-      });
-      return result.content as MenuItem[];
+      const query = `
+        query Folders {
+          menus(where: { menuType: { _eq: "FOLDER" } }, size: 100) {
+            content { ${MENUS_BRIEF_FRAGMENT} }
+          }
+        }
+      `;
+      const result = await graphqlClient.request<{ menus: { content: MenuItem[] } }>(query);
+      return result.menus.content;
     },
   });
 }
@@ -93,22 +114,15 @@ export function fetchMenusByFolder(queryClient: QueryClient, folder: 'root' | Me
     queryKey: folder === 'root' ? queryKeys.menus.rootMenus() : queryKeys.menus.byParent(folder.id),
     queryFn: async () => {
       const where = parentId ? { parentId: { _eq: parentId } } : { parentId: { _isNull: true } };
-      const result = await graffle.query.menus({
-        $: { where, orderBy: [{ field: 'sortOrder', direction: 'ASC' }], size: 100 },
-        content: {
-          id: true,
-          key: true,
-          label: true,
-          route: true,
-          parentId: true,
-          icon: true,
-          sortOrder: true,
-          isVisible: true,
-          menuType: true,
-          rolesAllowed: true,
-        },
-      });
-      return result.content as MenuItem[];
+      const query = `
+        query MenusByFolder($where: MenuFilter) {
+          menus(where: $where, orderBy: [{ field: "sortOrder", direction: "ASC" }], size: 100) {
+            content { ${MENUS_BRIEF_FRAGMENT} }
+          }
+        }
+      `;
+      const result = await graphqlClient.request<{ menus: { content: MenuItem[] } }>(query, { where });
+      return result.menus.content;
     },
   });
 }
