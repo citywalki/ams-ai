@@ -18,6 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { DataTablePagination } from './DataTablePagination';
+import { QueryErrorDisplay } from '@/components/common/QueryErrorDisplay';
 import type { QueryParams, PageResponse } from '@/types/table';
 
 interface DataTableProps<TData> {
@@ -42,7 +43,7 @@ export function DataTable<TData>({
     pageSize: 20,
   });
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: [...queryKey, sorting, pagination, searchParams],
     queryFn: () =>
       queryFn({
@@ -69,12 +70,9 @@ export function DataTable<TData>({
     pageCount: data?.totalPages ?? -1,
   });
 
-  if (error) {
-    return <div className="text-red-500 p-4">{t('table.loadError')}</div>;
-  }
-
   return (
     <div className="flex flex-col h-full gap-4">
+      <QueryErrorDisplay error={error} onRetry={() => refetch()} size="inline" />
       <div className="flex-1 min-h-0 overflow-auto">
         <Table>
           <TableHeader>
