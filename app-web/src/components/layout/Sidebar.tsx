@@ -18,6 +18,7 @@ import {useMenus} from '@/contexts/MenuContext';
 import type {MenuItem} from '@/services';
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
+import {QueryErrorDisplay} from '@/components/common/QueryErrorDisplay';
 import {cn} from '@/lib/utils';
 
 interface SidebarProps {
@@ -215,7 +216,7 @@ function MenuItemComponent({
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { menus, isLoading, error } = useMenus();
+  const { menus, isLoading, error, refreshMenus } = useMenus();
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const currentRoute = location.pathname;
@@ -302,7 +303,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <Skeleton className="h-9 w-full" />
           </div>
         ) : error ? (
-          <div className="p-2 text-sm text-red-500">{error}</div>
+          <QueryErrorDisplay error={new Error(error)} onRetry={refreshMenus} size="inline" className="m-2" />
         ) : (
             menus.map(renderMenuItem)
         )}
