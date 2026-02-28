@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { systemApi, type PermissionItem } from '@/utils/api';
+import { type PermissionItem } from '@/utils/api';
+import { graphqlClient } from '@/lib/graphqlClient';
 
 export function usePermissions() {
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
@@ -8,11 +9,24 @@ export function usePermissions() {
   const loadPermissions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await systemApi.getPermissions();
-      const permList = Array.isArray(res.data)
-        ? res.data
-        : (res.data.content ?? res.data.items ?? []);
-      setPermissions(permList);
+      const query = `
+        query Permissions {
+          permissions(page: 0, size: 1000) {
+            content {
+              id
+              code
+              name
+              description
+              menuId
+              menuCode
+            }
+          }
+        }
+      `;
+      const result = await graphqlClient.request<{
+        permissions: { content: PermissionItem[] };
+      }>(query);
+      setPermissions(result.permissions.content);
     } catch {
       console.error('Failed to load permissions');
     } finally {

@@ -95,9 +95,7 @@ export default function RoleManagementPage() {
   } = useRoleUserAssignment();
 
   const setUserAssignmentDialogOpen = (open: boolean) => {
-    if (open) {
-      openUserAssignmentDialog();
-    } else {
+    if (!open) {
       closeUserAssignmentDialog();
     }
   };

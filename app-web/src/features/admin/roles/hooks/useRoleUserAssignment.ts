@@ -1,13 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { systemApi, type RoleItem, type UserItem } from '@/utils/api';
-import { invalidateRoleList } from '../queries';
+import { systemApi, type RoleItem } from '@/utils/api';
+import { fetchAllUsers } from '@/features/admin/users/queries';
 
 export function useRoleUserAssignment() {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const [editingRole, setEditingRole] = useState<RoleItem | null>(null);
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -17,10 +15,7 @@ export function useRoleUserAssignment() {
 
   const { data: allUsers = [], isLoading: usersLoading } = useQuery({
     queryKey: ['users', 'all'],
-    queryFn: async () => {
-      const response = await systemApi.getUsers();
-      return Array.isArray(response) ? response : response.items || [];
-    },
+    queryFn: fetchAllUsers,
     staleTime: 30000,
   });
 
@@ -29,7 +24,7 @@ export function useRoleUserAssignment() {
     queryFn: async () => {
       if (!editingRole) return [];
       const response = await systemApi.getRoleUsers(editingRole.id);
-      return response || [];
+      return Array.isArray(response) ? response : (response as any).data || [];
     },
     enabled: !!editingRole,
     staleTime: 10000,
@@ -91,7 +86,10 @@ export function useRoleUserAssignment() {
     setError(null);
   }, []);
 
+  const dialogOpen = editingRole !== null;
+
   return {
+    dialogOpen,
     editingRole,
     allUsers,
     roleUsers,

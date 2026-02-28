@@ -3,6 +3,15 @@ import { queryKeys } from '@/lib/queryKeys';
 import { type MenuItem, type PermissionItem } from '@/utils/api';
 import { graphqlClient } from '@/lib/graphqlClient';
 
+// Convert big int IDs to strings to avoid JavaScript precision loss
+function convertIdsToString<T extends { id: number | string; parentId?: number | string | null }>(items: T[]): T[] {
+  return items.map(item => ({
+    ...item,
+    id: String(item.id),
+    parentId: item.parentId != null ? String(item.parentId) : null,
+  }));
+}
+
 const MENUS_FRAGMENT = `
   id
   key
@@ -102,7 +111,7 @@ export function fetchFolders(queryClient: QueryClient) {
         }
       `;
       const result = await graphqlClient.request<{ menus: { content: MenuItem[] } }>(query);
-      return result.menus.content;
+      return convertIdsToString(result.menus.content);
     },
   });
 }
@@ -122,7 +131,7 @@ export function fetchMenusByFolder(queryClient: QueryClient, folder: 'root' | Me
         }
       `;
       const result = await graphqlClient.request<{ menus: { content: MenuItem[] } }>(query, { where });
-      return result.menus.content;
+      return convertIdsToString(result.menus.content);
     },
   });
 }

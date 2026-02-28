@@ -85,3 +85,19 @@ function buildOrderBy(params: QueryParams) {
 export function invalidateUserList(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ queryKey: queryKeys.users.listRoot() });
 }
+
+export async function fetchAllUsers(): Promise<UserItem[]> {
+  const query = `
+    query AllUsers {
+      users(page: 0, size: 1000) {
+        content { ${USERS_FRAGMENT} }
+      }
+    }
+  `;
+
+  const result = await graphqlClient.request<{
+    users: { content: UserItem[] };
+  }>(query);
+
+  return result.users.content;
+}
