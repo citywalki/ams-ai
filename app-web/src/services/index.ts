@@ -1,6 +1,5 @@
-import apiClient from '@/utils/api';
+import apiClient from '@/lib/apiClient';
 
-// 认证相关接口
 export interface LoginRequest {
   username: string;
   password: string;
@@ -24,30 +23,25 @@ export interface User {
 }
 
 export const authApi = {
-  // 登录
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     const response = await apiClient.post('/auth/login', credentials);
     return response.data;
   },
 
-  // 刷新Token
   refreshToken: async (refreshToken: string): Promise<LoginResponse> => {
     const response = await apiClient.post('/auth/refresh', { refreshToken });
     return response.data;
   },
 
-  // 登出
   logout: async (): Promise<void> => {
     await apiClient.post('/auth/logout');
   },
 
-  // 获取当前用户信息
   getCurrentUser: async (): Promise<User> => {
     const response = await apiClient.get('/auth/me');
     return response.data;
   },
 
-  // 检查Token是否有效
   validateToken: async (): Promise<boolean> => {
     try {
       await apiClient.get('/auth/validate');
@@ -58,39 +52,35 @@ export const authApi = {
   }
 };
 
-// 菜单相关接口
 export interface MenuItem {
   id: string;
-    key: string;
-    label: string;
-    route?: string;
-    icon?: string;
+  key: string;
+  label: string;
+  route?: string;
+  icon?: string;
   parentId?: string;
-    sortOrder?: number;
-    isVisible?: boolean;
-    menuType?: 'FOLDER' | 'MENU';
-    rolesAllowed?: string[];
+  sortOrder?: number;
+  isVisible?: boolean;
+  menuType?: 'FOLDER' | 'MENU';
+  rolesAllowed?: string[];
   children?: MenuItem[];
-    tenant?: number;
-    createdAt?: string;
-    updatedAt?: string;
+  tenant?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const menuApi = {
-  // 获取用户菜单
   getUserMenus: async (): Promise<MenuItem[]> => {
     const response = await apiClient.get('/system/menus/user');
     return response.data;
   },
 
-  // 获取所有菜单
   getAllMenus: async (): Promise<MenuItem[]> => {
     const response = await apiClient.get('/system/menus');
     return response.data;
   }
 };
 
-// 权限相关接口
 export interface Permission {
   id: string;
   code: string;
@@ -102,13 +92,11 @@ export interface Permission {
 }
 
 export const permissionApi = {
-  // 获取用户权限
   getUserPermissions: async (): Promise<string[]> => {
     const response = await apiClient.get('/system/permissions/user');
     return response.data;
   },
 
-  // 检查用户是否有某个权限
   hasPermission: async (permissionCode: string): Promise<boolean> => {
     const response = await apiClient.post('/system/permissions/check', {
       permission: permissionCode

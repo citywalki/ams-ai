@@ -27,7 +27,7 @@ import { Label } from '@/components/ui/label';
 import { IconPicker } from '@/components/ui/icon-picker';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type MenuFormData } from '../schemas/menu-schema';
-import { type MenuItem } from '@/utils/api';
+import { type MenuItem } from '@/lib/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MenuFormApi = ReactFormExtendedApi<MenuFormData, any, any, any, any, any, any, any, any, any, any, any>;

@@ -26,10 +26,10 @@ import {
 } from '@/components/ui/dialog';
 import { QueryErrorDisplay } from '@/components/common/QueryErrorDisplay';
 import {
-  dictApi,
   type DictCategory,
   type DictItem,
-} from '@/utils/api';
+} from '@/lib/types';
+import { useDeleteCategory, useDeleteItem } from '@/features/admin/dict/mutations';
 import {
   fetchCategories,
   fetchDictItems,
@@ -43,6 +43,8 @@ import { DictItemDialog } from '@/features/admin/dict/components/DictItemDialog'
 export default function DictManagementPage() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const deleteCategoryMutation = useDeleteCategory();
+  const deleteItemMutation = useDeleteItem();
   const [categories, setCategories] = useState<DictCategory[]>([]);
   const [categorySearch, setCategorySearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<DictCategory | null>(null);
@@ -53,11 +55,9 @@ export default function DictManagementPage() {
 
   const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
   const [deleteCategory, setDeleteCategory] = useState<DictCategory | null>(null);
-  const [deleteCategoryLoading, setDeleteCategoryLoading] = useState(false);
 
   const [deleteItemOpen, setDeleteItemOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<DictItem | null>(null);
-  const [deleteItemLoading, setDeleteItemLoading] = useState(false);
 
   const loadCategories = useCallback(async () => {
     setLoading(true);
@@ -121,9 +121,8 @@ export default function DictManagementPage() {
 
   const handleDeleteCategory = async () => {
     if (!deleteCategory) return;
-    setDeleteCategoryLoading(true);
     try {
-      await dictApi.deleteCategory(deleteCategory.id);
+      await deleteCategoryMutation.mutateAsync(deleteCategory.id);
       await invalidateDictQueries(queryClient);
       setDeleteCategoryOpen(false);
       setDeleteCategory(null);
@@ -133,8 +132,6 @@ export default function DictManagementPage() {
       void loadCategories();
     } catch (err) {
       console.error(err);
-    } finally {
-      setDeleteCategoryLoading(false);
     }
   };
 
@@ -144,20 +141,15 @@ export default function DictManagementPage() {
   };
 
   const handleDeleteItem = async () => {
-    if (!deleteItem) return;
-    setDeleteItemLoading(true);
+    if (!deleteItem || !selectedCategory) return;
     try {
-      await dictApi.deleteItem(deleteItem.id);
+      await deleteItemMutation.mutateAsync({ id: deleteItem.id, categoryId: selectedCategory.id });
       await invalidateDictQueries(queryClient);
       setDeleteItemOpen(false);
       setDeleteItem(null);
-      if (selectedCategory) {
-        void loadItems(selectedCategory.id);
-      }
+      void loadItems(selectedCategory.id);
     } catch (err) {
       console.error(err);
-    } finally {
-      setDeleteItemLoading(false);
     }
   };
 
@@ -391,8 +383,8 @@ export default function DictManagementPage() {
             <Button variant="outline" onClick={() => setDeleteCategoryOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button variant="destructive" onClick={handleDeleteCategory} disabled={deleteCategoryLoading}>
-              {deleteCategoryLoading ? t('pages.dictManagement.messages.deleting') : t('common.delete')}
+            <Button variant="destructive" onClick={handleDeleteCategory} disabled={deleteCategoryMutation.isPending}>
+              {deleteCategoryMutation.isPending ? t('pages.dictManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -411,8 +403,8 @@ export default function DictManagementPage() {
             <Button variant="outline" onClick={() => setDeleteItemOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button variant="destructive" onClick={handleDeleteItem} disabled={deleteItemLoading}>
-              {deleteItemLoading ? t('pages.dictManagement.messages.deleting') : t('common.delete')}
+            <Button variant="destructive" onClick={handleDeleteItem} disabled={deleteItemMutation.isPending}>
+              {deleteItemMutation.isPending ? t('pages.dictManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

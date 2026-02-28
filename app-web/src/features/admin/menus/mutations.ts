@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { menuApi, type MenuPayload, type MenuItem, type PermissionPayload, type PermissionItem } from '@/utils/api';
+import apiClient from '@/lib/apiClient';
+import type { MenuPayload, MenuItem, PermissionPayload, PermissionItem } from '@/lib/types';
 import { queryKeys } from '@/lib/queryKeys';
 
 export function useCreateMenu(
@@ -9,7 +10,7 @@ export function useCreateMenu(
 
   return useMutation({
     mutationFn: async (payload: MenuPayload) => {
-      const res = await menuApi.createMenu(payload);
+      const res = await apiClient.post<MenuItem>('/system/menus', payload);
       return res.data;
     },
     onSuccess: () => {
@@ -26,7 +27,7 @@ export function useUpdateMenu(
 
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: MenuPayload }) => {
-      const res = await menuApi.updateMenu(id, payload);
+      const res = await apiClient.put<MenuItem>(`/system/menus/${id}`, payload);
       return res.data;
     },
     onSuccess: (_, { id }) => {
@@ -44,7 +45,7 @@ export function useDeleteMenu(
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await menuApi.deleteMenu(id);
+      await apiClient.delete(`/system/menus/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.menus.root() });
@@ -60,7 +61,7 @@ export function useCreatePermission(
 
   return useMutation({
     mutationFn: async (payload: PermissionPayload) => {
-      const res = await menuApi.createPermission(payload);
+      const res = await apiClient.post<PermissionItem>('/system/permissions', payload);
       return res.data;
     },
     onSuccess: (_, payload) => {
@@ -79,7 +80,7 @@ export function useUpdatePermission(
 
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: PermissionPayload }) => {
-      const res = await menuApi.updatePermission(id, payload);
+      const res = await apiClient.put<PermissionItem>(`/system/permissions/${id}`, payload);
       return res.data;
     },
     onSuccess: (_, { payload }) => {
@@ -98,7 +99,7 @@ export function useDeletePermission(
 
   return useMutation({
     mutationFn: async ({ id }: { id: string; menuId?: string }) => {
-      await menuApi.deletePermission(id);
+      await apiClient.delete(`/system/permissions/${id}`);
     },
     onSuccess: (_, { menuId }) => {
       if (menuId) {

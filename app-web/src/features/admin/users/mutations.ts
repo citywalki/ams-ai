@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { systemApi, type UserCreatePayload, type UserUpdatePayload, type UserItem } from '@/utils/api';
+import apiClient from '@/lib/apiClient';
+import type { UserCreatePayload, UserUpdatePayload, UserItem } from '@/lib/types';
 import { queryKeys } from '@/lib/queryKeys';
 
 export function useCreateUser(
@@ -9,7 +10,7 @@ export function useCreateUser(
 
   return useMutation({
     mutationFn: async (payload: UserCreatePayload) => {
-      const res = await systemApi.createUser(payload);
+      const res = await apiClient.post<UserItem>('/system/users', payload);
       return res.data;
     },
     onSuccess: () => {
@@ -26,7 +27,7 @@ export function useUpdateUser(
 
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: UserUpdatePayload }) => {
-      const res = await systemApi.updateUser(id, payload);
+      const res = await apiClient.put<UserItem>(`/system/users/${id}`, payload);
       return res.data;
     },
     onSuccess: (_, { id }) => {
@@ -44,7 +45,7 @@ export function useDeleteUser(
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await systemApi.deleteUser(id);
+      await apiClient.delete(`/system/users/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.listRoot() });
@@ -60,7 +61,7 @@ export function useUpdateUserStatus(
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      await systemApi.updateUserStatus(id, status);
+      await apiClient.put(`/system/users/${id}/status`, { status });
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.listRoot() });
@@ -75,7 +76,7 @@ export function useResetUserPassword(
 ) {
   return useMutation({
     mutationFn: async ({ id, password }: { id: string; password: string }) => {
-      await systemApi.resetUserPassword(id, password);
+      await apiClient.put(`/system/users/${id}/reset-password`, { password });
     },
     ...options,
   });

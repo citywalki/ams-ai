@@ -1,4 +1,4 @@
-import type { UserItem, RoleOption } from '@/utils/api';
+import type { UserItem, RoleOption } from '@/lib/types';
 
 export type { UserItem, RoleOption };
 

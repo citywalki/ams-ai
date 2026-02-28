@@ -1,7 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type { QueryParams, PageResponse } from '@/types/table';
 import { queryKeys } from '@/lib/queryKeys';
-import { type UserItem } from '@/utils/api';
+import { type UserItem } from '@/lib/types';
 import { graphqlClient } from '@/lib/graphqlClient';
 
 const USERS_FRAGMENT = `

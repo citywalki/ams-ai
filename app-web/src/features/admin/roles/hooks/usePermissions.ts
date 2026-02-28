@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { type PermissionItem } from '@/utils/api';
+import { type PermissionItem } from '@/lib/types';
 import { graphqlClient } from '@/lib/graphqlClient';
 
 export function usePermissions() {

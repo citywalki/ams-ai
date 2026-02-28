@@ -1,7 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
-import { type MenuItem, type PermissionItem } from '@/utils/api';
+import type { MenuItem, PermissionItem } from '@/lib/types';
 import { graphqlClient } from '@/lib/graphqlClient';
+import apiClient from '@/lib/apiClient';
 
 // Convert big int IDs to strings to avoid JavaScript precision loss
 function convertIdsToString<T extends { id: number | string; parentId?: number | string | null }>(items: T[]): T[] {
@@ -140,8 +141,7 @@ export function fetchMenuPermissions(queryClient: QueryClient, menuId: string) {
   return queryClient.fetchQuery<PermissionItem[]>({
     queryKey: queryKeys.menus.permissions(menuId),
     queryFn: async () => {
-      const { menuApi } = await import('@/utils/api');
-      const res = await menuApi.getMenuPermissions(menuId);
+      const res = await apiClient.get<PermissionItem[]>(`/system/permissions/menu/${menuId}`);
       return res.data;
     },
   });

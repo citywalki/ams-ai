@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@tanstack/react-form';
-import { type MenuItem, type MenuPayload } from '@/utils/api';
+import { type MenuItem, type MenuPayload } from '@/lib/types';
 import { useCreateMenu, useUpdateMenu } from '../mutations';
 import {
   menuFormSchema,

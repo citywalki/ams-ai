@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { type RoleItem, type UserItem } from '@/utils/api';
+import { type RoleItem, type UserItem } from '@/lib/types';
 import { RoleUserAssignment } from './RoleUserAssignment';
 
 interface RoleUserAssignmentDialogProps {

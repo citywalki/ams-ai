@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { type MenuItem, type RoleItem } from '@/utils/api';
+import { type MenuItem, type RoleItem } from '@/lib/types';
 
 interface RoleMenuDialogProps {
   open: boolean;

@@ -1,24 +1,29 @@
-import { useState, useCallback, useEffect } from 'react';
-import { systemApi, type RoleOption } from '@/utils/api';
+import { useQuery } from '@tanstack/react-query';
+import { graphqlClient } from '@/lib/graphqlClient';
+import type { RoleOption } from '@/lib/types';
 
 export function useRoles() {
-  const [roles, setRoles] = useState<RoleOption[]>([]);
+  const { data: roles = [], isLoading } = useQuery<RoleOption[]>({
+    queryKey: ['roles', 'all'],
+    queryFn: async () => {
+      const query = `
+        query Roles {
+          roles(size: 100) {
+            content {
+              id
+              code
+              name
+            }
+          }
+        }
+      `;
+      const result = await graphqlClient.request<{
+        roles: { content: RoleOption[] };
+      }>(query);
+      return result.roles.content;
+    },
+    staleTime: 60000,
+  });
 
-  const loadRoles = useCallback(async () => {
-    try {
-      const res = await systemApi.getRoles();
-      const roleList = Array.isArray(res.data)
-        ? res.data
-        : (res.data.content ?? res.data.items ?? []);
-      setRoles(roleList);
-    } catch {
-      console.error('Failed to load roles');
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadRoles();
-  }, [loadRoles]);
-
-  return { roles, loadRoles };
+  return { roles, isLoading };
 }

@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { type UserItem } from '@/utils/api';
+import { type UserItem } from '@/lib/types';
 
 interface DeleteConfirmDialogProps {
   open: boolean;

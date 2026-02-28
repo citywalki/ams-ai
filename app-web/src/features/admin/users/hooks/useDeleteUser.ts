@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { systemApi, type UserItem } from '@/utils/api';
+import type { UserItem } from '@/lib/types';
+import { useDeleteUser as useDeleteUserMutation } from '../mutations';
 import { invalidateUserList } from '../queries';
 
 export function useDeleteUser() {
@@ -10,8 +11,9 @@ export function useDeleteUser() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState<UserItem | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const deleteMutation = useDeleteUserMutation();
 
   const openDeleteDialog = useCallback((user: UserItem) => {
     setDeleteUser(user);
@@ -27,10 +29,9 @@ export function useDeleteUser() {
 
   const handleDelete = useCallback(async () => {
     if (!deleteUser) return;
-    setDeleteLoading(true);
     setDeleteError(null);
     try {
-      await systemApi.deleteUser(deleteUser.id);
+      await deleteMutation.mutateAsync(deleteUser.id);
       closeDeleteDialog();
       void invalidateUserList(queryClient);
     } catch (err) {
@@ -39,15 +40,13 @@ export function useDeleteUser() {
           ? err.message
           : t('pages.userManagement.messages.operationFailed');
       setDeleteError(message);
-    } finally {
-      setDeleteLoading(false);
     }
-  }, [deleteUser, closeDeleteDialog, queryClient, t]);
+  }, [deleteUser, deleteMutation, closeDeleteDialog, queryClient, t]);
 
   return {
     deleteOpen,
     deleteUser,
-    deleteLoading,
+    deleteLoading: deleteMutation.isPending,
     deleteError,
     openDeleteDialog,
     closeDeleteDialog,

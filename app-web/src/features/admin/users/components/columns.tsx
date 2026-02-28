@@ -2,7 +2,7 @@ import { Pencil, Trash2, Key } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { type UserItem } from '@/utils/api';
+import { type UserItem } from '@/lib/types';
 
 interface CreateColumnsOptions {
   t: (key: string, options?: Record<string, unknown>) => string;

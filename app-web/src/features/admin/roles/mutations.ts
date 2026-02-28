@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { systemApi, type RolePayload, type RoleItem } from '@/utils/api';
+import apiClient from '@/lib/apiClient';
+import type { RolePayload, RoleItem } from '@/lib/types';
 import { queryKeys } from '@/lib/queryKeys';
 
 export function useCreateRole(
@@ -9,7 +10,7 @@ export function useCreateRole(
 
   return useMutation({
     mutationFn: async (payload: RolePayload) => {
-      const res = await systemApi.createRole(payload);
+      const res = await apiClient.post<RoleItem>('/system/roles', payload);
       return res.data;
     },
     onSuccess: () => {
@@ -26,7 +27,7 @@ export function useUpdateRole(
 
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: RolePayload }) => {
-      const res = await systemApi.updateRole(id, payload);
+      const res = await apiClient.put<RoleItem>(`/system/roles/${id}`, payload);
       return res.data;
     },
     onSuccess: (_, { id }) => {
@@ -44,7 +45,7 @@ export function useDeleteRole(
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await systemApi.deleteRole(id);
+      await apiClient.delete(`/system/roles/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.roles.listRoot() });
@@ -60,7 +61,7 @@ export function useUpdateRoleMenus(
 
   return useMutation({
     mutationFn: async ({ roleId, menuIds }: { roleId: string; menuIds: string[] }) => {
-      await systemApi.updateRoleMenus(roleId, menuIds);
+      await apiClient.put(`/system/roles/${roleId}/menus`, { menuIds });
     },
     onSuccess: (_, { roleId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.roles.detail(roleId) });
@@ -77,7 +78,7 @@ export function useAssignUserToRole(
 
   return useMutation({
     mutationFn: async ({ roleId, userId }: { roleId: string; userId: string }) => {
-      await systemApi.assignUserToRole(roleId, userId);
+      await apiClient.post(`/system/roles/${roleId}/users`, { userId });
     },
     onSuccess: (_, { roleId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.roles.detail(roleId) });
@@ -93,7 +94,7 @@ export function useRemoveUserFromRole(
 
   return useMutation({
     mutationFn: async ({ roleId, userId }: { roleId: string; userId: string }) => {
-      await systemApi.removeUserFromRole(roleId, userId);
+      await apiClient.delete(`/system/roles/${roleId}/users/${userId}`);
     },
     onSuccess: (_, { roleId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.roles.detail(roleId) });

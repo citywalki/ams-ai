@@ -1,7 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type { QueryParams, PageResponse } from '@/types/table';
 import { queryKeys } from '@/lib/queryKeys';
-import { type RoleItem } from '@/utils/api';
+import { type RoleItem } from '@/lib/types';
 import { graphqlClient } from '@/lib/graphqlClient';
 
 const ROLES_FRAGMENT = `

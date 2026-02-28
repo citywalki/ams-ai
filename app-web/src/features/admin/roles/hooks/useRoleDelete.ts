@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { type RoleItem } from '@/utils/api';
+import { type RoleItem } from '@/lib/types';
 import { useDeleteRole } from '../mutations';
 
 export function useRoleDelete() {

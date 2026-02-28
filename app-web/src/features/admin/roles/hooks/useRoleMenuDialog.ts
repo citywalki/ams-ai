@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { menuApi, systemApi, type RoleItem, type MenuItem } from '@/utils/api';
+import apiClient from '@/lib/apiClient';
+import type { RoleItem, MenuItem } from '@/lib/types';
 import { invalidateRoleList } from '../queries';
+import { queryKeys } from '@/lib/queryKeys';
 
 export function useRoleMenuDialog() {
   const { t } = useTranslation();
@@ -83,8 +85,8 @@ export function useRoleMenuDialog() {
     setError(null);
     try {
       const [treeRes, roleMenusRes] = await Promise.all([
-        menuApi.getMenuTree(),
-        systemApi.getRoleMenus(role.id),
+        apiClient.get<MenuItem[]>('/system/menus/tree'),
+        apiClient.get<{ menuIds: string[] }>(`/system/roles/${role.id}/menus`),
       ]);
       setMenuTree(treeRes.data);
       const menuIds = roleMenusRes.data.menuIds || [];
@@ -111,7 +113,8 @@ export function useRoleMenuDialog() {
     setSaving(true);
     setError(null);
     try {
-      await systemApi.updateRoleMenus(editingRole.id, Array.from(selectedMenuIds));
+      await apiClient.put(`/system/roles/${editingRole.id}/menus`, { menuIds: Array.from(selectedMenuIds) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.roles.menus(editingRole.id) });
       closeDialog();
       void invalidateRoleList(queryClient);
     } catch (err) {

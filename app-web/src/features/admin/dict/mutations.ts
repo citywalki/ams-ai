@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { dictApi, type DictCategoryPayload, type DictItemPayload, type DictCategory, type DictItem } from '@/utils/api';
+import apiClient from '@/lib/apiClient';
+import type { DictCategoryPayload, DictItemPayload, DictCategory, DictItem } from '@/lib/types';
 import { queryKeys } from '@/lib/queryKeys';
 
 export function useCreateCategory(
@@ -9,7 +10,7 @@ export function useCreateCategory(
 
   return useMutation({
     mutationFn: async (payload: DictCategoryPayload) => {
-      const res = await dictApi.createCategory(payload);
+      const res = await apiClient.post<DictCategory>('/system/dict/categories', payload);
       return res.data;
     },
     onSuccess: () => {
@@ -26,7 +27,7 @@ export function useUpdateCategory(
 
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: DictCategoryPayload }) => {
-      const res = await dictApi.updateCategory(id, payload);
+      const res = await apiClient.put<DictCategory>(`/system/dict/categories/${id}`, payload);
       return res.data;
     },
     onSuccess: () => {
@@ -43,7 +44,7 @@ export function useDeleteCategory(
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await dictApi.deleteCategory(id);
+      await apiClient.delete(`/system/dict/categories/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dict.categories() });
@@ -59,7 +60,7 @@ export function useCreateItem(
 
   return useMutation({
     mutationFn: async ({ categoryId, payload }: { categoryId: string; payload: DictItemPayload }) => {
-      const res = await dictApi.createItem(categoryId, payload);
+      const res = await apiClient.post<DictItem>(`/system/dict/categories/${categoryId}/items`, payload);
       return res.data;
     },
     onSuccess: (_, { categoryId }) => {
@@ -76,7 +77,7 @@ export function useUpdateItem(
 
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; categoryId: string; payload: DictItemPayload }) => {
-      const res = await dictApi.updateItem(id, payload);
+      const res = await apiClient.put<DictItem>(`/system/dict/items/${id}`, payload);
       return res.data;
     },
     onSuccess: (_, { categoryId }) => {
@@ -93,7 +94,7 @@ export function useDeleteItem(
 
   return useMutation({
     mutationFn: async ({ id }: { id: string; categoryId: string }) => {
-      await dictApi.deleteItem(id);
+      await apiClient.delete(`/system/dict/items/${id}`);
     },
     onSuccess: (_, { categoryId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dict.items(categoryId) });

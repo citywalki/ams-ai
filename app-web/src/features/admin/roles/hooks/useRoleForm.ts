@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@tanstack/react-form';
-import { type RoleItem, type RolePayload } from '@/utils/api';
+import { type RoleItem, type RolePayload } from '@/lib/types';
 import { useCreateRole, useUpdateRole } from '../mutations';
 import {
   roleFormSchema,

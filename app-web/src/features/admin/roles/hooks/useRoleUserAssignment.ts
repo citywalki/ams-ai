@@ -1,16 +1,16 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { systemApi, type RoleItem } from '@/utils/api';
+import apiClient from '@/lib/apiClient';
+import type { RoleItem, UserItem } from '@/lib/types';
 import { fetchAllUsers } from '@/features/admin/users/queries';
+import { useAssignUserToRole, useRemoveUserFromRole } from '../mutations';
 
 export function useRoleUserAssignment() {
   const { t } = useTranslation();
 
   const [editingRole, setEditingRole] = useState<RoleItem | null>(null);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [assigning, setAssigning] = useState(false);
-  const [removing, setRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { data: allUsers = [], isLoading: usersLoading } = useQuery({
@@ -21,14 +21,17 @@ export function useRoleUserAssignment() {
 
   const { data: roleUsers = [], isLoading: roleUsersLoading, refetch: refetchRoleUsers } = useQuery({
     queryKey: ['role', editingRole?.id, 'users'],
-    queryFn: async () => {
+    queryFn: async (): Promise<UserItem[]> => {
       if (!editingRole) return [];
-      const response = await systemApi.getRoleUsers(editingRole.id);
-      return Array.isArray(response) ? response : response.data || [];
+      const response = await apiClient.get<UserItem[]>(`/system/roles/${editingRole.id}/users`);
+      return response.data;
     },
     enabled: !!editingRole,
     staleTime: 10000,
   });
+
+  const assignMutation = useAssignUserToRole();
+  const removeMutation = useRemoveUserFromRole();
 
   const loading = usersLoading || roleUsersLoading;
 
@@ -38,10 +41,9 @@ export function useRoleUserAssignment() {
 
   const handleAssignUser = useCallback(async (userId: string) => {
     if (!editingRole) return;
-    setAssigning(true);
     setError(null);
     try {
-      await systemApi.assignUserToRole(editingRole.id, userId);
+      await assignMutation.mutateAsync({ roleId: editingRole.id, userId });
       await refetchRoleUsers();
     } catch (err) {
       setError(
@@ -50,17 +52,14 @@ export function useRoleUserAssignment() {
           : t('pages.roleManagement.messages.assignUserFailed')
       );
       throw err;
-    } finally {
-      setAssigning(false);
     }
-  }, [editingRole, refetchRoleUsers, t]);
+  }, [editingRole, assignMutation, refetchRoleUsers, t]);
 
   const handleRemoveUser = useCallback(async (userId: string) => {
     if (!editingRole) return;
-    setRemoving(true);
     setError(null);
     try {
-      await systemApi.removeUserFromRole(editingRole.id, userId);
+      await removeMutation.mutateAsync({ roleId: editingRole.id, userId });
       await refetchRoleUsers();
     } catch (err) {
       setError(
@@ -69,10 +68,8 @@ export function useRoleUserAssignment() {
           : t('pages.roleManagement.messages.removeUserFailed')
       );
       throw err;
-    } finally {
-      setRemoving(false);
     }
-  }, [editingRole, refetchRoleUsers, t]);
+  }, [editingRole, removeMutation, refetchRoleUsers, t]);
 
   const openAssignment = useCallback((role: RoleItem) => {
     setEditingRole(role);
@@ -94,8 +91,8 @@ export function useRoleUserAssignment() {
     allUsers,
     roleUsers,
     loading,
-    assigning,
-    removing,
+    assigning: assignMutation.isPending,
+    removing: removeMutation.isPending,
     error,
     searchKeyword,
     handleSearchChange,

@@ -32,7 +32,7 @@ import { useUserForm } from '@/features/admin/users/hooks/useUserForm';
 import { useResetPassword } from '@/features/admin/users/hooks/useResetPassword';
 import { UserFormDialog } from '@/features/admin/users/components/UserFormDialog';
 import { ResetPasswordDialog } from '@/features/admin/users/components/ResetPasswordDialog';
-import { type UserItem } from '@/utils/api';
+import { type UserItem } from '@/lib/types';
 
 export default function UserManagementPage() {
   const { t } = useTranslation();

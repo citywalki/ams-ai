@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@tanstack/react-form';
-import { type DictCategory, type DictCategoryPayload } from '@/utils/api';
+import { type DictCategory, type DictCategoryPayload } from '@/lib/types';
 import { useCreateCategory, useUpdateCategory } from '../mutations';
 import {
   dictCategoryFormSchema,

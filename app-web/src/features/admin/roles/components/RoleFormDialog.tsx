@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
-import { type PermissionItem } from '@/utils/api';
+import { type PermissionItem } from '@/lib/types';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type RoleFormData } from '../schemas/role-schema';
 

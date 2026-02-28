@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@tanstack/react-form';
-import { type UserItem, type UserCreatePayload, type UserUpdatePayload } from '@/utils/api';
+import { type UserItem, type UserCreatePayload, type UserUpdatePayload } from '@/lib/types';
 import { useCreateUser, useUpdateUser } from '../mutations';
 import {
   userFormSchema,

@@ -18,7 +18,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import {QueryErrorDisplay} from '@/components/common/QueryErrorDisplay';
-import {menuApi, type MenuItem, type PermissionItem} from '@/utils/api';
+import type { MenuItem, PermissionItem } from '@/lib/types';
+import { useDeleteMenu, useDeletePermission } from '@/features/admin/menus/mutations';
 import {fetchFolders, fetchMenuPermissions, fetchMenusByFolder,} from '@/features/admin/menus/queries';
 import {useMenuForm, usePermissionForm} from '@/features/admin/menus/hooks';
 import {MenuDialog, PermissionDialog} from '@/features/admin/menus/components';
@@ -26,6 +27,8 @@ import {MenuDialog, PermissionDialog} from '@/features/admin/menus/components';
 export default function MenuManagementPage() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const deleteMenuMutation = useDeleteMenu();
+  const deletePermissionMutation = useDeletePermission();
   const [folders, setFolders] = useState<MenuItem[]>([]);
   const [folderSearch, setFolderSearch] = useState('');
   const [selectedFolder, setSelectedFolder] = useState<'root' | MenuItem>('root');
@@ -62,12 +65,10 @@ export default function MenuManagementPage() {
   // Delete menu state
   const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
   const [deleteMenu, setDeleteMenu] = useState<MenuItem | null>(null);
-  const [deleteMenuLoading, setDeleteMenuLoading] = useState(false);
 
   // Delete permission state
   const [deletePermissionOpen, setDeletePermissionOpen] = useState(false);
   const [deletePermission, setDeletePermission] = useState<PermissionItem | null>(null);
-  const [deletePermissionLoading, setDeletePermissionLoading] = useState(false);
 
   const loadFolders = useCallback(async () => {
     setLoading(true);
@@ -249,17 +250,14 @@ export default function MenuManagementPage() {
 
   const handleDeleteMenu = async () => {
     if (!deleteMenu) return;
-    setDeleteMenuLoading(true);
     try {
-      await menuApi.deleteMenu(deleteMenu.id);
+      await deleteMenuMutation.mutateAsync(deleteMenu.id);
       await fetchFolders(queryClient).then(setFolders);
       setDeleteMenuOpen(false);
       setDeleteMenu(null);
       void loadMenus(selectedFolder);
     } catch (err) {
       console.error(err);
-    } finally {
-      setDeleteMenuLoading(false);
     }
   };
 
@@ -280,17 +278,14 @@ export default function MenuManagementPage() {
 
   const handleDeletePermission = async () => {
     if (!deletePermission || !selectedMenuForPermission) return;
-    setDeletePermissionLoading(true);
     try {
-      await menuApi.deletePermission(deletePermission.id);
+      await deletePermissionMutation.mutateAsync({ id: deletePermission.id, menuId: selectedMenuForPermission.id });
       setDeletePermissionOpen(false);
       setDeletePermission(null);
       const data = await fetchMenuPermissions(queryClient, selectedMenuForPermission.id);
       setPermissions(data);
     } catch (err) {
       console.error(err);
-    } finally {
-      setDeletePermissionLoading(false);
     }
   };
 
@@ -592,8 +587,8 @@ export default function MenuManagementPage() {
             <Button variant="outline" onClick={() => setDeleteMenuOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button variant="destructive" onClick={handleDeleteMenu} disabled={deleteMenuLoading}>
-              {deleteMenuLoading ? t('pages.menuManagement.messages.deleting') : t('common.delete')}
+            <Button variant="destructive" onClick={handleDeleteMenu} disabled={deleteMenuMutation.isPending}>
+              {deleteMenuMutation.isPending ? t('pages.menuManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -612,8 +607,8 @@ export default function MenuManagementPage() {
             <Button variant="outline" onClick={() => setDeletePermissionOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button variant="destructive" onClick={handleDeletePermission} disabled={deletePermissionLoading}>
-              {deletePermissionLoading ? t('pages.menuManagement.messages.deleting') : t('common.delete')}
+            <Button variant="destructive" onClick={handleDeletePermission} disabled={deletePermissionMutation.isPending}>
+              {deletePermissionMutation.isPending ? t('pages.menuManagement.messages.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
-import { type DictCategory, type DictItem } from '@/utils/api';
+import { type DictCategory, type DictItem } from '@/lib/types';
 import { graphqlClient } from '@/lib/graphqlClient';
 
 export function fetchCategories(queryClient: QueryClient) {

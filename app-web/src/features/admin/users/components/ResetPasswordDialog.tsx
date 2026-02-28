@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { type UserItem } from '@/utils/api';
+import { type UserItem } from '@/lib/types';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type ResetPasswordFormData } from '../schemas/reset-password-schema';
 

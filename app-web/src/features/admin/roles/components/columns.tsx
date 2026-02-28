@@ -2,7 +2,7 @@ import { Menu, Users, Pencil, Trash2 } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { type RoleItem } from '@/utils/api';
+import { type RoleItem } from '@/lib/types';
 
 interface CreateColumnsOptions {
   t: (key: string, options?: Record<string, unknown>) => string;

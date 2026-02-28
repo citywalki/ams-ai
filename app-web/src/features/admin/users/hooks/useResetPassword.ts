@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@tanstack/react-form';
-import { type UserItem } from '@/utils/api';
+import { type UserItem } from '@/lib/types';
 import { useResetUserPassword } from '../mutations';
 import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas/reset-password-schema';
 

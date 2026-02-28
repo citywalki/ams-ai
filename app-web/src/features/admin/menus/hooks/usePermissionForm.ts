@@ -2,8 +2,9 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { menuApi, type PermissionItem, type PermissionPayload, type MenuItem } from '@/utils/api';
+import type { PermissionItem, PermissionPayload, MenuItem } from '@/lib/types';
 import { invalidateMenuQueries, fetchMenuPermissions } from '../queries';
+import { useCreatePermission, useUpdatePermission } from '../mutations';
 import {
   permissionFormSchema,
   type PermissionFormData,
@@ -31,6 +32,9 @@ export function usePermissionForm(options: UsePermissionFormOptions) {
   const [editingPermission, setEditingPermission] = useState<PermissionItem | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const createMutation = useCreatePermission();
+  const updateMutation = useUpdatePermission();
+
   const form = useForm({
     defaultValues: defaultFormValues,
     validators: {
@@ -55,9 +59,9 @@ export function usePermissionForm(options: UsePermissionFormOptions) {
           buttonType: value.buttonType || undefined,
         };
         if (dialogMode === 'create') {
-          await menuApi.createPermission(payload);
+          await createMutation.mutateAsync(payload);
         } else if (editingPermission) {
-          await menuApi.updatePermission(editingPermission.id, payload);
+          await updateMutation.mutateAsync({ id: editingPermission.id, payload });
         }
         closeDialog();
         void invalidateMenuQueries(queryClient);

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '@tanstack/react-form';
-import { type DictItem, type DictItemPayload } from '@/utils/api';
+import { type DictItem, type DictItemPayload } from '@/lib/types';
 import { useCreateItem, useUpdateItem } from '../mutations';
 import {
   dictItemFormSchema,
