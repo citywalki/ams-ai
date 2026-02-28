@@ -107,6 +107,7 @@ toast.success(t('pages.xManagement.messages.createSuccess'));
 Use `common.*` keys for shared elements:
 - `common.loading`, `common.submit`, `common.cancel`, `common.confirm`
 - `common.save`, `common.delete`, `common.edit`, `common.add`, `common.search`
+- `common.loadFailed`, `common.retry` - For error display components
 
 ## Type Definitions
 
@@ -347,6 +348,76 @@ const toggleRelated = (id: Id) => {
 };
 ```
 
+## Error Handling with QueryErrorDisplay
+
+Use `QueryErrorDisplay` component for lightweight error feedback that preserves UI structure.
+
+### Component Location
+
+`app-web/src/components/common/QueryErrorDisplay.tsx`
+
+### Sizes
+
+| Size | Use Case | Layout |
+|------|----------|--------|
+| `inline` | Tables, sidebars | Horizontal bar with retry button |
+| `card` | Dashboard cards, management pages | Centered with icon and button |
+| `full` | Full-page errors | Large centered display |
+
+### Usage
+
+```tsx
+import { QueryErrorDisplay } from '@/components/common/QueryErrorDisplay';
+
+// In data loading component
+const [error, setError] = useState<Error | null>(null);
+
+// Display inline (table top)
+{error && (
+  <QueryErrorDisplay
+    error={error}
+    onRetry={loadData}
+    size="inline"
+  />
+)}
+
+// Display in card
+{error && (
+  <QueryErrorDisplay
+    error={error}
+    onRetry={loadData}
+    size="card"
+  />
+)}
+```
+
+### Best Practices
+
+1. **Preserve UI structure** - Don't hide the entire component on error
+2. **Show retry option** - Always provide a way to reload data
+3. **Use appropriate size** - Match the error display to the container
+4. **Integrate with loading state** - Show error when loading=false and error!=null
+
+### Pattern for Page Components
+
+```tsx
+// In DataTable wrapper
+<DataTable>
+  {error && <QueryErrorDisplay error={error} onRetry={loadItems} size="inline" />}
+  {!error && <TableContent />}
+</DataTable>
+
+// In Card wrapper
+<Card>
+  <CardHeader>...</CardHeader>
+  <CardContent>
+    {loading && <LoadingSkeleton />}
+    {error && <QueryErrorDisplay error={error} onRetry={loadData} size="card" />}
+    {!loading && !error && <Content />}
+  </CardContent>
+</Card>
+```
+
 ## UI Structure Standard
 
 1. Search card
@@ -383,6 +454,8 @@ import XManagementPage from '@/pages/module/XManagementPage';
 | Ignoring `x-total-count` | Prefer response header, then fallback to body |
 | JS long integer precision issues | Use `string` or `number \| string` for ID fields |
 | Not handling empty page after delete | Go back one page when current page becomes empty |
+| Hiding entire UI on load failure | Use QueryErrorDisplay to preserve structure |
+| Missing retry on error states | Always provide onRetry callback for error recovery |
 
 ## Verification
 

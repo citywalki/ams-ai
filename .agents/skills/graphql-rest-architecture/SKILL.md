@@ -464,6 +464,113 @@ cd app-web && pnpm codegen
 ./gradlew build -x test
 ```
 
+## BigInt Precision Handling
+
+JavaScript cannot precisely represent integers larger than `Number.MAX_SAFE_INTEGER` (2^53-1). Snowflake IDs exceed this limit.
+
+### Frontend Configuration
+
+The project uses `json-bigint` to parse large integers as strings:
+
+```typescript
+// app-web/src/lib/graphqlClient.ts
+import JSONBig from 'json-bigint';
+
+const JSONBigString = JSONBig({ storeAsString: true, useNativeBigInt: false });
+
+export const graphqlClient = new GraphQLClient(getGraphQLUrl(), {
+  fetch: async (input, init) => {
+    const response = await fetch(input, init);
+    const text = await response.text();
+    const data = JSONBigString.parse(text);
+    return new JSONBigResponse(data, response) as unknown as Response;
+  },
+});
+```
+
+### Type Definitions
+
+Always use `string` for ID types to ensure consistency:
+
+```typescript
+// ✅ Correct
+export interface User {
+  id: string;  // Parsed as string from json-bigint
+  name: string;
+}
+
+// ❌ Wrong - Will lose precision
+export interface User {
+  id: number;
+  name: string;
+}
+```
+
+## Batch Source Method Pattern
+
+SmallRye GraphQL does not have `@Batch` annotation. Use method signature for batch loading:
+
+### Problem: N+1 Queries
+
+```java
+// ❌ Single loading - causes N+1 problem
+@Query
+public Set<Role> roles(@Source User user) {
+    return user.getRoles();  // Separate query for each user
+}
+```
+
+### Solution: Batch Loading
+
+```java
+// ✅ Batch loading - single query for all users
+public List<Set<Role>> roles(@Source List<User> users) {
+    List<Long> userIds = users.stream().map(User::getId).toList();
+    Map<Long, Set<Role>> rolesByUserId = loadRolesByUserIds(userIds);
+    
+    return users.stream()
+        .map(u -> rolesByUserId.getOrDefault(u.getId(), Set.of()))
+        .toList();
+}
+
+private Map<Long, Set<Role>> loadRolesByUserIds(List<Long> userIds) {
+    String jpql = "SELECT u.id, r FROM User u JOIN u.roles r WHERE u.id IN :userIds";
+    List<Object[]> results = session.createQuery(jpql, Object[].class)
+        .setParameter("userIds", userIds)
+        .getResultList();
+    
+    Map<Long, Set<Role>> map = new HashMap<>();
+    for (Object[] row : results) {
+        Long userId = (Long) row[0];
+        Role role = (Role) row[1];
+        map.computeIfAbsent(userId, k -> new HashSet<>()).add(role);
+    }
+    return map;
+}
+```
+
+### Entity Configuration
+
+Use `@Ignore` to prevent automatic field exposure:
+
+```java
+@Entity
+public class User extends BaseEntity {
+    @ManyToMany(fetch = FetchType.LAZY)
+    @Ignore  // Prevent auto-exposure in GraphQL
+    public Set<Role> roles = new HashSet<>();
+}
+```
+
+### When to Use Batch Loading
+
+| Relationship | Use Batch | Reason |
+|-------------|-----------|--------|
+| User → Roles | Yes | Many-to-many, frequently accessed |
+| Menu → Children | Yes | Tree structure, recursive |
+| Role → Permissions | Yes | Many-to-many |
+| Entity → Single Ref | Optional | One-to-one, single query |
+
 ## Checklist for New Module
 
 - [ ] Backend: Create Connection type
