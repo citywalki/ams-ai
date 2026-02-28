@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.system;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -47,6 +48,7 @@ public class Permission extends BaseEntity {
    */
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "menu_id")
+  @Ignore
   public Menu menu;
 
   /*

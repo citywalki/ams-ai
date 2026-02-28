@@ -100,6 +100,7 @@ public class Menu extends BaseEntity {
    * 子菜单列表
    */
   @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @Ignore
   public List<Menu> children = new ArrayList<>();
 
   /*
@@ -107,12 +108,14 @@ public class Menu extends BaseEntity {
    */
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_id", insertable = false, updatable = false)
+  @Ignore
   public Menu parent;
 
   /*
    * 菜单下的按钮权限列表
    */
   @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY)
+  @Ignore
   public List<Permission> buttonPermissions = new ArrayList<>();
 
   /*

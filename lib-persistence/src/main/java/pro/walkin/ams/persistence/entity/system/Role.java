@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.system;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -50,6 +51,7 @@ public class Role extends BaseEntity {
       name = "role_permissions",
       joinColumns = @JoinColumn(name = "role_id"),
       inverseJoinColumns = @JoinColumn(name = "permission_id"))
+  @Ignore
   public Set<Permission> permissions = new HashSet<>();
 
   /*
