@@ -24,7 +24,7 @@ export function useRoleUserAssignment() {
     queryFn: async () => {
       if (!editingRole) return [];
       const response = await systemApi.getRoleUsers(editingRole.id);
-      return Array.isArray(response) ? response : (response as any).data || [];
+      return Array.isArray(response) ? response : response.data || [];
     },
     enabled: !!editingRole,
     staleTime: 10000,
