@@ -49,7 +49,8 @@
     "resolved": "Resolved",
     "todayNew": "Today New",
     "recentAlarms": "Recent Alarms",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "loadFailed": "Failed to load alarm data"
   },
   "layout": {
     "notifications": "Notifications",

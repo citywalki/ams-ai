@@ -1,21 +1,10 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Bell, Clock, CheckCircle, AlertTriangle, TrendingUp, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import apiClient from '@/utils/api';
-
-type Alarm = {
-  id: string;
-  title: string;
-  severity: string;
-  status: string;
-  createdAt: string;
-};
-
-type AlarmPage = { content?: Alarm[]; items?: Alarm[] };
+import { useAlarms } from '@/hooks/useAlarms';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -31,25 +20,8 @@ const cardVariants = {
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const [alarms, setAlarms] = useState<Alarm[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchAlarms = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await apiClient.get<AlarmPage>('/alerts');
-        setAlarms(res.data.content ?? res.data.items ?? []);
-      } catch {
-        setError('Failed to load alarms');
-      } finally {
-        setLoading(false);
-      }
-    };
-    void fetchAlarms();
-  }, []);
+  const { data: alarmData, isLoading: loading, error } = useAlarms(0, 100);
+  const alarms = alarmData?.content ?? [];
 
   const stats = [
     {
@@ -169,7 +141,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : error ? (
-            <div className="text-center py-8 text-muted-foreground">{error}</div>
+            <div className="text-center py-8 text-muted-foreground">{t('dashboard.loadFailed')}</div>
           ) : alarms.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />

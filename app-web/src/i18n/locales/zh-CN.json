@@ -49,7 +49,8 @@
     "resolved": "已解决",
     "todayNew": "今日新增",
     "recentAlarms": "最近告警",
-    "viewAll": "查看全部"
+    "viewAll": "查看全部",
+    "loadFailed": "加载告警数据失败"
   },
   "layout": {
     "notifications": "通知",
