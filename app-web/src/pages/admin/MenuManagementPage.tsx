@@ -17,7 +17,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {Alert, AlertDescription} from '@/components/ui/alert';
+import {QueryErrorDisplay} from '@/components/common/QueryErrorDisplay';
 import {menuApi, type MenuItem, type PermissionItem} from '@/utils/api';
 import {fetchFolders, fetchMenuPermissions, fetchMenusByFolder,} from '@/features/admin/menus/queries';
 import {useMenuForm, usePermissionForm} from '@/features/admin/menus/hooks';
@@ -334,9 +334,7 @@ export default function MenuManagementPage() {
               ))}
             </div>
           ) : error ? (
-            <Alert variant="destructive" className="mx-6">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <QueryErrorDisplay error={new Error(error)} onRetry={() => void loadFolders()} size="card" />
           ) : (
             <ScrollArea className="h-full">
               <div className="px-6 py-2 space-y-1">
