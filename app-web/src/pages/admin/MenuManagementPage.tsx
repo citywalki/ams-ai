@@ -105,13 +105,29 @@ export default function MenuManagementPage() {
       map.set(item.id, { ...item, children: [] });
     });
 
+    const isAncestor = (nodeId: string, potentialAncestorId: string): boolean => {
+      let currentId: string | undefined = potentialAncestorId;
+      const seen = new Set<string>();
+      while (currentId) {
+        if (currentId === nodeId) return true;
+        if (seen.has(currentId)) break;
+        seen.add(currentId);
+        currentId = map.get(currentId)?.parentId;
+      }
+      return false;
+    };
+
     const rootItems: MenuItem[] = [];
     menuItems.forEach(item => {
       const node = map.get(item.id)!;
       if (item.parentId && map.has(item.parentId)) {
-        const parent = map.get(item.parentId)!;
-        if (!parent.children) parent.children = [];
-        parent.children.push(node);
+        if (!isAncestor(item.id, item.parentId)) {
+          const parent = map.get(item.parentId)!;
+          if (!parent.children) parent.children = [];
+          parent.children.push(node);
+        } else {
+          rootItems.push(node);
+        }
       } else {
         rootItems.push(node);
       }
@@ -132,7 +148,11 @@ export default function MenuManagementPage() {
     });
   };
 
-  const renderTreeItem = (item: MenuItem, level: number = 0) => {
+  const renderTreeItem = (item: MenuItem, level: number = 0, visited: Set<string> = new Set()): JSX.Element | null => {
+    if (level > 20 || visited.has(item.id)) {
+      return null;
+    }
+    visited.add(item.id);
     const isFolder = item.menuType === 'FOLDER';
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedFolders.has(item.id);
@@ -208,7 +228,7 @@ export default function MenuManagementPage() {
         </div>
         {isFolder && isExpanded && hasChildren && (
           <div className="space-y-1">
-            {item.children!.map(child => renderTreeItem(child, level + 1))}
+            {item.children!.map(child => renderTreeItem(child, level + 1, visited))}
           </div>
         )}
       </div>
