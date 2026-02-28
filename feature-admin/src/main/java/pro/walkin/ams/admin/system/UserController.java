@@ -14,7 +14,6 @@ import pro.walkin.ams.common.dto.UserUpdateDto;
 import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.common.security.util.SecurityUtils;
 
-import java.util.List;
 import java.util.Map;
 
 @Path("/api/system/users")
@@ -23,30 +22,6 @@ import java.util.Map;
 public class UserController {
 
   @Inject UserService userService;
-
-  @GET
-  @RequireRole("ADMIN")
-  public Response findAll(
-      @QueryParam("page") @DefaultValue("0") int page,
-      @QueryParam("size") @DefaultValue("20") int size,
-      @QueryParam("username") String username,
-      @QueryParam("email") String email,
-      @QueryParam("status") String status,
-      @QueryParam("sortBy") @DefaultValue("createdAt") String sortBy,
-      @QueryParam("sortOrder") @DefaultValue("DESC") String sortOrder) {
-    List<UserResponseDto> users =
-        userService.findAll(username, email, status, sortBy, sortOrder, page, size);
-    long totalCount = userService.count(username, email, status);
-    long totalPages = (long) Math.ceil((double) totalCount / size);
-    return ResponseBuilder.page(users, totalCount, totalPages, page, size);
-  }
-
-  @GET
-  @Path("/{id}")
-  @RequireRole("ADMIN")
-  public Response findById(@PathParam("id") Long id) {
-    return ResponseBuilder.of(userService.findById(id));
-  }
 
   @POST
   @RequireRole("ADMIN")

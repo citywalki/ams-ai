@@ -34,7 +34,8 @@ public class DictCategoryCriteriaTranslator {
     return query;
   }
 
-  public static CriteriaQuery<Long> translateCount(CriteriaBuilder builder, DictCategoryFilterInput where) {
+  public static CriteriaQuery<Long> translateCount(
+      CriteriaBuilder builder, DictCategoryFilterInput where) {
     CriteriaQuery<Long> query = builder.createQuery(Long.class);
     Root<DictCategory> root = query.from(DictCategory.class);
 
@@ -53,11 +54,15 @@ public class DictCategoryCriteriaTranslator {
   }
 
   private static void addPredicates(
-      CriteriaBuilder builder, Root<DictCategory> root, DictCategoryFilterInput filter, List<Predicate> predicates) {
+      CriteriaBuilder builder,
+      Root<DictCategory> root,
+      DictCategoryFilterInput filter,
+      List<Predicate> predicates) {
     CriteriaFilterHelper.addLongPredicate(builder, root, "id", filter.id, predicates);
     CriteriaFilterHelper.addStringPredicate(builder, root, "code", filter.code, predicates);
     CriteriaFilterHelper.addStringPredicate(builder, root, "name", filter.name, predicates);
-    CriteriaFilterHelper.addStringPredicate(builder, root, "description", filter.description, predicates);
+    CriteriaFilterHelper.addStringPredicate(
+        builder, root, "description", filter.description, predicates);
     CriteriaFilterHelper.addIntPredicate(builder, root, "sort", filter.sort, predicates);
     CriteriaFilterHelper.addIntPredicate(builder, root, "status", filter.status, predicates);
 

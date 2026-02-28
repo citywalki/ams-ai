@@ -53,14 +53,18 @@ public class MenuCriteriaTranslator {
   }
 
   private static void addPredicates(
-      CriteriaBuilder builder, Root<Menu> root, MenuFilterInput filter, List<Predicate> predicates) {
+      CriteriaBuilder builder,
+      Root<Menu> root,
+      MenuFilterInput filter,
+      List<Predicate> predicates) {
     CriteriaFilterHelper.addLongPredicate(builder, root, "id", filter.id, predicates);
     CriteriaFilterHelper.addStringPredicate(builder, root, "key", filter.key, predicates);
     CriteriaFilterHelper.addStringPredicate(builder, root, "label", filter.label, predicates);
     CriteriaFilterHelper.addStringPredicate(builder, root, "route", filter.route, predicates);
     CriteriaFilterHelper.addLongPredicate(builder, root, "parentId", filter.parentId, predicates);
     CriteriaFilterHelper.addEnumPredicate(builder, root, "menuType", filter.menuType, predicates);
-    CriteriaFilterHelper.addBooleanPredicate(builder, root, "isVisible", filter.isVisible, predicates);
+    CriteriaFilterHelper.addBooleanPredicate(
+        builder, root, "isVisible", filter.isVisible, predicates);
 
     if (filter._and != null && !filter._and.isEmpty()) {
       List<Predicate> andPredicates = new ArrayList<>();

@@ -6,13 +6,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.common.dto.DictCategoryDto;
-import pro.walkin.ams.common.dto.DictCategoryResponse;
 import pro.walkin.ams.common.dto.DictItemDto;
-import pro.walkin.ams.common.dto.DictItemResponse;
 import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.common.security.annotation.RequireRole;
-
-import java.util.List;
 
 @Path("/api/system/dict/categories")
 @Produces(MediaType.APPLICATION_JSON)
@@ -22,24 +18,6 @@ public class DictCategoryController {
   @Inject DictCategoryService categoryService;
 
   @Inject DictItemService itemService;
-
-  @GET
-  @Path("/{id}/items")
-  @RequireRole("ADMIN")
-  public Response findItemsByCategory(@PathParam("id") Long categoryId) {
-    Long tenantId = TenantContext.getCurrentTenantId();
-    List<DictItemResponse> items = itemService.getByCategoryId(categoryId, tenantId);
-    return ResponseBuilder.of(items);
-  }
-
-  @GET
-  @Path("/{id}/items/tree")
-  @RequireRole("ADMIN")
-  public Response findItemTreeByCategory(@PathParam("id") Long categoryId) {
-    Long tenantId = TenantContext.getCurrentTenantId();
-    List<DictItemResponse> items = itemService.getTreeByCategoryId(categoryId, tenantId);
-    return ResponseBuilder.of(items);
-  }
 
   @POST
   @Path("/{id}/items")
@@ -59,22 +37,6 @@ public class DictCategoryController {
                 dto.status(),
                 dto.remark());
     return ResponseBuilder.of(itemService.create(payload, tenantId));
-  }
-
-  @GET
-  @RequireRole("ADMIN")
-  public Response findAll() {
-    Long tenantId = TenantContext.getCurrentTenantId();
-    List<DictCategoryResponse> categories = categoryService.getAllCategories(tenantId);
-    return ResponseBuilder.of(categories);
-  }
-
-  @GET
-  @Path("/{id}")
-  @RequireRole("ADMIN")
-  public Response findById(@PathParam("id") Long id) {
-    Long tenantId = TenantContext.getCurrentTenantId();
-    return ResponseBuilder.of(categoryService.getById(id, tenantId));
   }
 
   @POST

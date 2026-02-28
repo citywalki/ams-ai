@@ -6,7 +6,6 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.admin.system.service.MenuService;
 import pro.walkin.ams.admin.system.service.RbacService;
 import pro.walkin.ams.common.dto.*;
@@ -15,7 +14,6 @@ import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.common.security.util.SecurityUtils;
 import pro.walkin.ams.persistence.entity.system.Menu;
 import pro.walkin.ams.persistence.entity.system.Permission;
-import pro.walkin.ams.persistence.entity.system.Permission.Repo;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,32 +28,6 @@ public class PermissionController {
   @Inject RbacService rbacService;
 
   @Inject MenuService menuService;
-
-  @Inject Repo permissionRepo;
-
-  @GET
-  @RequireRole("ADMIN")
-  public Response findAll(
-      @QueryParam("page") @DefaultValue("0") int page,
-      @QueryParam("size") @DefaultValue("20") int size,
-      @QueryParam("sortBy") @DefaultValue("createdAt") String sortBy,
-      @QueryParam("sortOrder") @DefaultValue("DESC") String sortOrder) {
-
-    List<Permission> permissions = permissionService.findAll(page, size, sortBy, sortOrder);
-    List<PermissionResponseDto> permissionDtos =
-        permissions.stream().map(this::convertToResponseDto).collect(Collectors.toList());
-    long totalCount = permissionService.count();
-    long totalPages = (long) Math.ceil((double) totalCount / size);
-
-    return ResponseBuilder.page(permissionDtos, totalCount, totalPages, page, size);
-  }
-
-  @Path("/{id}")
-  @GET
-  @RequireRole("ADMIN")
-  public Response findOne(@PathParam("id") Long id) {
-    return ResponseBuilder.of(permissionService.findById(id).map(this::convertToResponseDto));
-  }
 
   @POST
   @RequireRole("ADMIN")
@@ -138,16 +110,6 @@ public class PermissionController {
     Long tenantId = TenantContext.getCurrentTenantId();
     Set<String> userPermissions = rbacService.getUserPermissions(userId, tenantId);
     return Response.ok(userPermissions).build();
-  }
-
-  @Path("/menu/{menuId}")
-  @GET
-  @RequireRole("ADMIN")
-  public Response getMenuPermissions(@PathParam("menuId") Long menuId) {
-    List<Permission> permissions = permissionRepo.listByMenuId(menuId);
-    List<PermissionResponseDto> permissionDtos =
-        permissions.stream().map(this::convertToResponseDto).collect(Collectors.toList());
-    return Response.ok(permissionDtos).build();
   }
 
   @Path("/user/menu/{menuCode}")

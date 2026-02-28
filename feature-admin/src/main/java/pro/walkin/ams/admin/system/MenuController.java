@@ -23,68 +23,6 @@ public class MenuController {
 
   @Inject MenuService menuService;
 
-  // 注意: 不需要显式注入JWTCallerPrincipal，而是通过SecurityContext获取
-
-  /** 获取所有菜单（分页） */
-  @GET
-  @RequireRole("ADMIN")
-  public Response findAll(
-      @QueryParam("page") @DefaultValue("0") int page,
-      @QueryParam("size") @DefaultValue("20") int size,
-      @QueryParam("parentId") Long parentId,
-      @QueryParam("root") @DefaultValue("false") boolean root) {
-
-    Long tenantId = TenantContext.getCurrentTenantId();
-
-    List<MenuResponseDto> menus;
-    if (root) {
-      // 获取顶级菜单（parentId IS NULL）
-      menus = menuService.getMenusByParentId(null, tenantId);
-    } else if (parentId != null) {
-      menus = menuService.getMenusByParentId(parentId, tenantId);
-    } else {
-      menus = menuService.getAllMenus(tenantId);
-    }
-
-    long totalCount = menus.size();
-    long totalPages = Math.max(1, (totalCount + size - 1) / size);
-
-    int startIndex = page * size;
-    int endIndex = Math.min(startIndex + size, menus.size());
-    List<MenuResponseDto> pagedMenus = menus.subList(startIndex, endIndex);
-
-    return ResponseBuilder.page(pagedMenus, totalCount, totalPages, page, size);
-  }
-
-  /** 获取所有文件夹 */
-  @Path("/folders")
-  @GET
-  @RequireRole("ADMIN")
-  public Response getFolders() {
-    Long tenantId = TenantContext.getCurrentTenantId();
-    List<MenuResponseDto> folders = menuService.getFolders(tenantId);
-    return ResponseBuilder.of(folders);
-  }
-
-  /** 获取完整菜单树（用于角色菜单关联） */
-  @Path("/tree")
-  @GET
-  @RequireRole("ADMIN")
-  public Response getMenuTree() {
-    Long tenantId = TenantContext.getCurrentTenantId();
-    List<MenuResponseDto> menuTree = menuService.getMenuTree(tenantId);
-    return ResponseBuilder.of(menuTree);
-  }
-
-  /** 获取单个菜单 */
-  @Path("/{id}")
-  @GET
-  @RequireRole("ADMIN")
-  public Response findOne(@PathParam("id") Long id) {
-    Long tenantId = TenantContext.getCurrentTenantId();
-    return ResponseBuilder.of(menuService.getMenuById(id, tenantId));
-  }
-
   /** 创建菜单 */
   @POST
   @RequireRole("ADMIN")
@@ -118,15 +56,9 @@ public class MenuController {
   @Path("/user")
   @GET
   public Response getUserMenus(@Context SecurityContext securityContext) {
-    // 从安全上下文获取用户ID
     Long userId = SecurityUtils.getUserIdFromSecurityContext(securityContext);
-
-    // 获取租户ID
     Long tenantId = TenantContext.getCurrentTenantId();
-
-    // 获取用户有权限的菜单
     List<MenuResponseDto> userMenus = menuService.getUserMenus(userId, tenantId);
-
     return ResponseBuilder.of(userMenus);
   }
 }

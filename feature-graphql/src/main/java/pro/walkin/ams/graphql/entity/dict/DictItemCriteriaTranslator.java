@@ -34,7 +34,8 @@ public class DictItemCriteriaTranslator {
     return query;
   }
 
-  public static CriteriaQuery<Long> translateCount(CriteriaBuilder builder, DictItemFilterInput where) {
+  public static CriteriaQuery<Long> translateCount(
+      CriteriaBuilder builder, DictItemFilterInput where) {
     CriteriaQuery<Long> query = builder.createQuery(Long.class);
     Root<DictItem> root = query.from(DictItem.class);
 
@@ -53,9 +54,13 @@ public class DictItemCriteriaTranslator {
   }
 
   private static void addPredicates(
-      CriteriaBuilder builder, Root<DictItem> root, DictItemFilterInput filter, List<Predicate> predicates) {
+      CriteriaBuilder builder,
+      Root<DictItem> root,
+      DictItemFilterInput filter,
+      List<Predicate> predicates) {
     CriteriaFilterHelper.addLongPredicate(builder, root, "id", filter.id, predicates);
-    CriteriaFilterHelper.addLongPredicate(builder, root, "categoryId", filter.categoryId, predicates);
+    CriteriaFilterHelper.addLongPredicate(
+        builder, root, "categoryId", filter.categoryId, predicates);
     CriteriaFilterHelper.addLongPredicate(builder, root, "parentId", filter.parentId, predicates);
     CriteriaFilterHelper.addStringPredicate(builder, root, "code", filter.code, predicates);
     CriteriaFilterHelper.addStringPredicate(builder, root, "name", filter.name, predicates);

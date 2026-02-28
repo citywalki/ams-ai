@@ -34,7 +34,8 @@ public class DictGraphQLApi {
 
     CriteriaBuilder builder = session.getCriteriaBuilder();
 
-    CriteriaQuery<DictCategory> query = DictCategoryCriteriaTranslator.translate(builder, where, orderBy);
+    CriteriaQuery<DictCategory> query =
+        DictCategoryCriteriaTranslator.translate(builder, where, orderBy);
     List<DictCategory> categories =
         session.createQuery(query).setFirstResult(page * size).setMaxResults(size).getResultList();
 

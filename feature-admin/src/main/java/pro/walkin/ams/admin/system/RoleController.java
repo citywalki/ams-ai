@@ -7,7 +7,6 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import pro.walkin.ams.admin.common.ResponseBuilder;
 import pro.walkin.ams.admin.system.service.MenuService;
 import pro.walkin.ams.admin.system.service.RbacService;
 import pro.walkin.ams.common.dto.*;
@@ -30,31 +29,6 @@ public class RoleController {
   @Inject MenuService menuService;
 
   @Inject RbacService rbacService;
-
-  @GET
-  @RequireRole("ADMIN")
-  public Response findAll(
-      @QueryParam("page") @DefaultValue("0") int page,
-      @QueryParam("size") @DefaultValue("20") int size,
-      @QueryParam("keyword") String keyword,
-      @QueryParam("sortBy") @DefaultValue("createdAt") String sortBy,
-      @QueryParam("sortOrder") @DefaultValue("DESC") String sortOrder) {
-
-    List<Role> roles = roleService.findAll(page, size, keyword, sortBy, sortOrder);
-    List<RoleResponseDto> roleDtos =
-        roles.stream().map(this::convertToResponseDto).collect(Collectors.toList());
-    long totalCount = roleService.count(keyword);
-    long totalPages = (long) Math.ceil((double) totalCount / size);
-
-    return ResponseBuilder.page(roleDtos, totalCount, totalPages, page, size);
-  }
-
-  @Path("/{id}")
-  @GET
-  @RequireRole("ADMIN")
-  public Response findOne(@PathParam("id") Long id) {
-    return ResponseBuilder.of(roleService.findById(id).map(this::convertToResponseDto));
-  }
 
   @POST
   @RequireRole("ADMIN")
@@ -114,17 +88,6 @@ public class RoleController {
   }
 
   @Path("/{id}/permissions")
-  @GET
-  @RequireRole("ADMIN")
-  public Response getRolePermissions(@PathParam("id") Long id) {
-    List<Permission> permissions = roleService.getRolePermissions(id);
-    List<PermissionResponseDto> permissionDtos =
-        permissions.stream().map(this::convertToPermissionResponseDto).collect(Collectors.toList());
-
-    return Response.ok(permissionDtos).build();
-  }
-
-  @Path("/{id}/permissions")
   @POST
   @RequireRole("ADMIN")
   public Response addPermissionToRole(@PathParam("id") Long roleId, PermissionDto permissionDto) {
@@ -158,15 +121,6 @@ public class RoleController {
     return Response.ok(userRoles).build();
   }
 
-  /** 获取角色关联的菜单ID列表 */
-  @Path("/{id}/menus")
-  @GET
-  @RequireRole("ADMIN")
-  public Response getRoleMenus(@PathParam("id") Long id) {
-    List<Long> menuIds = roleService.getRoleMenus(id);
-    return Response.ok(Map.of("menuIds", menuIds)).build();
-  }
-
   /** 更新角色的菜单访问权限 */
   @Path("/{id}/menus")
   @PUT
@@ -179,15 +133,6 @@ public class RoleController {
     menuService.invalidateAllMenuCaches();
 
     return Response.ok().build();
-  }
-
-  /** 获取角色关联的用户列表 */
-  @Path("/{roleId}/users")
-  @GET
-  @RequireRole("ADMIN")
-  public Response getUsersByRole(@PathParam("roleId") Long roleId) {
-    RoleUsersResponseDto response = roleService.getUsersByRole(roleId);
-    return Response.ok(response).build();
   }
 
   /** 分配用户到角色 */

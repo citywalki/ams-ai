@@ -350,10 +350,7 @@ public final class CriteriaFilterHelper {
   }
 
   public static <T> void applyOrderBy(
-      CriteriaBuilder builder,
-      CriteriaQuery<T> query,
-      Root<T> root,
-      List<OrderByInput> orderBy) {
+      CriteriaBuilder builder, CriteriaQuery<T> query, Root<T> root, List<OrderByInput> orderBy) {
     if (orderBy == null || orderBy.isEmpty()) {
       return;
     }

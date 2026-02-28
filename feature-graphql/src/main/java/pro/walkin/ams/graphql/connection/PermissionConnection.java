@@ -1,22 +1,21 @@
 package pro.walkin.ams.graphql.connection;
 
 import org.eclipse.microprofile.graphql.Type;
-import pro.walkin.ams.persistence.entity.system.DictCategory;
+import pro.walkin.ams.persistence.entity.system.Permission;
 
 import java.util.List;
 
-@Type("DictCategoryConnection")
-public class DictCategoryConnection {
-  private List<DictCategory> content;
+@Type("PermissionConnection")
+public class PermissionConnection {
+  private List<Permission> content;
   private long totalElements;
   private int totalPages;
   private int page;
   private int size;
 
-  public DictCategoryConnection() {}
+  public PermissionConnection() {}
 
-  public DictCategoryConnection(
-      List<DictCategory> content, long totalElements, int page, int size) {
+  public PermissionConnection(List<Permission> content, long totalElements, int page, int size) {
     this.content = content;
     this.totalElements = totalElements;
     this.page = page;
@@ -24,11 +23,11 @@ public class DictCategoryConnection {
     this.totalPages = size > 0 ? (int) Math.ceil((double) totalElements / size) : 0;
   }
 
-  public List<DictCategory> getContent() {
+  public List<Permission> getContent() {
     return content;
   }
 
-  public void setContent(List<DictCategory> content) {
+  public void setContent(List<Permission> content) {
     this.content = content;
   }
 

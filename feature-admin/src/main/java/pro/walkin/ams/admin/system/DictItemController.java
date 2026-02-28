@@ -16,14 +16,6 @@ public class DictItemController {
 
   @Inject DictItemService itemService;
 
-  @GET
-  @Path("/items/{id}")
-  @RequireRole("ADMIN")
-  public Response findById(@PathParam("id") Long id) {
-    Long tenantId = TenantContext.getCurrentTenantId();
-    return ResponseBuilder.of(itemService.getById(id, tenantId));
-  }
-
   @PUT
   @Path("/items/{id}")
   @RequireRole("ADMIN")
