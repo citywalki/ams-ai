@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAlarms } from '@/hooks/useAlarms';
+import { QueryErrorDisplay } from '@/components/common/QueryErrorDisplay';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -20,7 +21,7 @@ const cardVariants = {
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { data: alarmData, isLoading: loading, error } = useAlarms(0, 100);
+  const { data: alarmData, isLoading: loading, error, refetch } = useAlarms(0, 100);
   const alarms = alarmData?.content ?? [];
 
   const stats = [
@@ -141,7 +142,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : error ? (
-            <div className="text-center py-8 text-muted-foreground">{t('dashboard.loadFailed')}</div>
+            <QueryErrorDisplay error={error} onRetry={() => refetch()} size="card" />
           ) : alarms.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
