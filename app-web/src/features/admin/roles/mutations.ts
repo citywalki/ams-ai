@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { systemApi, type RolePayload, type RoleItem, type UserItem } from '@/utils/api';
+import { systemApi, type RolePayload, type RoleItem } from '@/utils/api';
 import { queryKeys } from '@/lib/queryKeys';
 
 export function useCreateRole(

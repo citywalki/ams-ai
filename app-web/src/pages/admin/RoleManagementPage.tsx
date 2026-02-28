@@ -41,7 +41,6 @@ export default function RoleManagementPage() {
     dialogMode,
     form,
     formError,
-    editingRole,
     openCreateDialog,
     openEditDialog,
     closeDialog: closeFormDialog,

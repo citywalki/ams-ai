@@ -1,9 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { systemApi, type UserItem, type UserCreatePayload, type UserUpdatePayload } from '@/utils/api';
-import { invalidateUserList } from '../queries';
+import { type UserItem, type UserCreatePayload, type UserUpdatePayload } from '@/utils/api';
 import { useCreateUser, useUpdateUser } from '../mutations';
 import {
   userFormSchema,
@@ -20,7 +18,6 @@ const defaultFormValues: UserFormData = {
 
 export function useUserForm() {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');

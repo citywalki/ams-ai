@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Pencil, Trash2, Key, Search, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -65,10 +65,6 @@ export default function UserManagementPage() {
     setQueryStatus('all');
     void invalidateUserList(queryClient);
   };
-
-  const refreshData = useCallback(() => {
-    void invalidateUserList(queryClient);
-  }, [queryClient]);
 
   const openDeleteDialog = (user: UserItem) => {
     setDeleteUser(user);

@@ -1,11 +1,8 @@
 import { useState, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { type RoleItem } from '@/utils/api';
 import { useDeleteRole } from '../mutations';
 
 export function useRoleDelete() {
-  const { t } = useTranslation();
-
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteRole, setDeleteRole] = useState<RoleItem | null>(null);
 

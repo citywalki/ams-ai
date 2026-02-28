@@ -1,4 +1,4 @@
-import { Search, Plus, X, User, Loader2 } from 'lucide-react';
+import { Search, Plus, X, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ interface RoleUserAssignmentProps {
 }
 
 export function RoleUserAssignment({
-  roleId,
   allUsers,
   roleUsers,
   loading,
