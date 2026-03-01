@@ -20,7 +20,7 @@ status: validated
 | 语言 | TypeScript | 5.x (strict mode) |
 | 构建工具 | Vite | 5.x |
 | UI 组件库 | Ant Design | 6.x |
-| 图标 | Lucide React | latest |
+| 图标 | @ant-design/icons | 6.x |
 | 状态管理 | Zustand | 4.x |
 | 数据获取 | TanStack Query | 5.x |
 | 表格 | TanStack Table | 8.x |
@@ -37,7 +37,6 @@ status: validated
 ```json
 {
   "@playwright/test": "^1.58.0",
-  "msw": "^2.12.0",
   "eslint": "^8.55.0",
   "typescript": "^5.2.0",
   "vite": "^5.0.0",
@@ -94,7 +93,6 @@ src/
 ├── services/                   # API 服务封装
 ├── contexts/                   # React Context
 ├── styles/                     # 全局样式
-├── mocks/                      # MSW Mock
 └── i18n/                       # 国际化
 ```
 
