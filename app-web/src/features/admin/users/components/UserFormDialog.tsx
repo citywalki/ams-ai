@@ -81,6 +81,7 @@ export function UserFormDialog({
                   <FormLabel required>{t('pages.userManagement.form.username')}</FormLabel>
                   <FormControl>
                     <Input
+                      id="username"
                       value={field.state.value as string}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
@@ -96,6 +97,7 @@ export function UserFormDialog({
                   <FormLabel>{t('pages.userManagement.form.email')}</FormLabel>
                   <FormControl>
                     <Input
+                      id="email"
                       type="email"
                       value={field.state.value as string}
                       onChange={(e) => field.handleChange(e.target.value)}
@@ -112,6 +114,7 @@ export function UserFormDialog({
                     <FormLabel required>{t('pages.userManagement.form.password')}</FormLabel>
                     <FormControl>
                       <Input
+                        id="password"
                         type="password"
                         value={field.state.value as string}
                         onChange={(e) => field.handleChange(e.target.value)}

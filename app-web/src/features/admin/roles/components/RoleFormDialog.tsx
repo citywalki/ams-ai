@@ -81,6 +81,7 @@ export function RoleFormDialog({
                     <FormLabel required>{t('pages.roleManagement.form.code')}</FormLabel>
                     <FormControl>
                       <Input
+                        id="code"
                         value={field.state.value as string}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
@@ -97,6 +98,7 @@ export function RoleFormDialog({
                     <FormLabel required>{t('pages.roleManagement.form.name')}</FormLabel>
                     <FormControl>
                       <Input
+                        id="name"
                         value={field.state.value as string}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
@@ -114,6 +116,7 @@ export function RoleFormDialog({
                   <FormLabel>{t('pages.roleManagement.form.description')}</FormLabel>
                   <FormControl>
                     <Input
+                      id="description"
                       value={field.state.value as string}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}

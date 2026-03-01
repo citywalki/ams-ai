@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
+  // Baseline refresh: pnpm exec playwright test e2e/visual-regression.spec.ts --update-snapshots
   testDir: './e2e',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -12,6 +13,14 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    reducedMotion: 'reduce',
+  },
+  expect: {
+    toHaveScreenshot: {
+      animations: 'disabled',
+      caret: 'hide',
+      maxDiffPixelRatio: 0.01,
+    },
   },
   projects: [
     {
@@ -20,8 +29,16 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'mobile-chromium',
+      use: {
+        ...devices['Pixel 5'],
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
@@ -30,7 +47,7 @@ export default defineConfig({
   webServer: {
     command: 'pnpm dev',
     url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120 * 1000,
   },
 });

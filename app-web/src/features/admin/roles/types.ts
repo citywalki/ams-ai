@@ -1,3 +1,5 @@
+import { type MenuItem } from '@/lib/types';
+
 export type RoleSearchState = {
   keyword: string;
   queryKeyword: string;
@@ -9,7 +11,7 @@ export const initialSearchState: RoleSearchState = {
 };
 
 export type MenuTreeState = {
-  menuTree: import('@/utils/api').MenuItem[];
+  menuTree: MenuItem[];
   selectedMenuIds: Set<string>;
   expandedFolders: Set<string>;
 };

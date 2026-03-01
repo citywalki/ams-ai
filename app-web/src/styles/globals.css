@@ -1,29 +1,40 @@
 @import "tailwindcss";
 
+:root {
+  --app-color-bg: #f4f7fb;
+  --app-color-surface: #ffffff;
+  --app-color-text: #1f2a37;
+  --app-color-text-muted: #637083;
+  --app-color-primary: #1677ff;
+  --app-color-border: #d9e3f0;
+  --app-color-danger: #ff4d4f;
+  --app-radius-base: 8px;
+}
+
 @theme {
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(221.2 83.2% 53.3%);
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 84% 4.9%);
-  --color-primary: hsl(221.2 83.2% 53.3%);
-  --color-primary-foreground: hsl(210 40% 98%);
-  --color-secondary: hsl(210 40% 96.1%);
-  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --color-muted: hsl(210 40% 96.1%);
-  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
-  --color-accent: hsl(210 40% 96.1%);
-  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(210 40% 98%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222.2 84% 4.9%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(222.2 84% 4.9%);
-  --radius: 0.25rem;
-  --radius-lg: 0.25rem;
-  --radius-md: calc(0.25rem - 1px);
-  --radius-sm: calc(0.25rem - 2px);
+  --color-border: var(--app-color-border);
+  --color-input: var(--app-color-border);
+  --color-ring: var(--app-color-primary);
+  --color-background: var(--app-color-bg);
+  --color-foreground: var(--app-color-text);
+  --color-primary: var(--app-color-primary);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e9eef6;
+  --color-secondary-foreground: var(--app-color-text);
+  --color-muted: #eef3fa;
+  --color-muted-foreground: var(--app-color-text-muted);
+  --color-accent: #e9eef6;
+  --color-accent-foreground: var(--app-color-text);
+  --color-destructive: var(--app-color-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-card: var(--app-color-surface);
+  --color-card-foreground: var(--app-color-text);
+  --color-popover: var(--app-color-surface);
+  --color-popover-foreground: var(--app-color-text);
+  --radius: var(--app-radius-base);
+  --radius-lg: var(--app-radius-base);
+  --radius-md: calc(var(--app-radius-base) - 1px);
+  --radius-sm: calc(var(--app-radius-base) - 2px);
 }
 
 * {
@@ -34,6 +45,10 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 /* Table-only scrollbar style */

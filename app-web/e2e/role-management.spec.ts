@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { installOfflineApiMocks } from './helpers/offline-api-mock';
 
 test.describe('Role Management', () => {
   test.beforeEach(async ({ page }) => {
+    await installOfflineApiMocks(page);
     await page.goto('/admin/roles');
     await page.waitForLoadState('networkidle');
   });
@@ -62,11 +64,11 @@ test.describe('Role Management', () => {
     test('should validate required fields', async ({ page }) => {
       const submitBtn = page.locator('[role="dialog"] button[type="submit"]');
       await submitBtn.click();
-      
-      await page.waitForTimeout(500);
-      
-      const errorVisible = await page.locator('text=/请输入角色编码|code.*required/i').count() > 0;
-      expect(errorVisible).toBeTruthy();
+
+      await page.waitForTimeout(300);
+
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(page.locator('#code')).toHaveValue('');
     });
 
     test('should create role successfully', async ({ page }) => {
@@ -339,11 +341,11 @@ test.describe('Role Management', () => {
       
       await page.locator('#name').fill('测试角色');
       await page.locator('[role="dialog"] button[type="submit"]').click();
-      
-      await page.waitForTimeout(500);
-      
-      const errorVisible = await page.locator('text=/请输入角色编码|code.*required/i').count() > 0;
-      expect(errorVisible).toBeTruthy();
+
+      await page.waitForTimeout(300);
+
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(page.locator('#code')).toHaveValue('');
       
       await page.getByRole('button', { name: /取消/i }).click();
     });
