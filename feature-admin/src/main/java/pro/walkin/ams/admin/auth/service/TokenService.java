@@ -58,14 +58,14 @@ public class TokenService implements pro.walkin.ams.common.security.service.Toke
         .expiresAt(expiresAt)
         .claim(Constants.Auth.CLAIM_USER_ID, user.id)
         .claim(Constants.Auth.CLAIM_TENANT_ID, user.tenant)
-        .groups("REFRESH_TOKEN")
+        .claim(Constants.Auth.CLAIM_ROLES, List.of("REFRESH_TOKEN"))
         .sign();
   }
 
   /** 提取用户的角色码列表 */
   private List<String> extractRoleCodes(User user) {
-    if (user.roles == null) {
-      return List.of();
+    if (user.roles == null || user.roles.isEmpty()) {
+      return List.of("USER"); // 默认角色
     }
     return user.roles.stream().map(role -> role.code).collect(Collectors.toList());
   }
