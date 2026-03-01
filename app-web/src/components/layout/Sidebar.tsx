@@ -172,40 +172,43 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       style={{
         background: 'var(--ams-color-surface)',
         borderRight: '1px solid var(--ams-color-border)',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      <div className="flex-1 overflow-y-auto p-2">
-        {isLoading ? (
-          <div className="space-y-2 p-2">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} active paragraph={{ rows: 1 }} title={false} />
-            ))}
-          </div>
-        ) : error ? (
-          <QueryErrorDisplay error={new Error(error)} onRetry={refreshMenus} size="inline" className="m-2" />
-        ) : (
-          <AntMenu
-            mode="inline"
-            items={menuData.items}
-            selectedKeys={menuData.selectedKeys}
-            defaultOpenKeys={menuData.defaultOpenKeys}
-            onClick={({ key }) => {
-              const route = routeById.get(String(key));
-              if (route) navigate(route);
-            }}
-          />
-        )}
-      </div>
+      <div className="h-full min-h-0 flex flex-col">
+        <div className="flex-1 overflow-y-auto p-2">
+          {isLoading ? (
+            <div className="space-y-2 p-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} active paragraph={{ rows: 1 }} title={false} />
+              ))}
+            </div>
+          ) : error ? (
+            <QueryErrorDisplay error={new Error(error)} onRetry={refreshMenus} size="inline" className="m-2" />
+          ) : (
+            <AntMenu
+              mode="inline"
+              items={menuData.items}
+              selectedKeys={menuData.selectedKeys}
+              defaultOpenKeys={menuData.defaultOpenKeys}
+              onClick={({ key }) => {
+                const route = routeById.get(String(key));
+                if (route) navigate(route);
+              }}
+            />
+          )}
+        </div>
 
-      <div className="border-t border-[var(--ams-color-border)] p-2 hidden md:block">
-        <Button
-          type="text"
-          className="w-full"
-          icon={isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          onClick={onToggle}
-        />
+        <div className="border-t border-[var(--ams-color-border)] p-2 hidden md:block">
+          <Button
+            type="text"
+            className="w-full"
+            icon={isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            onClick={onToggle}
+          />
+        </div>
       </div>
     </Layout.Sider>
   );

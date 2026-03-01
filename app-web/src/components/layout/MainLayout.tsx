@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Drawer, Layout } from 'antd';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
+import { APP_BODY_HEIGHT } from '@/styles/ui-patterns';
 
 export default function MainLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -34,7 +35,7 @@ export default function MainLayout() {
   return (
     <Layout style={{ height: '100vh', background: 'var(--ams-color-bg)' }}>
       <Header onMenuToggle={handleMenuToggle} />
-      <Layout>
+      <Layout style={{ height: APP_BODY_HEIGHT, minHeight: 0, overflow: 'hidden' }}>
         {!isMobile && <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed((v) => !v)} />}
         {isMobile && (
           <Drawer
@@ -48,7 +49,7 @@ export default function MainLayout() {
             <Sidebar isCollapsed={false} onToggle={() => undefined} />
           </Drawer>
         )}
-        <Layout.Content style={{ padding: 12, overflow: 'hidden' }}>
+        <Layout.Content style={{ padding: 12, minHeight: 0, overflow: 'hidden' }}>
           <div className="h-full min-h-0 flex flex-col">
             <Outlet />
           </div>
