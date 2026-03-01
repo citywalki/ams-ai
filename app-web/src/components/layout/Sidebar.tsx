@@ -170,8 +170,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       width={256}
       collapsedWidth={72}
       style={{
-        background: 'var(--ams-color-surface)',
-        borderRight: '1px solid var(--ams-color-border)',
+        background: 'var(--app-color-surface)',
+        borderRight: '1px solid var(--app-color-border)',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -201,7 +201,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           )}
         </div>
 
-        <div className="border-t border-[var(--ams-color-border)] p-2 hidden md:block">
+        <div className="border-t border-[var(--app-color-border)] p-2 hidden md:block">
           <Button
             type="text"
             className="w-full"

@@ -45,7 +45,7 @@ export function QueryErrorDisplay({
   return (
     <div
       className={cn(
-        'rounded-lg bg-[var(--ams-color-surface-muted)] px-6 py-10 text-center',
+        'rounded-lg bg-[var(--app-color-surface-muted)] px-6 py-10 text-center',
         className
       )}
     >

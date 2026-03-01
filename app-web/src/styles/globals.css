@@ -1,49 +1,22 @@
 @import "tailwindcss";
 
 :root {
+  /* 基础布局颜色 (非 antd 组件) */
   --app-color-bg: #f4f7fb;
   --app-color-surface: #ffffff;
-  --app-color-text: #1f2a37;
-  --app-color-text-muted: #637083;
-  --app-color-primary: #1677ff;
+  --app-color-surface-muted: #f5f7fa;
   --app-color-border: #d9e3f0;
-  --app-color-danger: #ff4d4f;
-  --app-radius-base: 8px;
-}
-
-@theme {
-  --color-border: var(--app-color-border);
-  --color-input: var(--app-color-border);
-  --color-ring: var(--app-color-primary);
-  --color-background: var(--app-color-bg);
-  --color-foreground: var(--app-color-text);
-  --color-primary: var(--app-color-primary);
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #e9eef6;
-  --color-secondary-foreground: var(--app-color-text);
-  --color-muted: #eef3fa;
-  --color-muted-foreground: var(--app-color-text-muted);
-  --color-accent: #e9eef6;
-  --color-accent-foreground: var(--app-color-text);
-  --color-destructive: var(--app-color-danger);
-  --color-destructive-foreground: #ffffff;
-  --color-card: var(--app-color-surface);
-  --color-card-foreground: var(--app-color-text);
-  --color-popover: var(--app-color-surface);
-  --color-popover-foreground: var(--app-color-text);
-  --radius: var(--app-radius-base);
-  --radius-lg: var(--app-radius-base);
-  --radius-md: calc(var(--app-radius-base) - 1px);
-  --radius-sm: calc(var(--app-radius-base) - 2px);
+  --app-color-text: #1f2a37;
+  --app-color-text-secondary: #637083;
 }
 
 * {
-  border-color: var(--color-border);
+  border-color: var(--app-color-border);
 }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+  background-color: var(--app-color-bg);
+  color: var(--app-color-text);
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 

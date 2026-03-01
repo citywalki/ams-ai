@@ -17,8 +17,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
       style={{
         height: 56,
         lineHeight: '56px',
-        background: 'var(--ams-color-surface)',
-        borderBottom: '1px solid var(--ams-color-border)',
+        background: 'var(--app-color-surface)',
+        borderBottom: '1px solid var(--app-color-border)',
         paddingInline: 16,
       }}
     >
@@ -26,7 +26,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         <Space align="center" size={12}>
           <Button type="text" icon={<Menu className="h-5 w-5" />} onClick={onMenuToggle} />
           <div className="flex items-center gap-2">
-            <Avatar shape="square" style={{ background: 'var(--ams-color-primary)' }}>A</Avatar>
+            <Avatar shape="square" style={{ background: 'var(--app-color-primary)' }}>A</Avatar>
             <div className="hidden sm:block leading-tight">
               <Typography.Text strong>AMS</Typography.Text>
               <br />

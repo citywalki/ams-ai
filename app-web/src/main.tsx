@@ -10,21 +10,15 @@ import AppRouter from './Router'
 import { useAuthStore } from '@/stores/authStore'
 import { queryClient } from '@/lib/queryClient'
 import './i18n'
-import { antdTheme } from '@/theme/antdTheme'
-import { applySemanticTokensToRoot } from '@/theme/semanticTokens'
 import './styles/globals.css'
 import 'antd/dist/reset.css'
-
-if (typeof document !== 'undefined') {
-  applySemanticTokensToRoot()
-}
 
 function AntdProvider({ children }: { children: React.ReactNode }) {
   const { i18n } = useTranslation()
   const locale = i18n.resolvedLanguage?.startsWith('zh') ? zhCN : enUS
 
   return (
-    <ConfigProvider locale={locale} theme={antdTheme}>
+    <ConfigProvider locale={locale}>
       {children}
     </ConfigProvider>
   )

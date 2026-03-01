@@ -33,7 +33,7 @@ export default function MainLayout() {
   };
 
   return (
-    <Layout style={{ height: '100vh', background: 'var(--ams-color-bg)' }}>
+    <Layout style={{ height: '100vh', background: 'var(--app-color-bg)' }}>
       <Header onMenuToggle={handleMenuToggle} />
       <Layout style={{ height: APP_BODY_HEIGHT, minHeight: 0, overflow: 'hidden' }}>
         {!isMobile && <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed((v) => !v)} />}

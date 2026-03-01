@@ -68,14 +68,14 @@ export function DataTable<TData>({
       <QueryErrorDisplay error={error} onRetry={() => refetch()} size="inline" />
       <div className="flex-1 min-h-0 overflow-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[var(--ams-color-surface-muted)] text-left text-[var(--ams-color-text-secondary)]">
+          <thead className="bg-[var(--app-color-surface-muted)] text-left text-[var(--app-color-text-secondary)]">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className="cursor-pointer select-none px-4 py-3 font-medium hover:bg-[var(--ams-color-surface)]"
+                    className="cursor-pointer select-none px-4 py-3 font-medium hover:bg-[var(--app-color-surface)]"
                   >
                     <div className="flex items-center space-x-2">
                       {header.isPlaceholder
@@ -108,7 +108,7 @@ export function DataTable<TData>({
                 <tr
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="border-t border-[var(--ams-color-border)]"
+                  className="border-t border-[var(--app-color-border)]"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3 align-middle">

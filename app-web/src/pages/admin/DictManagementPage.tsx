@@ -209,7 +209,7 @@ export default function DictManagementPage() {
                   className={`group flex cursor-pointer items-center justify-between rounded-md p-2 ${
                     selectedCategory?.id === category.id
                       ? 'bg-primary/10 text-primary'
-                      : 'hover:bg-[var(--ams-color-surface-muted)]'
+                      : 'hover:bg-[var(--app-color-surface-muted)]'
                   }`}
                   onClick={() => setSelectedCategory(category)}
                 >
@@ -270,7 +270,7 @@ export default function DictManagementPage() {
         )}
 
         {!selectedCategory ? (
-          <div className="flex h-[calc(100vh-260px)] min-h-[340px] items-center justify-center text-[var(--ams-color-text-secondary)]">
+          <div className="flex h-[calc(100vh-260px)] min-h-[340px] items-center justify-center text-[var(--app-color-text-secondary)]">
             <ChevronRight className="mr-2 h-4 w-4" />
             {t('pages.dictManagement.messages.selectCategory')}
           </div>

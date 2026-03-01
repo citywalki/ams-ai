@@ -51,7 +51,7 @@ export function RoleUserAssignment({
         avatar={
           <Avatar
             icon={<User className="h-3.5 w-3.5" />}
-            style={{ backgroundColor: assigned ? 'var(--ams-color-primary)' : '#d9d9d9' }}
+            style={{ backgroundColor: assigned ? 'var(--app-color-primary)' : '#d9d9d9' }}
           />
         }
         title={user.username}

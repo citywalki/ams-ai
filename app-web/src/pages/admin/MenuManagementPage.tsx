@@ -222,7 +222,7 @@ export default function MenuManagementPage() {
       <div key={item.id}>
         <div
           className={`group flex cursor-pointer items-center justify-between rounded-md p-2 ${
-            isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-[var(--ams-color-surface-muted)]'
+            isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-[var(--app-color-surface-muted)]'
           }`}
           style={{ paddingLeft: `${12 + level * 16}px` }}
           onClick={() => setSelectedFolder(item)}
@@ -245,7 +245,7 @@ export default function MenuManagementPage() {
                 <span className="truncate text-sm">{item.label}</span>
                 {isFolder && <Tag style={{ marginInlineEnd: 0 }}>{getMenuCountBadge(item)}</Tag>}
               </div>
-              {item.route && <span className="font-mono text-xs text-[var(--ams-color-text-secondary)]">{item.route}</span>}
+              {item.route && <span className="font-mono text-xs text-[var(--app-color-text-secondary)]">{item.route}</span>}
             </div>
           </div>
           <Space className="hidden group-hover:flex" size={4}>
@@ -413,7 +413,7 @@ export default function MenuManagementPage() {
             <div className="space-y-1">
               <div
                 className={`flex cursor-pointer items-center justify-between rounded-md p-2 ${
-                  selectedFolder === 'root' ? 'bg-primary/10 text-primary' : 'hover:bg-[var(--ams-color-surface-muted)]'
+                  selectedFolder === 'root' ? 'bg-primary/10 text-primary' : 'hover:bg-[var(--app-color-surface-muted)]'
                 }`}
                 onClick={() => setSelectedFolder('root')}
               >
