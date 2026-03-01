@@ -51,9 +51,8 @@ cd app-web && pnpm test:e2e         # Playwright E2E tests
 
 ```
 ams-ai/
-├── lib-common/           # Utilities, exceptions, DTOs, constants
+├── lib-common/           # Utilities, exceptions, DTOs, security tools
 ├── lib-persistence/      # Hibernate entities (Panache Repository pattern)
-├── lib-security/         # JWT auth, tenant context
 ├── lib-cluster/          # Hazelcast distributed cache
 ├── feature-core/         # Alarm pipeline
 ├── feature-admin/        # Admin backend (users, roles, menus)

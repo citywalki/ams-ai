@@ -15,7 +15,7 @@ ams-ai/
 ├── lib-common/                      # 工具类、异常、DTO、常量
 ├── lib-persistence/                 # Hibernate实体 (Panache Repository模式)
 ├── lib-cluster/                     # Hazelcast缓存
-├── lib-security/                    # JWT认证、租户上下文
+├── lib-common/                    # 工具类、异常、DTO、安全工具
 ├── feature-core/                    # 告警流水线
 ├── feature-admin/                   # 管理后台
 ├── feature-alert-ingestion/         # Webhook/API接入
@@ -154,6 +154,7 @@ public class Alarm extends BaseEntity {
 
 - **框架**: React 18 + TypeScript 5 + Vite
 - **UI库**: @ui5/webcomponents-react
+- **设计与实现准则**: 前端实现遵循 Ant Design 最佳实践，参考 `https://ant.design/llms-full.txt`
 - **状态管理**: Zustand
 - **路由**: React Router 7
 - **路径别名**: `@/*` → `src/*`
@@ -228,8 +229,10 @@ public class Alarm extends BaseEntity {
 - CriteriaTranslator：JPA Criteria 查询转换
 - CriteriaFilterHelper：通用谓词构建器
 
-### lib-security/
+### lib-common/ (安全模块)
 
 - JWT认证：TokenService、AuthenticationService
 - 租户上下文：TenantContext管理
-- RBAC权限：RbacService、SecurityConfig初始化*
+- RBAC权限：RbacService、SecurityConfig初始化
+- 过滤器：JwtAuthFilter、TenantHibernateFilter、AuthorizationFilter
+- 注解：@RequireRole、@RequirePermission

@@ -77,11 +77,6 @@ ams-ai/
 ├── lib-cluster/                   # 集群模块
 │   └── Hazelcast 配置
 │
-├── lib-security/                  # 安全模块
-│   ├── JWT 认证
-│   ├── 租户上下文
-│   └── RBAC 权限
-│
 ├── feature-core/                  # 告警流水线核心
 │   ├── 告警处理引擎
 │   ├── 规则评估
