@@ -465,3 +465,117 @@ cd app-web && pnpm build
 ```
 
 After completion, use the `frontend-ui-verification` skill for browser verification.
+
+## Ant Design Reference
+
+### Documentation URLs
+
+| URL | Purpose |
+|-----|---------|
+| https://ant.design/llms.txt | **Index** - Navigation to all docs |
+| https://ant.design/llms-full.txt | **Full API** - All 73 components (EN) |
+| https://ant.design/llms-full-cn.txt | **Full API** - All 73 components (CN) |
+| https://ant.design/llms-semantic.md | **Semantic DOM** - Styling guide (EN) |
+| https://ant.design/llms-semantic-cn.md | **Semantic DOM** - Styling guide (CN) |
+
+### Key Design Docs
+
+- [Form Design](https://ant.design/docs/spec/research-form.md) - Form UX patterns
+- [Data Display](https://ant.design/docs/spec/data-display.md) - Table/List patterns
+- [Navigation](https://ant.design/docs/spec/navigation.md) - Menu/breadcrumb patterns
+- [Feedback](https://ant.design/docs/spec/feedback.md) - Message/notification patterns
+- [Layout](https://ant.design/docs/spec/layout.md) - Page structure
+
+### Key Components
+
+| Component | Use Case | Key Props |
+|-----------|----------|-----------|
+| `Form` | Data entry forms | `layout="horizontal"`, `Form.Item`, `name`, `label` |
+| `Table` | Data display with pagination | `columns`, `dataSource`, `pagination`, `rowKey` |
+| `Modal` | Dialogs | `open`, `onCancel`, `onOk`, `title` |
+| `Select` | Dropdown selection | `options`, `value`, `onChange`, `mode="multiple"` |
+| `Input` | Text input | `placeholder`, `value`, `onChange`, `prefix`, `suffix` |
+| `Button` | Actions | `type`, `loading`, `disabled`, `icon` |
+| `Card` | Content container | `title`, `extra`, `loading` |
+| `Space` | Layout spacing | `direction`, `size`, `wrap` |
+| `message` | Toast notifications | `success()`, `error()`, `warning()`, `info()` |
+| `notification` | Alert notifications | `open()`, `success()`, `error()` |
+| `Popconfirm` | Delete confirmation | `title`, `onConfirm`, `okText`, `cancelText` |
+
+### Form Layout Standard
+
+**All forms must use horizontal layout** (labels on left, inputs on right):
+
+```tsx
+<Form layout="horizontal">
+  <Form.Item label="字段名" name="fieldName">
+    <Input />
+  </Form.Item>
+</Form>
+```
+
+### Type Utilities
+
+```tsx
+import type { GetProps, GetRef, GetProp } from 'antd';
+
+// Get component props type
+type SelectProps = GetProps<typeof Select>;
+
+// Get ref type
+type SelectRef = GetRef<typeof Select>;
+
+// Get single prop type
+type OptionType = GetProp<typeof Select, 'options'>[number];
+```
+
+### Semantic DOM Styling (v5+)
+
+```tsx
+<Alert
+  classNames={{ root: 'custom-alert', icon: 'custom-icon' }}
+  styles={{ root: { borderRadius: 8 }, icon: { fontSize: 18 } }}
+/>
+```
+
+### Common Patterns
+
+#### Master-Detail with Drawer
+```tsx
+<Drawer open={open} onClose={onClose} title="Details" width={600}>
+  <Descriptions column={1}>
+    <Descriptions.Item label="Name">{item.name}</Descriptions.Item>
+  </Descriptions>
+</Drawer>
+```
+
+#### Table with Actions
+```tsx
+const columns = [
+  { title: 'Name', dataIndex: 'name', key: 'name' },
+  {
+    title: 'Actions',
+    key: 'actions',
+    render: (_, record) => (
+      <Space>
+        <Button type="link" onClick={() => onEdit(record)}>Edit</Button>
+        <Popconfirm title="Delete?" onConfirm={() => onDelete(record.id)}>
+          <Button type="link" danger>Delete</Button>
+        </Popconfirm>
+      </Space>
+    ),
+  },
+];
+```
+
+#### Search Form
+```tsx
+<Form layout="inline">
+  <Form.Item name="keyword">
+    <Input.Search placeholder="Search..." onSearch={onSearch} />
+  </Form.Item>
+  <Form.Item>
+    <Button onClick={onReset}>Reset</Button>
+  </Form.Item>
+</Form>
+```
