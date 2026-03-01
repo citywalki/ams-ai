@@ -58,8 +58,6 @@ src/
 ├── Router.tsx                  # 路由配置
 │
 ├── components/                 # 通用组件
-│   ├── common/                 # 基础组件
-│   │   └── QueryErrorDisplay.tsx
 │   └── layout/                 # 布局组件
 │       ├── MainLayout.tsx
 │       ├── Header.tsx
@@ -237,7 +235,18 @@ function UserTable() {
     },
   ];
 
-  if (error) return <QueryErrorDisplay error={error} onRetry={refetch} />;
+  // 错误处理：直接用 Ant Design Alert
+  if (error) {
+    return (
+      <Alert
+        type="error"
+        message="加载失败"
+        description={error.message}
+        showIcon
+        action={<Button size="small" onClick={() => refetch()}>重试</Button>}
+      />
+    );
+  }
 
   return (
     <Table
@@ -259,7 +268,32 @@ function UserTable() {
 }
 ```
 
-### 6.2 表单布局
+### 6.2 错误处理
+
+**直接使用 Ant Design 组件**：
+
+```tsx
+// 内联错误 (表格上方、表单区域)
+{error && (
+  <Alert 
+    type="error" 
+    message={error.message} 
+    showIcon 
+    closable
+    action={<Button size="small" onClick={refetch}>重试</Button>}
+  />
+)}
+
+// 页面级错误 (整个页面失败)
+<Result
+  status="error"
+  title="加载失败"
+  subTitle={error.message}
+  extra={<Button type="primary" onClick={refetch}>重试</Button>}
+/>
+```
+
+### 6.3 表单布局
 
 **强制规则**: 所有表单使用水平布局 (标签在左)
 
