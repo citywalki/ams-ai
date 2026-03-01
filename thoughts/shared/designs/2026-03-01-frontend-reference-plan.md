@@ -23,7 +23,7 @@ status: validated
 | 图标 | @ant-design/icons | 6.x |
 | 状态管理 | Zustand | 4.x |
 | 数据获取 | TanStack Query | 5.x |
-| 表格 | TanStack Table | 8.x |
+| 表格 | Ant Design Table | 6.x (内置) |
 | 表单验证 | Ant Design Form + Zod | - |
 | GraphQL 客户端 | graphql-request | 7.x |
 | HTTP 客户端 | Axios | 1.x |
@@ -60,13 +60,10 @@ src/
 ├── components/                 # 通用组件
 │   ├── common/                 # 基础组件
 │   │   └── QueryErrorDisplay.tsx
-│   ├── layout/                 # 布局组件
-│   │   ├── MainLayout.tsx
-│   │   ├── Header.tsx
-│   │   └── Sidebar.tsx
-│   └── tables/                 # 表格组件
-│       ├── DataTable.tsx
-│       └── DataTablePagination.tsx
+│   └── layout/                 # 布局组件
+│       ├── MainLayout.tsx
+│       ├── Header.tsx
+│       └── Sidebar.tsx
 │
 ├── features/                   # 功能模块 (按领域划分)
 │   └── {domain}/
@@ -201,21 +198,64 @@ const JSONBigString = JSONBig({ storeAsString: true });
 
 ## 6. 组件规范
 
-### 6.1 DataTable 组件
+### 6.1 表格组件 (Ant Design Table)
 
-**设计要点**:
-- 封装 TanStack Table
-- 服务端分页/排序
-- 自动 loading/error 状态
-- 可复用的列定义
+**直接使用 Ant Design Table**，无需额外封装。配合 TanStack Query 实现服务端分页。
 
-```typescript
-interface DataTableProps<TData> {
-  columns: ColumnDef<TData>[];
-  queryKey: unknown[];
-  queryFn: (params: QueryParams) => Promise<PageResponse<TData>>;
-  defaultSort?: { id: string; desc: boolean };
-  searchParams?: Record<string, string>;
+```tsx
+function UserTable() {
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(20);
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['users', page, size],
+    queryFn: () => fetchUsersPage(page, size),
+  });
+
+  const columns = [
+    { title: '用户名', dataIndex: 'username', key: 'username' },
+    { title: '邮箱', dataIndex: 'email', key: 'email' },
+    { 
+      title: '状态', 
+      dataIndex: 'enabled', 
+      key: 'enabled',
+      render: (enabled) => <Tag color={enabled ? 'green' : 'red'}>
+        {enabled ? '启用' : '禁用'}
+      </Tag>
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button type="link" onClick={() => handleEdit(record)}>编辑</Button>
+          <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record.id)}>
+            <Button type="link" danger>删除</Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  if (error) return <QueryErrorDisplay error={error} onRetry={refetch} />;
+
+  return (
+    <Table
+      columns={columns}
+      dataSource={data?.content}
+      loading={isLoading}
+      rowKey="id"
+      pagination={{
+        current: page + 1,
+        pageSize: size,
+        total: data?.totalElements,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        showTotal: (total) => `共 ${total} 条`,
+        onChange: (p, s) => { setPage(p - 1); setSize(s); },
+      }}
+    />
+  );
 }
 ```
 
@@ -921,9 +961,8 @@ const ALARMS_QUERY = `
 - [ ] 10. 实现 MenuContext (动态菜单)
 - [ ] 11. 实现 MainLayout + Sidebar
 - [ ] 12. 配置 TanStack Query
-- [ ] 13. 实现 DataTable 组件
-- [ ] 14. 实现首页 Dashboard
-- [ ] 15. 按功能模块实现 features
+- [ ] 13. 实现首页 Dashboard
+- [ ] 14. 按功能模块实现 features
 
 ---
 
@@ -933,8 +972,8 @@ const ALARMS_QUERY = `
 |------|-----|
 | Ant Design LLM 文档 | https://ant.design/llms-full.txt |
 | Ant Design 中文文档 | https://ant.design/llms-full-cn.txt |
+| Ant Design Table | https://ant.design/components/table |
 | TanStack Query | https://tanstack.com/query/latest |
-| TanStack Table | https://tanstack.com/table/latest |
 | Zustand | https://zustand-demo.pmnd.rs/ |
 
 ---
