@@ -1,7 +1,6 @@
 import { Pencil, Trash2, Key } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button, Tag } from 'antd';
 import { type UserItem } from '@/lib/types';
 
 interface CreateColumnsOptions {
@@ -20,11 +19,11 @@ export function createColumns({
   const getStatusBadge = (status: string) => {
     switch (status.toUpperCase()) {
       case 'ACTIVE':
-        return <Badge variant="success">{t('pages.userManagement.status.active')}</Badge>;
+        return <Tag color="green">{t('pages.userManagement.status.active')}</Tag>;
       case 'INACTIVE':
-        return <Badge variant="warning">{t('pages.userManagement.status.inactive')}</Badge>;
+        return <Tag color="orange">{t('pages.userManagement.status.inactive')}</Tag>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Tag>{status}</Tag>;
     }
   };
 
@@ -44,9 +43,9 @@ export function createColumns({
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
           {row.original.roles?.map((role) => (
-            <Badge key={role.id} variant="secondary">
+            <Tag key={role.id}>
               {role.name}
-            </Badge>
+            </Tag>
           ))}
         </div>
       ),
@@ -61,27 +60,9 @@ export function createColumns({
       header: t('common.actions'),
       cell: ({ row }) => (
         <div className="flex justify-start gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(row.original)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onResetPassword(row.original)}
-          >
-            <Key className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(row.original)}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+          <Button type="text" icon={<Pencil className="h-4 w-4" />} onClick={() => onEdit(row.original)} />
+          <Button type="text" icon={<Key className="h-4 w-4" />} onClick={() => onResetPassword(row.original)} />
+          <Button type="text" danger icon={<Trash2 className="h-4 w-4" />} onClick={() => onDelete(row.original)} />
         </div>
       ),
     },

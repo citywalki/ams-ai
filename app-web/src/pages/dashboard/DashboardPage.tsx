@@ -1,9 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Bell, Clock, CheckCircle, AlertTriangle, TrendingUp, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button, Card, Skeleton, Tag, Typography } from 'antd';
 import { useAlarms } from '@/hooks/useAlarms';
 import { QueryErrorDisplay } from '@/components/common/QueryErrorDisplay';
 
@@ -106,39 +104,37 @@ export default function DashboardPage() {
             animate="visible"
           >
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
+              <div className="mb-2 flex items-center justify-between">
+                <Typography.Text type="secondary">{stat.title}</Typography.Text>
                 <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                   <stat.icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div>
                 {loading ? (
-                  <Skeleton className="h-8 w-20" />
+                  <Skeleton.Input active size="small" style={{ width: 80 }} />
                 ) : (
                   <div className="text-2xl font-bold">{stat.value}</div>
                 )}
-              </CardContent>
+              </div>
             </Card>
           </motion.div>
         ))}
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{t('dashboard.recentAlarms')}</CardTitle>
-          <Button variant="ghost" size="sm">
+      <Card
+        title={t('dashboard.recentAlarms')}
+        extra={(
+          <Button type="text" size="small">
             {t('dashboard.viewAll')}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-        </CardHeader>
-        <CardContent>
+        )}
+      >
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+                <Skeleton.Input key={i} active block style={{ height: 48 }} />
               ))}
             </div>
           ) : error ? (
@@ -162,26 +158,17 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="flex gap-2 ml-4">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${getSeverityColor(
-                        alarm.severity
-                      )}`}
-                    >
+                    <Tag className={getSeverityColor(alarm.severity)}>
                       {alarm.severity}
-                    </span>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
-                        alarm.status
-                      )}`}
-                    >
+                    </Tag>
+                    <Tag className={getStatusColor(alarm.status)}>
                       {alarm.status}
-                    </span>
+                    </Tag>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
       </Card>
     </div>
   );

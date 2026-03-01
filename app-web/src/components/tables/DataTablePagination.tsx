@@ -6,8 +6,7 @@ import {
   ChevronsRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button, Select, Space, Typography } from 'antd';
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
@@ -18,70 +17,50 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
 
   return (
     <div className="flex items-center justify-between py-3">
-      <div className="flex items-center space-x-2">
-        <p className="text-sm text-muted-foreground">
-          {t('table.pageSize')}
-        </p>
+      <Space size={8}>
+        <Typography.Text type="secondary">{t('table.pageSize')}</Typography.Text>
         <Select
+          size="small"
+          style={{ width: 84 }}
           value={`${table.getState().pagination.pageSize}`}
-          onValueChange={(value) => {
+          onChange={(value) => {
             table.setPageSize(Number(value));
           }}
-        >
-          <SelectTrigger className="h-8 w-[70px]">
-            <SelectValue placeholder={table.getState().pagination.pageSize} />
-          </SelectTrigger>
-          <SelectContent side="top">
-            {[10, 20, 30, 50, 100].map((pageSize) => (
-              <SelectItem key={pageSize} value={`${pageSize}`}>
-                {pageSize}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <p className="text-sm text-muted-foreground">
-          {t('table.records')}
-        </p>
-      </div>
-      <div className="flex items-center space-x-2">
-        <div className="flex items-center space-x-2">
+          options={[10, 20, 30, 50, 100].map((pageSize) => ({ value: `${pageSize}`, label: `${pageSize}` }))}
+        />
+        <Typography.Text type="secondary">{t('table.records')}</Typography.Text>
+      </Space>
+      <Space size={8}>
+        <Space size={8}>
           <Button
-            variant="outline"
-            size="sm"
+            size="small"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
+            icon={<ChevronsLeft className="h-4 w-4" />}
+          />
           <Button
-            variant="outline"
-            size="sm"
+            size="small"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm">
+            icon={<ChevronLeft className="h-4 w-4" />}
+          />
+          <Typography.Text>
             {t('table.page')} {table.getState().pagination.pageIndex + 1} {t('table.pageOf')} {table.getPageCount()} {t('table.pages')}
-          </span>
+          </Typography.Text>
           <Button
-            variant="outline"
-            size="sm"
+            size="small"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+            icon={<ChevronRight className="h-4 w-4" />}
+          />
           <Button
-            variant="outline"
-            size="sm"
+            size="small"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+            icon={<ChevronsRight className="h-4 w-4" />}
+          />
+        </Space>
+      </Space>
     </div>
   );
 }

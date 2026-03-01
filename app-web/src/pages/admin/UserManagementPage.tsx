@@ -1,27 +1,7 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Key, Search, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, Button, Card, Col, Input, Modal, Row, Select, Space, Tag, Typography } from 'antd';
 import { ColumnDef } from '@tanstack/react-table';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
@@ -85,11 +65,11 @@ export default function UserManagementPage() {
   const getStatusBadge = (status: string) => {
     switch (status.toUpperCase()) {
       case 'ACTIVE':
-        return <Badge variant="success">{t('pages.userManagement.status.active')}</Badge>;
+        return <Tag color="green">{t('pages.userManagement.status.active')}</Tag>;
       case 'INACTIVE':
-        return <Badge variant="warning">{t('pages.userManagement.status.inactive')}</Badge>;
+        return <Tag color="orange">{t('pages.userManagement.status.inactive')}</Tag>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Tag>{status}</Tag>;
     }
   };
 
@@ -109,9 +89,9 @@ export default function UserManagementPage() {
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
           {row.original.roles?.map((role) => (
-            <Badge key={role.id} variant="secondary">
+            <Tag key={role.id}>
               {role.name}
-            </Badge>
+            </Tag>
           ))}
         </div>
       ),
@@ -127,26 +107,21 @@ export default function UserManagementPage() {
       cell: ({ row }) => (
         <div className="flex justify-start gap-2">
           <Button
-            variant="ghost"
-            size="sm"
+            type="text"
+            icon={<Pencil className="h-4 w-4" />}
             onClick={() => userForm.openEditDialog(row.original)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+          />
           <Button
-            variant="ghost"
-            size="sm"
+            type="text"
+            icon={<Key className="h-4 w-4" />}
             onClick={() => resetPassword.openResetPasswordDialog(row.original)}
-          >
-            <Key className="h-4 w-4" />
-          </Button>
+          />
           <Button
-            variant="ghost"
-            size="sm"
+            type="text"
+            danger
+            icon={<Trash2 className="h-4 w-4" />}
             onClick={() => openDeleteDialog(row.original)}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+          />
         </div>
       ),
     },
@@ -158,68 +133,66 @@ export default function UserManagementPage() {
 
   return (
     <div className="h-full min-h-0 flex flex-col gap-3">
-      <Card className="shrink-0">
-        <CardHeader>
-          <CardTitle>{t('pages.userManagement.title')}</CardTitle>
-          <CardDescription>{t('pages.userManagement.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-[200px] space-y-2">
-              <Label>{t('pages.userManagement.form.username')}</Label>
+      <Card className="shrink-0" title={t('pages.userManagement.title')}>
+        <Typography.Paragraph type="secondary" style={{ marginTop: -8 }}>
+          {t('pages.userManagement.description')}
+        </Typography.Paragraph>
+        <Row gutter={[12, 12]} align="bottom">
+          <Col flex="auto" style={{ minWidth: 220 }}>
+            <Space direction="vertical" style={{ width: '100%' }} size={6}>
+              <Typography.Text>{t('pages.userManagement.form.username')}</Typography.Text>
               <Input
                 placeholder={t('pages.userManagement.form.usernameSearchPlaceholder')}
                 value={searchUsername}
                 onChange={(e) => setSearchUsername(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSearch();
-                  }
-                }}
+                onPressEnter={handleSearch}
               />
-            </div>
-            <div className="w-[180px] space-y-2">
-              <Label>{t('pages.userManagement.form.status')}</Label>
-              <Select value={searchStatus} onValueChange={setSearchStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('pages.userManagement.form.statusPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('pages.userManagement.status.all')}</SelectItem>
-                  <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
-                  <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="button" onClick={handleSearch}>
-              <Search className="h-4 w-4 mr-2" />
-              {t('common.search')}
-            </Button>
-            <Button type="button" variant="outline" onClick={handleReset}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              {t('common.reset')}
-            </Button>
-          </div>
-        </CardContent>
+            </Space>
+          </Col>
+          <Col style={{ width: 180 }}>
+            <Space direction="vertical" style={{ width: '100%' }} size={6}>
+              <Typography.Text>{t('pages.userManagement.form.status')}</Typography.Text>
+              <Select
+                value={searchStatus}
+                onChange={setSearchStatus}
+                options={[
+                  { value: 'all', label: t('pages.userManagement.status.all') },
+                  { value: 'ACTIVE', label: t('pages.userManagement.status.active') },
+                  { value: 'INACTIVE', label: t('pages.userManagement.status.inactive') },
+                ]}
+              />
+            </Space>
+          </Col>
+          <Col>
+            <Space>
+              <Button type="primary" icon={<Search className="h-4 w-4" />} onClick={handleSearch}>
+                {t('common.search')}
+              </Button>
+              <Button icon={<RotateCcw className="h-4 w-4" />} onClick={handleReset}>
+                {t('common.reset')}
+              </Button>
+            </Space>
+          </Col>
+        </Row>
       </Card>
 
-      <Card className="flex-1 min-h-0 flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{t('pages.userManagement.listTitle')}</CardTitle>
-          <Button variant="ghost" onClick={userForm.openCreateDialog}>
-            <Plus className="h-4 w-4 mr-2" />
+      <Card
+        className="flex-1 min-h-0 flex flex-col"
+        title={t('pages.userManagement.listTitle')}
+        extra={(
+          <Button type="primary" icon={<Plus className="h-4 w-4" />} onClick={userForm.openCreateDialog}>
             {t('common.add')}
           </Button>
-        </CardHeader>
-        <CardContent className="flex-1 min-h-0">
+        )}
+      >
+        <div className="flex-1 min-h-0">
           <DataTable
             columns={columns}
             queryKey={queryKeys.users.list(searchParams)}
             queryFn={(params) => fetchUsersPage(params, searchParams)}
             defaultSort={{ id: 'createdAt', desc: true }}
           />
-        </CardContent>
+        </div>
       </Card>
 
       {/* Create/Edit Dialog */}
@@ -227,9 +200,11 @@ export default function UserManagementPage() {
         open={userForm.dialogOpen}
         onOpenChange={userForm.setDialogOpen}
         mode={userForm.dialogMode}
-        form={userForm.form}
+        initialValues={userForm.formData}
         error={userForm.formError}
         onClose={userForm.closeDialog}
+        onSubmit={userForm.submitForm}
+        isSubmitting={userForm.isSubmitting}
       />
 
       {/* Reset Password Dialog */}
@@ -237,38 +212,34 @@ export default function UserManagementPage() {
         open={resetPassword.resetPasswordOpen}
         onOpenChange={resetPassword.setResetPasswordOpen}
         user={resetPassword.resetPasswordUser}
-        form={resetPassword.form}
+        newPassword={resetPassword.newPassword}
+        onPasswordChange={resetPassword.setNewPassword}
         error={resetPassword.resetPasswordError}
+        onSubmit={resetPassword.submitResetPassword}
+        isSubmitting={resetPassword.isSubmitting}
       />
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('pages.userManagement.dialog.deleteTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('pages.userManagement.dialog.deleteDescription', { username: deleteUser?.username ?? '-' })}
-            </DialogDescription>
-          </DialogHeader>
-          {deleteMutation.error && (
-            <Alert variant="destructive">
-              <AlertDescription>{deleteMutation.error.message}</AlertDescription>
-            </Alert>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? t('pages.userManagement.messages.deleting') : t('common.delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Modal
+        destroyOnHidden
+        open={deleteOpen}
+        title={t('pages.userManagement.dialog.deleteTitle')}
+        okText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        okButtonProps={{ danger: true, loading: deleteMutation.isPending }}
+        onCancel={() => setDeleteOpen(false)}
+        onOk={() => void handleDelete()}
+      >
+        <p>{t('pages.userManagement.dialog.deleteDescription', { username: deleteUser?.username ?? '-' })}</p>
+        {deleteMutation.error && (
+          <Alert
+            style={{ marginTop: 12 }}
+            type="error"
+            showIcon
+            message={deleteMutation.error.message}
+          />
+        )}
+      </Modal>
     </div>
   );
 }

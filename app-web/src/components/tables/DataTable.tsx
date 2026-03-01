@@ -9,14 +9,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Empty, Spin } from 'antd';
 import { DataTablePagination } from './DataTablePagination';
 import { QueryErrorDisplay } from '@/components/common/QueryErrorDisplay';
 import type { QueryParams, PageResponse } from '@/types/table';
@@ -74,15 +67,15 @@ export function DataTable<TData>({
     <div className="flex flex-col h-full gap-4">
       <QueryErrorDisplay error={error} onRetry={() => refetch()} size="inline" />
       <div className="flex-1 min-h-0 overflow-auto">
-        <Table>
-          <TableHeader>
+        <table className="w-full text-sm">
+          <thead className="bg-[var(--ams-color-surface-muted)] text-left text-[var(--ams-color-text-secondary)]">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead
+                  <th
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className="cursor-pointer select-none hover:bg-muted/50"
+                    className="cursor-pointer select-none px-4 py-3 font-medium hover:bg-[var(--ams-color-surface)]"
                   >
                     <div className="flex items-center space-x-2">
                       {header.isPlaceholder
@@ -98,40 +91,41 @@ export function DataTable<TData>({
                         <ArrowUpDown className="h-4 w-4 opacity-50" />
                       )}
                     </div>
-                  </TableHead>
+                  </th>
                 ))}
-              </TableRow>
+              </tr>
             ))}
-          </TableHeader>
-          <TableBody>
+          </thead>
+          <tbody>
             {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {t('common.loading')}
-                </TableCell>
-              </TableRow>
+              <tr>
+                <td colSpan={columns.length} className="h-24 px-4 py-8 text-center">
+                  <Spin tip={t('common.loading')} />
+                </td>
+              </tr>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <tr
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className="border-t border-[var(--ams-color-border)]"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <td key={cell.id} className="px-4 py-3 align-middle">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+                    </td>
                   ))}
-                </TableRow>
+                </tr>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {t('table.noData')}
-                </TableCell>
-              </TableRow>
+              <tr>
+                <td colSpan={columns.length} className="h-24 px-4 py-8 text-center">
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('table.noData')} />
+                </td>
+              </tr>
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
       <DataTablePagination table={table} />
     </div>

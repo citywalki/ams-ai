@@ -90,19 +90,10 @@ test.describe('Role-User Association', () => {
 
       await expect(page.getByRole('dialog')).toBeVisible();
 
-      const roleLabel = page.locator('text=/角色|role/i');
-      const roleLabels = await roleLabel.all();
-
-      for (const label of roleLabels) {
-        const labelText = await label.textContent();
-        if (labelText && !labelText.includes('用户角色') && !labelText.includes('User Roles')) {
-          const isVisible = await label.isVisible();
-          if (isVisible) {
-            const isFormLabel = await label.locator('..').locator('input, select').count() > 0;
-            expect(isFormLabel).toBeFalsy();
-          }
-        }
-      }
+      const roleFormLabel = page
+        .locator('[role="dialog"] .ant-form-item-label')
+        .filter({ hasText: /^角色$|^Role$/i });
+      await expect(roleFormLabel).toHaveCount(0);
 
       await expect(page.locator('#username')).toBeVisible();
       await expect(page.locator('#email')).toBeVisible();

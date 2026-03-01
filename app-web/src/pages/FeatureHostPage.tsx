@@ -2,7 +2,7 @@ import {useLocation} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {useMenus} from '@/contexts/MenuContext';
 import type {MenuItem} from '@/services';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import { Card, Typography } from 'antd';
 
 function flattenMenus(items: MenuItem[]): { name: string; route: string }[] {
   return items.flatMap((item) => [
@@ -19,14 +19,12 @@ export default function FeatureHostPage() {
   const current = allMenus.find((item) => item.route === location.pathname);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{current?.name ?? t('pages.featureHost.title')}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <p className="text-muted-foreground">{t('pages.featureHost.currentRoute')}{location.pathname}</p>
-        <p className="text-muted-foreground">{t('pages.featureHost.description')}</p>
-      </CardContent>
+    <Card title={current?.name ?? t('pages.featureHost.title')}>
+      <div className="space-y-2">
+        <Typography.Text type="secondary">{t('pages.featureHost.currentRoute')}{location.pathname}</Typography.Text>
+        <br />
+        <Typography.Text type="secondary">{t('pages.featureHost.description')}</Typography.Text>
+      </div>
     </Card>
   );
 }

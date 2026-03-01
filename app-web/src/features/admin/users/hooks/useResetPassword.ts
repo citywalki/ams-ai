@@ -1,67 +1,67 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from '@tanstack/react-form';
 import { type UserItem } from '@/lib/types';
 import { useResetUserPassword } from '../mutations';
-import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas/reset-password-schema';
+import { resetPasswordSchema } from '../schemas/reset-password-schema';
 
 export function useResetPassword() {
   const { t } = useTranslation();
 
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [resetPasswordUser, setResetPasswordUser] = useState<UserItem | null>(null);
+  const [newPassword, setNewPassword] = useState('');
   const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
 
   const resetPasswordMutation = useResetUserPassword();
 
-  const form = useForm({
-    defaultValues: {
-      newPassword: '',
-    } as ResetPasswordFormData,
-    validators: {
-      onChange: resetPasswordSchema,
-    },
-    onSubmit: async ({ value }) => {
-      if (!resetPasswordUser) return;
-      setResetPasswordError(null);
-      try {
-        await resetPasswordMutation.mutateAsync({
-          id: resetPasswordUser.id,
-          password: value.newPassword,
-        });
-        closeResetPasswordDialog();
-      } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : t('pages.userManagement.messages.operationFailed');
-        setResetPasswordError(message);
-        throw err;
-      }
-    },
-  });
-
   const openResetPasswordDialog = useCallback((user: UserItem) => {
     setResetPasswordUser(user);
-    form.reset();
+    setNewPassword('');
     setResetPasswordError(null);
     setResetPasswordOpen(true);
-  }, [form]);
+  }, []);
 
   const closeResetPasswordDialog = useCallback(() => {
     setResetPasswordOpen(false);
     setResetPasswordUser(null);
-    form.reset();
+    setNewPassword('');
     setResetPasswordError(null);
-  }, [form]);
+  }, []);
+
+  const submitResetPassword = useCallback(async () => {
+    if (!resetPasswordUser) return;
+
+    setResetPasswordError(null);
+    const validation = resetPasswordSchema.safeParse({ newPassword });
+    if (!validation.success) {
+      const message = validation.error.issues.map((issue) => issue.message).join(', ');
+      setResetPasswordError(message);
+      throw new Error(message);
+    }
+
+    try {
+      await resetPasswordMutation.mutateAsync({
+        id: resetPasswordUser.id,
+        password: newPassword,
+      });
+      closeResetPasswordDialog();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : t('pages.userManagement.messages.operationFailed');
+      setResetPasswordError(message);
+      throw err;
+    }
+  }, [closeResetPasswordDialog, newPassword, resetPasswordMutation, resetPasswordUser, t]);
 
   return {
     resetPasswordOpen,
     resetPasswordUser,
-    form,
+    newPassword,
+    setNewPassword,
     resetPasswordError,
     openResetPasswordDialog,
     closeResetPasswordDialog,
+    submitResetPassword,
     setResetPasswordOpen,
     isSubmitting: resetPasswordMutation.isPending,
   };

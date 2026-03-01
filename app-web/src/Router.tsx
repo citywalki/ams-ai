@@ -9,7 +9,7 @@ import DictManagementPage from '@/pages/admin/DictManagementPage';
 import MenuManagementPage from '@/pages/admin/MenuManagementPage';
 import MainLayout from '@/components/layout/MainLayout';
 import {MenuProvider} from '@/contexts/MenuContext';
-import {Skeleton} from '@/components/ui/skeleton';
+import { Skeleton } from 'antd';
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -19,9 +19,9 @@ function ProtectedRoute() {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="space-y-4 w-full max-w-md p-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-12 w-3/4" />
+          <Skeleton.Input active block style={{ height: 48 }} />
+          <Skeleton.Input active block style={{ height: 256 }} />
+          <Skeleton.Input active style={{ height: 48, width: '75%' }} />
         </div>
       </div>
     );

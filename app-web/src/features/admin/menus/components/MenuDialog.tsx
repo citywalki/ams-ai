@@ -1,30 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  FormItem,
-  FormLabel,
-  FormControl,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Label } from '@/components/ui/label';
-import { IconPicker } from '@/components/ui/icon-picker';
+import { Alert, Form, Input, InputNumber, Modal, Select, Space, Switch } from 'antd';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type MenuFormData } from '../schemas/menu-schema';
 import { type MenuItem } from '@/lib/types';
@@ -67,160 +43,118 @@ export function MenuDialog({
   }, [open, editingMenu, form]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {mode === 'create'
-                ? t('pages.menuManagement.dialog.createMenuTitle')
-                : t('pages.menuManagement.dialog.editMenuTitle')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <form.Field name="key">
-              {(field) => (
-                <FormItem>
-                  <FormLabel required>{t('pages.menuManagement.form.key')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      required
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <form.Field name="label">
-              {(field) => (
-                <FormItem>
-                  <FormLabel required>{t('pages.menuManagement.form.name')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      required
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <form.Field name="route">
-              {(field) => (
-                <FormItem>
-                  <FormLabel>{t('pages.menuManagement.form.route')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <form.Field name="icon">
-              {(field) => (
-                <IconPicker
-                  value={field.state.value as string}
-                  onChange={(value) => field.handleChange(value)}
-                  label={t('pages.menuManagement.form.icon')}
+    <Modal
+      destroyOnHidden
+      open={open}
+      title={
+        mode === 'create'
+          ? t('pages.menuManagement.dialog.createMenuTitle')
+          : t('pages.menuManagement.dialog.editMenuTitle')
+      }
+      okText={t('common.confirm')}
+      cancelText={t('common.cancel')}
+      okButtonProps={{ loading: form.state.isSubmitting }}
+      onCancel={onClose}
+      onOk={() => void form.handleSubmit()}
+      afterOpenChange={(nextOpen) => onOpenChange(nextOpen)}
+    >
+      <div className="space-y-4 py-2">
+        {error && <Alert type="error" showIcon message={error} />}
+        <form.Field name="key">
+          {(field) => (
+            <Form.Item label={t('pages.menuManagement.form.key')} required>
+              <Input
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <form.Field name="label">
+          {(field) => (
+            <Form.Item label={t('pages.menuManagement.form.name')} required>
+              <Input
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <form.Field name="route">
+          {(field) => (
+            <Form.Item label={t('pages.menuManagement.form.route')}>
+              <Input
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <form.Field name="icon">
+          {(field) => (
+            <Form.Item label={t('pages.menuManagement.form.icon')}>
+              <Input
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <form.Field name="rolesAllowed">
+          {(field) => (
+            <Form.Item label={t('pages.menuManagement.form.rolesAllowed')}>
+              <Input
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                placeholder={t('pages.menuManagement.form.rolesAllowedPlaceholder')}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <Space style={{ width: '100%' }} align="start">
+          <form.Field name="sortOrder">
+            {(field) => (
+              <Form.Item style={{ minWidth: 160 }} label={t('pages.menuManagement.form.sortOrder')}>
+                <InputNumber
+                  style={{ width: '100%' }}
+                  value={field.state.value as number}
+                  onChange={(value) => field.handleChange(value ?? 0)}
+                  onBlur={field.handleBlur}
                 />
-              )}
-            </form.Field>
-            <form.Field name="rolesAllowed">
-              {(field) => (
-                <FormItem>
-                  <FormLabel>{t('pages.menuManagement.form.rolesAllowed')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder={t('pages.menuManagement.form.rolesAllowedPlaceholder')}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <div className="grid grid-cols-2 gap-4">
-              <form.Field name="sortOrder">
-                {(field) => (
-                  <FormItem>
-                    <FormLabel>{t('pages.menuManagement.form.sortOrder')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        value={field.state.value as number}
-                        onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
-                        onBlur={field.handleBlur}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              </form.Field>
-              <form.Field name="menuType">
-                {(field) => (
-                  <FormItem>
-                    <FormLabel>{t('pages.menuManagement.form.type')}</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.state.value as string}
-                        onValueChange={(value) => field.handleChange(value as 'FOLDER' | 'MENU')}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="FOLDER">{t('pages.menuManagement.form.folderType')}</SelectItem>
-                          <SelectItem value="MENU">{t('pages.menuManagement.form.menuType')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              </form.Field>
-            </div>
-            <form.Field name="isVisible">
-              {(field) => (
-                <FormItem className="flex items-center gap-2 space-y-0">
-                  <FormControl>
-                    <Switch
-                      checked={field.state.value as boolean}
-                      onCheckedChange={(checked) => field.handleChange(checked)}
-                    />
-                  </FormControl>
-                  <Label className="cursor-pointer">{t('pages.menuManagement.form.visible')}</Label>
-                </FormItem>
-              )}
-            </form.Field>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" disabled={form.state.isSubmitting}>
-              {form.state.isSubmitting
-                ? t('pages.menuManagement.messages.submitting')
-                : t('common.confirm')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              </Form.Item>
+            )}
+          </form.Field>
+          <form.Field name="menuType">
+            {(field) => (
+              <Form.Item style={{ minWidth: 200 }} label={t('pages.menuManagement.form.type')}>
+                <Select
+                  value={field.state.value as string}
+                  onChange={(value) => field.handleChange(value as 'FOLDER' | 'MENU')}
+                  options={[
+                    { value: 'FOLDER', label: t('pages.menuManagement.form.folderType') },
+                    { value: 'MENU', label: t('pages.menuManagement.form.menuType') },
+                  ]}
+                />
+              </Form.Item>
+            )}
+          </form.Field>
+        </Space>
+        <form.Field name="isVisible">
+          {(field) => (
+            <Form.Item label={t('pages.menuManagement.form.visible')}>
+              <Switch
+                checked={field.state.value as boolean}
+                onChange={(checked) => field.handleChange(checked)}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+      </div>
+    </Modal>
   );
 }

@@ -1,27 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import {
-  FormItem,
-  FormLabel,
-  FormControl,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Textarea } from '@/components/ui/textarea';
+import { Alert, Form, Input, InputNumber, Modal, Select, Space } from 'antd';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type DictItemFormData } from '../schemas/dict-schema';
 
@@ -48,137 +26,97 @@ export function DictItemDialog({
   const { t } = useTranslation();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {mode === 'create'
-                ? t('pages.dictManagement.dialog.createItemTitle')
-                : t('pages.dictManagement.dialog.editItemTitle')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+    <Modal
+      destroyOnHidden
+      open={open}
+      title={
+        mode === 'create'
+          ? t('pages.dictManagement.dialog.createItemTitle')
+          : t('pages.dictManagement.dialog.editItemTitle')
+      }
+      okText={t('common.confirm')}
+      cancelText={t('common.cancel')}
+      okButtonProps={{ loading: form.state.isSubmitting }}
+      onCancel={onClose}
+      onOk={() => void form.handleSubmit()}
+      afterOpenChange={(nextOpen) => onOpenChange(nextOpen)}
+    >
+      <div className="space-y-4 py-2">
+        {error && <Alert type="error" showIcon message={error} />}
+        <form.Field name="code">
+          {(field) => (
+            <Form.Item label={t('pages.dictManagement.columns.code')} required>
+              <Input
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <form.Field name="name">
+          {(field) => (
+            <Form.Item label={t('pages.dictManagement.columns.name')} required>
+              <Input
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <form.Field name="value">
+          {(field) => (
+            <Form.Item label={t('pages.dictManagement.columns.value')}>
+              <Input
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <form.Field name="remark">
+          {(field) => (
+            <Form.Item label={t('pages.dictManagement.columns.remark')}>
+              <Input.TextArea
+                rows={3}
+                value={field.state.value as string}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+              />
+            </Form.Item>
+          )}
+        </form.Field>
+        <Space style={{ width: '100%' }} align="start">
+          <form.Field name="sort">
+            {(field) => (
+              <Form.Item style={{ minWidth: 160 }} label={t('pages.dictManagement.columns.sortOrder')}>
+                <InputNumber
+                  style={{ width: '100%' }}
+                  value={field.state.value as number}
+                  onChange={(value) => field.handleChange(value ?? 0)}
+                  onBlur={field.handleBlur}
+                />
+              </Form.Item>
             )}
-            <form.Field name="code">
-              {(field) => (
-                <FormItem>
-                  <FormLabel required>{t('pages.dictManagement.columns.code')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      required
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <form.Field name="name">
-              {(field) => (
-                <FormItem>
-                  <FormLabel required>{t('pages.dictManagement.columns.name')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      required
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <form.Field name="value">
-              {(field) => (
-                <FormItem>
-                  <FormLabel>{t('pages.dictManagement.columns.value')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <form.Field name="remark">
-              {(field) => (
-                <FormItem>
-                  <FormLabel>{t('pages.dictManagement.columns.remark')}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <div className="grid grid-cols-2 gap-4">
-              <form.Field name="sort">
-                {(field) => (
-                  <FormItem>
-                    <FormLabel>{t('pages.dictManagement.columns.sortOrder')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        value={field.state.value as number}
-                        onChange={(e) => field.handleChange(parseInt(e.target.value) || 0)}
-                        onBlur={field.handleBlur}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              </form.Field>
-              <form.Field name="status">
-                {(field) => (
-                  <FormItem>
-                    <FormLabel>{t('pages.dictManagement.columns.status')}</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={String(field.state.value as number)}
-                        onValueChange={(v) => field.handleChange(parseInt(v))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">{t('pages.dictManagement.status.active')}</SelectItem>
-                          <SelectItem value="0">{t('pages.dictManagement.status.inactive')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              </form.Field>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" disabled={form.state.isSubmitting}>
-              {form.state.isSubmitting
-                ? t('pages.dictManagement.messages.submitting')
-                : t('common.confirm')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </form.Field>
+          <form.Field name="status">
+            {(field) => (
+              <Form.Item style={{ minWidth: 180 }} label={t('pages.dictManagement.columns.status')}>
+                <Select
+                  value={String(field.state.value as number)}
+                  onChange={(value) => field.handleChange(Number.parseInt(value, 10))}
+                  options={[
+                    { value: '1', label: t('pages.dictManagement.status.active') },
+                    { value: '0', label: t('pages.dictManagement.status.inactive') },
+                  ]}
+                />
+              </Form.Item>
+            )}
+          </form.Field>
+        </Space>
+      </div>
+    </Modal>
   );
 }

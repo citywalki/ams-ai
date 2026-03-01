@@ -1,165 +1,106 @@
+import { useEffect } from 'react';
+import { Alert, Form, Input, Modal, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
-import {
-  FormItem,
-  FormLabel,
-  FormControl,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type UserFormData } from '../schemas/user-schema';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UserFormApi = ReactFormExtendedApi<UserFormData, any, any, any, any, any, any, any, any, any, any, any>;
 
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: 'create' | 'edit';
-  form: UserFormApi;
+  initialValues: UserFormData;
   error: string | null;
   onClose: () => void;
+  onSubmit: (values: UserFormData) => Promise<void>;
+  isSubmitting: boolean;
 }
 
 export function UserFormDialog({
   open,
   onOpenChange,
   mode,
-  form,
+  initialValues,
   error,
   onClose,
+  onSubmit,
+  isSubmitting,
 }: UserFormDialogProps) {
   const { t } = useTranslation();
+  const [form] = Form.useForm<UserFormData>();
+
+  useEffect(() => {
+    if (open) {
+      form.setFieldsValue(initialValues);
+    } else {
+      form.resetFields();
+    }
+  }, [form, initialValues, open]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
+    <Modal
+      destroyOnHidden
+      open={open}
+      title={
+        mode === 'create'
+          ? t('pages.userManagement.dialog.createTitle')
+          : t('pages.userManagement.dialog.editTitle')
+      }
+      okText={t('common.confirm')}
+      cancelText={t('common.cancel')}
+      onCancel={() => {
+        onOpenChange(false);
+        onClose();
+      }}
+      onOk={() => void form.submit()}
+      confirmLoading={isSubmitting}
+    >
+      {error && <Alert showIcon type="error" style={{ marginBottom: 16 }} message={error} />}
+      <Form<UserFormData>
+        form={form}
+        preserve={false}
+        layout="vertical"
+        initialValues={initialValues}
+        onFinish={(values) => void onSubmit(values)}
+      >
+        <Form.Item
+          label={t('pages.userManagement.form.username')}
+          name="username"
+          rules={[
+            { required: true, message: '用户名不能为空' },
+            { max: 50, message: '用户名最多50个字符' },
+          ]}
         >
-          <DialogHeader>
-            <DialogTitle>
-              {mode === 'create'
-                ? t('pages.userManagement.dialog.createTitle')
-                : t('pages.userManagement.dialog.editTitle')}
-            </DialogTitle>
-            <DialogDescription>
-              {mode === 'create'
-                ? t('pages.userManagement.dialog.createDescription')
-                : t('pages.userManagement.dialog.editDescription')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <form.Field name="username">
-              {(field) => (
-                <FormItem>
-                  <FormLabel required>{t('pages.userManagement.form.username')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="username"
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      required
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            <form.Field name="email">
-              {(field) => (
-                <FormItem>
-                  <FormLabel>{t('pages.userManagement.form.email')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={field.state.value as string}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-            {mode === 'create' && (
-              <form.Field name="password">
-                {(field) => (
-                  <FormItem>
-                    <FormLabel required>{t('pages.userManagement.form.password')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={field.state.value as string}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        onBlur={field.handleBlur}
-                        required
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              </form.Field>
-            )}
-            <form.Field name="status">
-              {(field) => (
-                <FormItem>
-                  <FormLabel>{t('pages.userManagement.form.status')}</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.state.value as string}
-                      onValueChange={(value) => field.handleChange(value as 'ACTIVE' | 'INACTIVE')}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ACTIVE">{t('pages.userManagement.status.active')}</SelectItem>
-                        <SelectItem value="INACTIVE">{t('pages.userManagement.status.inactive')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                </FormItem>
-              )}
-            </form.Field>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" disabled={form.state.isSubmitting}>
-              {form.state.isSubmitting
-                ? t('pages.userManagement.messages.submitting')
-                : t('common.confirm')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <Input id="username" />
+        </Form.Item>
+        <Form.Item
+          label={t('pages.userManagement.form.email')}
+          name="email"
+          rules={[
+            { type: 'email', message: '请输入有效的邮箱地址' },
+          ]}
+        >
+          <Input id="email" type="email" />
+        </Form.Item>
+        {mode === 'create' && (
+          <Form.Item
+            label={t('pages.userManagement.form.password')}
+            name="password"
+            rules={[
+              { required: true, message: '密码至少6个字符' },
+              { min: 6, message: '密码至少6个字符' },
+            ]}
+          >
+            <Input.Password id="password" />
+          </Form.Item>
+        )}
+        <Form.Item label={t('pages.userManagement.form.status')} name="status">
+          <Select
+            options={[
+              { value: 'ACTIVE', label: t('pages.userManagement.status.active') },
+              { value: 'INACTIVE', label: t('pages.userManagement.status.inactive') },
+            ]}
+          />
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 }
