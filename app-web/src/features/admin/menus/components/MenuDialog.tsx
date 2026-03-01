@@ -1,9 +1,15 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Form, Input, InputNumber, Modal, Select, Space, Switch } from 'antd';
+import { Alert, Col, Form, Input, InputNumber, Modal, Row, Select, Switch } from 'antd';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type MenuFormData } from '../schemas/menu-schema';
 import { type MenuItem } from '@/lib/types';
+import {
+  FORM_COL_HALF,
+  FORM_GRID_GUTTER,
+  FORM_ITEM_COMPACT_STYLE,
+  FULL_WIDTH_STYLE,
+} from '@/styles/ui-patterns';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MenuFormApi = ReactFormExtendedApi<MenuFormData, any, any, any, any, any, any, any, any, any, any, any>;
@@ -62,7 +68,7 @@ export function MenuDialog({
         {error && <Alert type="error" showIcon message={error} />}
         <form.Field name="key">
           {(field) => (
-            <Form.Item label={t('pages.menuManagement.form.key')} required>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.menuManagement.form.key')} required>
               <Input
                 value={field.state.value as string}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -73,7 +79,7 @@ export function MenuDialog({
         </form.Field>
         <form.Field name="label">
           {(field) => (
-            <Form.Item label={t('pages.menuManagement.form.name')} required>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.menuManagement.form.name')} required>
               <Input
                 value={field.state.value as string}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -84,7 +90,7 @@ export function MenuDialog({
         </form.Field>
         <form.Field name="route">
           {(field) => (
-            <Form.Item label={t('pages.menuManagement.form.route')}>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.menuManagement.form.route')}>
               <Input
                 value={field.state.value as string}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -95,7 +101,7 @@ export function MenuDialog({
         </form.Field>
         <form.Field name="icon">
           {(field) => (
-            <Form.Item label={t('pages.menuManagement.form.icon')}>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.menuManagement.form.icon')}>
               <Input
                 value={field.state.value as string}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -106,7 +112,7 @@ export function MenuDialog({
         </form.Field>
         <form.Field name="rolesAllowed">
           {(field) => (
-            <Form.Item label={t('pages.menuManagement.form.rolesAllowed')}>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.menuManagement.form.rolesAllowed')}>
               <Input
                 value={field.state.value as string}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -116,37 +122,42 @@ export function MenuDialog({
             </Form.Item>
           )}
         </form.Field>
-        <Space style={{ width: '100%' }} align="start">
-          <form.Field name="sortOrder">
-            {(field) => (
-              <Form.Item style={{ minWidth: 160 }} label={t('pages.menuManagement.form.sortOrder')}>
-                <InputNumber
-                  style={{ width: '100%' }}
-                  value={field.state.value as number}
-                  onChange={(value) => field.handleChange(value ?? 0)}
-                  onBlur={field.handleBlur}
-                />
-              </Form.Item>
-            )}
-          </form.Field>
-          <form.Field name="menuType">
-            {(field) => (
-              <Form.Item style={{ minWidth: 200 }} label={t('pages.menuManagement.form.type')}>
-                <Select
-                  value={field.state.value as string}
-                  onChange={(value) => field.handleChange(value as 'FOLDER' | 'MENU')}
-                  options={[
-                    { value: 'FOLDER', label: t('pages.menuManagement.form.folderType') },
-                    { value: 'MENU', label: t('pages.menuManagement.form.menuType') },
-                  ]}
-                />
-              </Form.Item>
-            )}
-          </form.Field>
-        </Space>
+        <Row gutter={FORM_GRID_GUTTER}>
+          <Col {...FORM_COL_HALF}>
+            <form.Field name="sortOrder">
+              {(field) => (
+                <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.menuManagement.form.sortOrder')}>
+                  <InputNumber
+                    style={FULL_WIDTH_STYLE}
+                    value={field.state.value as number}
+                    onChange={(value) => field.handleChange(value ?? 0)}
+                    onBlur={field.handleBlur}
+                  />
+                </Form.Item>
+              )}
+            </form.Field>
+          </Col>
+          <Col {...FORM_COL_HALF}>
+            <form.Field name="menuType">
+              {(field) => (
+                <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.menuManagement.form.type')}>
+                  <Select
+                    style={FULL_WIDTH_STYLE}
+                    value={field.state.value as string}
+                    onChange={(value) => field.handleChange(value as 'FOLDER' | 'MENU')}
+                    options={[
+                      { value: 'FOLDER', label: t('pages.menuManagement.form.folderType') },
+                      { value: 'MENU', label: t('pages.menuManagement.form.menuType') },
+                    ]}
+                  />
+                </Form.Item>
+              )}
+            </form.Field>
+          </Col>
+        </Row>
         <form.Field name="isVisible">
           {(field) => (
-            <Form.Item label={t('pages.menuManagement.form.visible')}>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.menuManagement.form.visible')}>
               <Switch
                 checked={field.state.value as boolean}
                 onChange={(checked) => field.handleChange(checked)}
