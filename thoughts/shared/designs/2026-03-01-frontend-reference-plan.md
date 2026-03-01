@@ -24,13 +24,17 @@ status: validated
 | 状态管理 | Zustand | 4.x |
 | 数据获取 | TanStack Query | 5.x |
 | 表格 | TanStack Table | 8.x |
-| 表单 | TanStack Form + Zod | latest |
+| 表单验证 | Ant Design Form + Zod | - |
 | GraphQL 客户端 | graphql-request | 7.x |
 | HTTP 客户端 | Axios | 1.x |
 | 路由 | React Router | 6.x / 7.x |
-| 样式 | Tailwind CSS | 4.x |
-| 动画 | Framer Motion | 12.x |
 | 国际化 | i18next | 25.x |
+
+### 精简原则
+
+- **样式**: 使用 Ant Design Design Token，不需要 Tailwind CSS
+- **表单**: 使用 Ant Design Form + Zod 验证，不需要 TanStack Form
+- **动画**: 使用 CSS transitions，不需要 Framer Motion
 
 ### 开发依赖
 
@@ -92,7 +96,7 @@ src/
 │
 ├── services/                   # API 服务封装
 ├── contexts/                   # React Context
-├── styles/                     # 全局样式
+├── styles/                     # 全局样式 (CSS变量、Ant Design主题)
 └── i18n/                       # 国际化
 ```
 
