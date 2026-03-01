@@ -1,7 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { Alert, Form, Input, InputNumber, Modal, Select, Space } from 'antd';
+import { Alert, Col, Form, Input, InputNumber, Modal, Row, Select } from 'antd';
 import { type ReactFormExtendedApi } from '@tanstack/react-form';
 import { type DictItemFormData } from '../schemas/dict-schema';
+import {
+  FORM_COL_HALF,
+  FORM_GRID_GUTTER,
+  FORM_ITEM_COMPACT_STYLE,
+  FULL_WIDTH_STYLE,
+} from '@/styles/ui-patterns';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DictItemFormApi = ReactFormExtendedApi<DictItemFormData, any, any, any, any, any, any, any, any, any, any, any>;
@@ -45,7 +51,7 @@ export function DictItemDialog({
         {error && <Alert type="error" showIcon message={error} />}
         <form.Field name="code">
           {(field) => (
-            <Form.Item label={t('pages.dictManagement.columns.code')} required>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.dictManagement.columns.code')} required>
               <Input
                 value={field.state.value as string}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -56,7 +62,7 @@ export function DictItemDialog({
         </form.Field>
         <form.Field name="name">
           {(field) => (
-            <Form.Item label={t('pages.dictManagement.columns.name')} required>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.dictManagement.columns.name')} required>
               <Input
                 value={field.state.value as string}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -67,7 +73,7 @@ export function DictItemDialog({
         </form.Field>
         <form.Field name="value">
           {(field) => (
-            <Form.Item label={t('pages.dictManagement.columns.value')}>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.dictManagement.columns.value')}>
               <Input
                 value={field.state.value as string}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -78,7 +84,7 @@ export function DictItemDialog({
         </form.Field>
         <form.Field name="remark">
           {(field) => (
-            <Form.Item label={t('pages.dictManagement.columns.remark')}>
+            <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.dictManagement.columns.remark')}>
               <Input.TextArea
                 rows={3}
                 value={field.state.value as string}
@@ -88,34 +94,39 @@ export function DictItemDialog({
             </Form.Item>
           )}
         </form.Field>
-        <Space style={{ width: '100%' }} align="start">
-          <form.Field name="sort">
-            {(field) => (
-              <Form.Item style={{ minWidth: 160 }} label={t('pages.dictManagement.columns.sortOrder')}>
-                <InputNumber
-                  style={{ width: '100%' }}
-                  value={field.state.value as number}
-                  onChange={(value) => field.handleChange(value ?? 0)}
-                  onBlur={field.handleBlur}
-                />
-              </Form.Item>
-            )}
-          </form.Field>
-          <form.Field name="status">
-            {(field) => (
-              <Form.Item style={{ minWidth: 180 }} label={t('pages.dictManagement.columns.status')}>
-                <Select
-                  value={String(field.state.value as number)}
-                  onChange={(value) => field.handleChange(Number.parseInt(value, 10))}
-                  options={[
-                    { value: '1', label: t('pages.dictManagement.status.active') },
-                    { value: '0', label: t('pages.dictManagement.status.inactive') },
-                  ]}
-                />
-              </Form.Item>
-            )}
-          </form.Field>
-        </Space>
+        <Row gutter={FORM_GRID_GUTTER}>
+          <Col {...FORM_COL_HALF}>
+            <form.Field name="sort">
+              {(field) => (
+                <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.dictManagement.columns.sortOrder')}>
+                  <InputNumber
+                    style={FULL_WIDTH_STYLE}
+                    value={field.state.value as number}
+                    onChange={(value) => field.handleChange(value ?? 0)}
+                    onBlur={field.handleBlur}
+                  />
+                </Form.Item>
+              )}
+            </form.Field>
+          </Col>
+          <Col {...FORM_COL_HALF}>
+            <form.Field name="status">
+              {(field) => (
+                <Form.Item style={FORM_ITEM_COMPACT_STYLE} label={t('pages.dictManagement.columns.status')}>
+                  <Select
+                    style={FULL_WIDTH_STYLE}
+                    value={String(field.state.value as number)}
+                    onChange={(value) => field.handleChange(Number.parseInt(value, 10))}
+                    options={[
+                      { value: '1', label: t('pages.dictManagement.status.active') },
+                      { value: '0', label: t('pages.dictManagement.status.inactive') },
+                    ]}
+                  />
+                </Form.Item>
+              )}
+            </form.Field>
+          </Col>
+        </Row>
       </div>
     </Modal>
   );
