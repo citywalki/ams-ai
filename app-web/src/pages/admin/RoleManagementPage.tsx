@@ -1,8 +1,7 @@
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, Card } from 'antd';
 import { DataTable } from '@/components/tables/DataTable';
 import { queryKeys } from '@/lib/queryKeys';
 import { fetchRolesPage } from '@/features/admin/roles/queries';
@@ -39,13 +38,14 @@ export default function RoleManagementPage() {
   const {
     dialogOpen: formDialogOpen,
     dialogMode,
-    form,
+    formData,
     formError,
     openCreateDialog,
     openEditDialog,
     closeDialog: closeFormDialog,
-    togglePermission,
+    submitForm,
     setDialogOpen: setFormDialogOpen,
+    isSubmitting,
   } = useRoleForm();
 
   // Menu dialog state
@@ -134,22 +134,23 @@ export default function RoleManagementPage() {
       />
 
       {/* Data Table Card */}
-      <Card className="flex-1 min-h-0 flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{t('pages.roleManagement.listTitle')}</CardTitle>
-          <Button variant="ghost" onClick={openCreateDialog}>
-            <Plus className="h-4 w-4 mr-2" />
+      <Card
+        title={t('pages.roleManagement.listTitle')}
+        className="flex-1 min-h-0 flex flex-col"
+        extra={(
+          <Button type="primary" onClick={openCreateDialog} icon={<Plus className="h-4 w-4" />}>
             {t('common.add')}
           </Button>
-        </CardHeader>
-        <CardContent className="flex-1 min-h-0">
+        )}
+      >
+        <div className="flex-1 min-h-0">
           <DataTable
             columns={columns}
             queryKey={queryKeys.roles.list(searchParams)}
             queryFn={(params) => fetchRolesPage(params, searchParams)}
             defaultSort={{ id: 'createdAt', desc: true }}
           />
-        </CardContent>
+        </div>
       </Card>
 
       {/* Create/Edit Dialog */}
@@ -157,11 +158,12 @@ export default function RoleManagementPage() {
         open={formDialogOpen}
         onOpenChange={setFormDialogOpen}
         mode={dialogMode}
-        form={form}
+        initialValues={formData}
         error={formError}
         permissions={permissions}
         onClose={handleCloseFormDialog}
-        onTogglePermission={togglePermission}
+        onSubmit={submitForm}
+        isSubmitting={isSubmitting}
       />
 
       {/* User Assignment Dialog */}

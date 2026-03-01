@@ -1,7 +1,6 @@
 import { Menu, Users, Pencil, Trash2 } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button, Tag } from 'antd';
 import { type RoleItem } from '@/lib/types';
 
 interface CreateColumnsOptions {
@@ -44,9 +43,9 @@ export function createColumns({
         const count =
           row.original.permissionIds?.length ?? row.original.permissions?.length ?? 0;
         return (
-          <Badge variant="secondary">
+          <Tag color="blue">
             {t('pages.roleManagement.columns.permissionsCount', { count })}
-          </Badge>
+          </Tag>
         );
       },
     },
@@ -55,32 +54,25 @@ export function createColumns({
       header: t('common.actions'),
       cell: ({ row }) => (
         <div className="flex justify-start gap-2">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(row.original)}>
-            <Pencil className="h-4 w-4" />
-          </Button>
+          <Button type="text" icon={<Pencil className="h-4 w-4" />} onClick={() => onEdit(row.original)} />
           <Button
-            variant="ghost"
-            size="sm"
+            type="text"
+            icon={<Users className="h-4 w-4" />}
             title={t('pages.roleManagement.actions.associateUsers')}
             onClick={() => onUserAssign(row.original)}
-          >
-            <Users className="h-4 w-4" />
-          </Button>
+          />
           <Button
-            variant="ghost"
-            size="sm"
+            type="text"
+            icon={<Menu className="h-4 w-4" />}
             title={t('pages.roleManagement.actions.associateMenus')}
             onClick={() => onMenuConfig(row.original)}
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
+          />
           <Button
-            variant="ghost"
-            size="sm"
+            type="text"
+            danger
+            icon={<Trash2 className="h-4 w-4" />}
             onClick={() => onDelete(row.original)}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+          />
         </div>
       ),
     },

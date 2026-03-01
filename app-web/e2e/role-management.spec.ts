@@ -10,8 +10,8 @@ test.describe('Role Management', () => {
 
   test.describe('List Roles', () => {
     test('should display role list page', async ({ page }) => {
-      await expect(page.getByRole('heading', { name: /角色管理/i })).toBeVisible();
-      await expect(page.getByPlaceholder(/角色名称或编码/i)).toBeVisible();
+      await expect(page.locator('text=角色管理').first()).toBeVisible();
+      await expect(page.getByPlaceholder(/输入角色名称或编码搜索/i)).toBeVisible();
     });
 
     test('should show roles in table', async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe('Role Management', () => {
     });
 
     test('should search roles by keyword', async ({ page }) => {
-      const searchInput = page.getByPlaceholder(/角色名称或编码/i);
+      const searchInput = page.getByPlaceholder(/输入角色名称或编码搜索/i);
       await searchInput.fill('ADMIN');
       await page.keyboard.press('Enter');
       
@@ -40,7 +40,7 @@ test.describe('Role Management', () => {
     });
 
     test('should reset search', async ({ page }) => {
-      const searchInput = page.getByPlaceholder(/角色名称或编码/i);
+      const searchInput = page.getByPlaceholder(/输入角色名称或编码搜索/i);
       await searchInput.fill('testkeyword');
       await page.getByRole('button', { name: /重置/i }).click();
       
@@ -50,7 +50,7 @@ test.describe('Role Management', () => {
 
   test.describe('Create Role', () => {
     test.beforeEach(async ({ page }) => {
-      await page.getByRole('button', { name: /添加/i }).click();
+      await page.getByRole('button', { name: /添加|add/i }).click();
       await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
       await page.waitForTimeout(300);
     });
@@ -62,8 +62,7 @@ test.describe('Role Management', () => {
     });
 
     test('should validate required fields', async ({ page }) => {
-      const submitBtn = page.locator('[role="dialog"] button[type="submit"]');
-      await submitBtn.click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').last().click();
 
       await page.waitForTimeout(300);
 
@@ -78,7 +77,7 @@ test.describe('Role Management', () => {
       await page.locator('#name').fill('测试角色');
       await page.locator('#description').fill('E2E测试创建的角色');
       
-      await page.locator('[role="dialog"] button[type="submit"]').click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').last().click();
       
       await page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 10000 });
       
@@ -90,7 +89,7 @@ test.describe('Role Management', () => {
     test('should show error for duplicate role code', async ({ page }) => {
       await page.locator('#code').fill('ADMIN');
       await page.locator('#name').fill('重复角色');
-      await page.locator('[role="dialog"] button[type="submit"]').click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').last().click();
       
       await page.waitForTimeout(1000);
       
@@ -102,14 +101,14 @@ test.describe('Role Management', () => {
       await page.locator('#code').fill(`PERM_TEST_${Date.now()}`);
       await page.locator('#name').fill('权限测试角色');
       
-      const permissionButtons = page.locator('[role="dialog"] .border.rounded-md button');
+      const permissionButtons = page.locator('[role="dialog"] .ant-checkbox-wrapper');
       const count = await permissionButtons.count();
       
       if (count > 0) {
         await permissionButtons.first().click();
       }
       
-      await page.getByRole('button', { name: /取消/i }).click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').first().click();
     });
   });
 
@@ -154,7 +153,7 @@ test.describe('Role Management', () => {
       const nameInput = page.locator('#name');
       await nameInput.fill(`更新名称_${Date.now()}`);
       
-      await page.locator('[role="dialog"] button[type="submit"]').click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').last().click();
       
       await page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 10000 });
     });
@@ -183,7 +182,7 @@ test.describe('Role Management', () => {
         await permissionButtons.first().click();
       }
       
-      await page.locator('[role="dialog"] button[type="submit"]').click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').last().click();
       await page.waitForSelector('[role="dialog"]', { state: 'hidden', timeout: 10000 });
     });
   });
@@ -223,7 +222,7 @@ test.describe('Role Management', () => {
       
       await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
       
-      await page.getByRole('button', { name: /取消/i }).click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').first().click();
       
       await expect(page.getByRole('dialog')).not.toBeVisible();
     });
@@ -254,7 +253,7 @@ test.describe('Role Management', () => {
         }
         
         await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
-        await page.getByRole('button', { name: /删除|确认/i }).click();
+        await page.locator('[role="dialog"] .ant-modal-footer button').last().click();
         
         await page.waitForTimeout(1000);
         
@@ -281,7 +280,7 @@ test.describe('Role Management', () => {
       await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
       
       await expect(page.getByRole('dialog')).toBeVisible();
-      await expect(page.getByRole('heading', { name: /关联菜单/i })).toBeVisible();
+      await expect(page.locator('text=/关联菜单|菜单/i').first()).toBeVisible();
     });
 
     test('should display menu tree', async ({ page }) => {
@@ -329,25 +328,25 @@ test.describe('Role Management', () => {
         await page.waitForTimeout(200);
       }
       
-      await page.getByRole('button', { name: /取消/i }).click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').first().click();
     });
   });
 
   test.describe('Error Handling', () => {
     test('should show validation error for empty code', async ({ page }) => {
-      await page.getByRole('button', { name: /添加/i }).click();
+      await page.getByRole('button', { name: /添加|add/i }).click();
       await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
       await page.waitForTimeout(300);
       
       await page.locator('#name').fill('测试角色');
-      await page.locator('[role="dialog"] button[type="submit"]').click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').last().click();
 
       await page.waitForTimeout(300);
 
       await expect(page.getByRole('dialog')).toBeVisible();
       await expect(page.locator('#code')).toHaveValue('');
       
-      await page.getByRole('button', { name: /取消/i }).click();
+      await page.locator('[role="dialog"] .ant-modal-footer button').first().click();
     });
   });
 });

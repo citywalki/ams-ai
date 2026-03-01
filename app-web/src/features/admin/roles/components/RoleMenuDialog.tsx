@@ -1,16 +1,6 @@
 import { ChevronDown, ChevronRight, FileText, Folder, FolderOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, Empty, Modal, Skeleton } from 'antd';
 import { type MenuItem, type RoleItem } from '@/lib/types';
 
 interface RoleMenuDialogProps {
@@ -179,32 +169,35 @@ export function RoleMenuDialog({
   const { t } = useTranslation();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg h-[500px] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>
-            {t('pages.roleManagement.dialog.menuTitle', { name: role?.name ?? '-' })}
-          </DialogTitle>
-          <DialogDescription>
-            {t('pages.roleManagement.dialog.menuDescription', { code: role?.code ?? '-' })}
-          </DialogDescription>
-        </DialogHeader>
+    <Modal
+      destroyOnHidden
+      open={open}
+      width={720}
+      title={t('pages.roleManagement.dialog.menuTitle', { name: role?.name ?? '-' })}
+      onCancel={() => {
+        onOpenChange(false);
+        onClose();
+      }}
+      okText={saving ? t('pages.roleManagement.messages.saving') : t('common.save')}
+      cancelText={t('common.cancel')}
+      okButtonProps={{ loading: saving }}
+      onOk={onSave}
+    >
+      <div style={{ marginBottom: 12 }}>
+        {t('pages.roleManagement.dialog.menuDescription', { code: role?.code ?? '-' })}
+      </div>
         {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <Alert style={{ marginBottom: 12 }} type="error" showIcon message={error} />
         )}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="max-h-[420px] overflow-auto">
           {loading ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-8 w-full" />
+                <Skeleton key={i} active paragraph={{ rows: 1 }} title={false} />
               ))}
             </div>
           ) : menuTree.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {t('pages.roleManagement.messages.noMenus')}
-            </div>
+            <Empty description={t('pages.roleManagement.messages.noMenus')} />
           ) : (
             <div className="border rounded-md h-full overflow-y-auto">
               <MenuTree
@@ -218,15 +211,6 @@ export function RoleMenuDialog({
             </div>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
-          <Button onClick={onSave} disabled={saving}>
-            {saving ? t('pages.roleManagement.messages.saving') : t('common.save')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </Modal>
   );
 }

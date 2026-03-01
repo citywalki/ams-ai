@@ -1,14 +1,5 @@
+import { Alert, Modal } from 'antd';
 import { useTranslation } from 'react-i18next';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type RoleItem } from '@/lib/types';
 
 interface DeleteConfirmDialogProps {
@@ -31,28 +22,25 @@ export function DeleteConfirmDialog({
   const { t } = useTranslation();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('pages.roleManagement.dialog.deleteTitle')}</DialogTitle>
-          <DialogDescription>
-            {t('pages.roleManagement.dialog.deleteDescription', { name: role?.name ?? '-' })}
-          </DialogDescription>
-        </DialogHeader>
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
-          </Button>
-          <Button variant="destructive" onClick={onDelete} disabled={loading}>
-            {loading ? t('pages.roleManagement.messages.deleting') : t('common.delete')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <Modal
+      destroyOnHidden
+      open={open}
+      title={t('pages.roleManagement.dialog.deleteTitle')}
+      okText={t('common.delete')}
+      cancelText={t('common.cancel')}
+      okButtonProps={{ danger: true, loading }}
+      onCancel={() => onOpenChange(false)}
+      onOk={onDelete}
+    >
+      <p>{t('pages.roleManagement.dialog.deleteDescription', { name: role?.name ?? '-' })}</p>
+      {error && (
+        <Alert
+          style={{ marginTop: 12 }}
+          type="error"
+          showIcon
+          message={error}
+        />
+      )}
+    </Modal>
   );
 }

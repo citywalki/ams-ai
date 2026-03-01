@@ -1,12 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from '@tanstack/react-form';
 import { type RoleItem, type RolePayload } from '@/lib/types';
 import { useCreateRole, useUpdateRole } from '../mutations';
-import {
-  roleFormSchema,
-  type RoleFormData,
-} from '../schemas/role-schema';
+import { roleFormSchema, type RoleFormData } from '../schemas/role-schema';
 
 const defaultFormValues: RoleFormData = {
   code: '',
@@ -21,31 +17,59 @@ export function useRoleForm() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
   const [editingRole, setEditingRole] = useState<RoleItem | null>(null);
+  const [formData, setFormData] = useState<RoleFormData>(defaultFormValues);
   const [formError, setFormError] = useState<string | null>(null);
 
   const createMutation = useCreateRole();
   const updateMutation = useUpdateRole();
 
-  const form = useForm({
-    defaultValues: defaultFormValues,
-    validators: {
-      onChange: ({ value }) => {
-        const result = roleFormSchema.safeParse(value);
-        if (result.success) {
-          return undefined;
-        }
-        return result.error.issues.map((issue) => issue.message).join(', ');
-      },
-    },
-    onSubmit: async ({ value }) => {
+  const openCreateDialog = useCallback(() => {
+    setDialogMode('create');
+    setEditingRole(null);
+    setFormData(defaultFormValues);
+    setFormError(null);
+    setDialogOpen(true);
+  }, []);
+
+  const openEditDialog = useCallback((role: RoleItem) => {
+    setDialogMode('edit');
+    setEditingRole(role);
+    setFormData({
+      code: role.code,
+      name: role.name,
+      description: role.description ?? '',
+      permissionIds: role.permissionIds ?? role.permissions?.map((p) => p.id) ?? [],
+    });
+    setFormError(null);
+    setDialogOpen(true);
+  }, []);
+
+  const closeDialog = useCallback(() => {
+    setDialogOpen(false);
+    setEditingRole(null);
+    setFormData(defaultFormValues);
+    setFormError(null);
+  }, []);
+
+  const submitForm = useCallback(
+    async (values: RoleFormData) => {
       setFormError(null);
+
+      const validation = roleFormSchema.safeParse(values);
+      if (!validation.success) {
+        const message = validation.error.issues.map((issue) => issue.message).join(', ');
+        setFormError(message);
+        throw new Error(message);
+      }
+
+      const payload: RolePayload = {
+        code: values.code.trim(),
+        name: values.name.trim(),
+        description: values.description?.trim() || undefined,
+        permissionIds: values.permissionIds,
+      };
+
       try {
-        const payload: RolePayload = {
-          code: value.code.trim(),
-          name: value.name.trim(),
-          description: value.description?.trim() || undefined,
-          permissionIds: value.permissionIds,
-        };
         if (dialogMode === 'create') {
           await createMutation.mutateAsync(payload);
         } else if (editingRole) {
@@ -53,65 +77,27 @@ export function useRoleForm() {
         }
         closeDialog();
       } catch (err) {
-        setFormError(
+        const message =
           err instanceof Error
             ? err.message
-            : t('pages.roleManagement.messages.operationFailed')
-        );
+            : t('pages.roleManagement.messages.operationFailed');
+        setFormError(message);
         throw err;
       }
     },
-  });
-
-  const openCreateDialog = useCallback(() => {
-    setDialogMode('create');
-    setEditingRole(null);
-    form.reset();
-    form.setFieldValue('code', '');
-    form.setFieldValue('name', '');
-    form.setFieldValue('description', '');
-    form.setFieldValue('permissionIds', []);
-    setFormError(null);
-    setDialogOpen(true);
-  }, [form]);
-
-  const openEditDialog = useCallback((role: RoleItem) => {
-    setDialogMode('edit');
-    setEditingRole(role);
-    form.reset();
-    form.setFieldValue('code', role.code);
-    form.setFieldValue('name', role.name);
-    form.setFieldValue('description', role.description ?? '');
-    form.setFieldValue('permissionIds', role.permissionIds ?? role.permissions?.map((p) => p.id) ?? []);
-    setFormError(null);
-    setDialogOpen(true);
-  }, [form]);
-
-  const closeDialog = useCallback(() => {
-    setDialogOpen(false);
-    setEditingRole(null);
-    form.reset();
-    setFormError(null);
-  }, [form]);
-
-  const togglePermission = useCallback((permId: string) => {
-    const currentPermissions = form.getFieldValue('permissionIds');
-    const newPermissions = currentPermissions.includes(permId)
-      ? currentPermissions.filter((id) => id !== permId)
-      : [...currentPermissions, permId];
-    form.setFieldValue('permissionIds', newPermissions);
-  }, [form]);
+    [closeDialog, createMutation, dialogMode, editingRole, t, updateMutation]
+  );
 
   return {
     dialogOpen,
     dialogMode,
     editingRole,
-    form,
+    formData,
     formError,
     openCreateDialog,
     openEditDialog,
     closeDialog,
-    togglePermission,
+    submitForm,
     setDialogOpen,
     isSubmitting: createMutation.isPending || updateMutation.isPending,
   };

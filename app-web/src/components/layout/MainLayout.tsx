@@ -1,9 +1,8 @@
-import {useEffect, useState} from 'react';
-import {Outlet} from 'react-router-dom';
-import {AnimatePresence, motion} from 'framer-motion';
-import {Header} from './Header';
-import {Sidebar} from './Sidebar';
-import {cn} from '@/lib/utils';
+import { useEffect, useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import { Drawer, Layout } from 'antd';
+import { Header } from './Header';
+import { Sidebar } from './Sidebar';
 
 export default function MainLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -12,8 +11,9 @@ export default function MainLayout() {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
+      const nextIsMobile = window.innerWidth < 768;
+      setIsMobile(nextIsMobile);
+      if (!nextIsMobile) {
         setIsMobileMenuOpen(false);
       }
     };
@@ -25,60 +25,35 @@ export default function MainLayout() {
 
   const handleMenuToggle = () => {
     if (isMobile) {
-      setIsMobileMenuOpen(!isMobileMenuOpen);
-    } else {
-      setIsSidebarCollapsed(!isSidebarCollapsed);
+      setIsMobileMenuOpen((open) => !open);
+      return;
     }
+    setIsSidebarCollapsed((collapsed) => !collapsed);
   };
 
   return (
-    <div className="h-screen flex flex-col bg-slate-100">
+    <Layout style={{ height: '100vh', background: 'var(--ams-color-bg)' }}>
       <Header onMenuToggle={handleMenuToggle} />
-
-      <div className="flex-1 flex overflow-hidden p-3 gap-3">
-        <AnimatePresence>
-          {isMobile && isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-30 md:hidden"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {(!isMobile || isMobileMenuOpen) && (
-            <motion.div
-              initial={isMobile ? { x: -256 } : false}
-              animate={{ x: 0 }}
-              exit={isMobile ? { x: -256 } : undefined}
-              transition={{ duration: 0.3 }}
-              className={cn(
-                "z-40 h-full",
-                isMobile && "fixed inset-y-0 left-0 p-3"
-              )}
-            >
-              <Sidebar
-                isCollapsed={isMobile ? false : isSidebarCollapsed}
-                onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-          <main className="flex-1 min-h-0 overflow-hidden">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className="h-full min-h-0 flex flex-col"
+      <Layout>
+        {!isMobile && <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed((v) => !v)} />}
+        {isMobile && (
+          <Drawer
+            open={isMobileMenuOpen}
+            closable={false}
+            placement="left"
+            width={288}
+            onClose={() => setIsMobileMenuOpen(false)}
+            styles={{ body: { padding: 0 } }}
           >
+            <Sidebar isCollapsed={false} onToggle={() => undefined} />
+          </Drawer>
+        )}
+        <Layout.Content style={{ padding: 12, overflow: 'hidden' }}>
+          <div className="h-full min-h-0 flex flex-col">
             <Outlet />
-          </motion.div>
-        </main>
-      </div>
-    </div>
+          </div>
+        </Layout.Content>
+      </Layout>
+    </Layout>
   );
 }

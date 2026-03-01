@@ -17,8 +17,6 @@ export function usePermissions() {
               code
               name
               description
-              menuId
-              menuCode
             }
           }
         }
