@@ -511,7 +511,401 @@ export interface RoleItem {
 
 ---
 
-## 14. 实现检查清单
+## 14. 登录页面
+
+### 页面布局
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   ┌─────────────────────┐   ┌─────────────────────────┐    │
+│   │                     │   │   欢迎登录               │    │
+│   │   系统 Logo         │   │   ───────────────        │    │
+│   │   系统标题          │   │   用户名: [__________]   │    │
+│   │   系统简介          │   │   密  码: [__________]   │    │
+│   │                     │   │   □ 记住我   [EN|中]     │    │
+│   │   • 功能特性1       │   │   [    登 录    ]        │    │
+│   │   • 功能特性2       │   │                         │    │
+│   │   • 功能特性3       │   │   错误提示区域           │    │
+│   │                     │   │                         │    │
+│   └─────────────────────┘   └─────────────────────────┘    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 功能需求
+
+| 功能 | 说明 |
+|------|------|
+| 用户名/密码登录 | 必填，调用 `/auth/login` |
+| 记住我 | 可选，延长 Token 有效期 |
+| 国际化切换 | 中/英文切换按钮 |
+| 错误提示 | 登录失败显示错误信息 |
+| 已登录跳转 | 检测到 Token 直接跳转首页 |
+| Loading 状态 | 登录按钮显示加载状态 |
+
+### 核心代码结构
+
+```tsx
+export default function LoginPage() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const login = useAuthStore((state) => state.login);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const error = useAuthStore((state) => state.error);
+
+  // 已登录则跳转
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  const handleSubmit = async (username: string, password: string) => {
+    const ok = await login(username, password);
+    if (ok) navigate('/');
+  };
+
+  return (
+    <div className="登录容器">
+      {/* 左侧品牌区域 */}
+      <div className="品牌介绍">
+        <h1>系统标题</h1>
+        <p>系统简介</p>
+        <ul>功能特性列表</ul>
+      </div>
+      
+      {/* 右侧登录表单 */}
+      <Card>
+        <Form layout="horizontal" onFinish={handleSubmit}>
+          {error && <Alert type="error" message={error} />}
+          <Form.Item label="用户名" required>
+            <Input />
+          </Form.Item>
+          <Form.Item label="密码" required>
+            <Input.Password />
+          </Form.Item>
+          <Checkbox>记住我</Checkbox>
+          <Button type="primary" htmlType="submit" loading={isLoading}>
+            登录
+          </Button>
+        </Form>
+      </Card>
+    </div>
+  );
+}
+```
+
+### API 接口
+
+```typescript
+// POST /api/auth/login
+Request:  { username: string, password: string }
+Response: { accessToken: string, refreshToken: string, userId, username, tenantId }
+
+// GET /api/auth/me (获取当前用户信息)
+Response: { id, username, email, roles[], permissions[], tenantId }
+```
+
+---
+
+## 15. 动态路由菜单
+
+### 架构流程
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   登录成功   │ ──→ │  获取用户菜单 │ ──→ │  渲染侧边栏  │
+│  存储 Token │     │  /menus/user │     │  动态路由    │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+### MenuContext 设计
+
+**职责**: 管理用户菜单状态，提供全局访问
+
+```typescript
+// contexts/MenuContext.tsx
+type MenuContextValue = {
+  menus: MenuItem[];
+  isLoading: boolean;
+  error: string | null;
+  refreshMenus: () => Promise<void>;
+};
+
+export function MenuProvider({ children }) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [menus, setMenus] = useState<MenuItem[]>([]);
+
+  // 登录状态变化时获取菜单
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshMenus();
+    } else {
+      setMenus([]);
+    }
+  }, [isAuthenticated]);
+
+  const refreshMenus = async () => {
+    const userMenus = await menuApi.getUserMenus();
+    setMenus(normalizeMenuTree(userMenus));  // 路径规范化处理
+  };
+
+  return <MenuContext.Provider value={{ menus, ... }}>{children}</MenuContext.Provider>;
+}
+```
+
+### 菜单数据结构
+
+```typescript
+interface MenuItem {
+  id: string;
+  key: string;           // 唯一标识
+  label: string;         // 显示名称
+  route?: string;        // 路由路径
+  icon?: string;         // 图标名称
+  parentId?: string;     // 父级ID
+  sortOrder?: number;    // 排序
+  menuType?: 'FOLDER' | 'MENU';
+  children?: MenuItem[]; // 子菜单
+}
+```
+
+### 侧边栏渲染
+
+```tsx
+// components/layout/Sidebar.tsx
+function Sidebar({ isCollapsed, onToggle }) {
+  const { menus, isLoading, error } = useMenus();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 转换为 Ant Design Menu 格式
+  const menuItems: ItemType[] = useMemo(() => {
+    return convertToAntdMenu(menus);
+  }, [menus]);
+
+  const handleMenuClick = ({ key }) => {
+    navigate(key);
+  };
+
+  if (isLoading) return <Skeleton />;
+  if (error) return <QueryErrorDisplay error={error} />;
+
+  return (
+    <Layout.Sider collapsed={isCollapsed}>
+      <AntMenu
+        items={menuItems}
+        selectedKeys={[location.pathname]}
+        onClick={handleMenuClick}
+      />
+    </Layout.Sider>
+  );
+}
+```
+
+### 路由配置
+
+```tsx
+// Router.tsx
+function ProtectedRoute() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <MainLayout />;  // 包含 Sidebar + Outlet
+}
+
+export default function AppRouter() {
+  return (
+    <MenuProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<ProtectedRoute />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="admin/users" element={<UserManagementPage />} />
+          <Route path="admin/roles" element={<RoleManagementPage />} />
+          {/* 其他路由 */}
+        </Route>
+      </Routes>
+    </MenuProvider>
+  );
+}
+```
+
+### API 接口
+
+```typescript
+// GET /api/system/menus/user
+// 返回当前用户有权限的菜单树
+Response: MenuItem[]
+```
+
+---
+
+## 16. 首页 (Dashboard) 设计
+
+### 页面布局
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  欢迎横幅 (渐变背景)                                          │
+│  欢迎回来，{username}                           2026-03-01   │
+└─────────────────────────────────────────────────────────────┘
+┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐
+│  📊 总告警 │ │  ⏳ 待处理 │ │  ✅ 已解决 │ │  📈 今日新增│
+│    128    │ │     45    │ │     78    │ │     12    │
+│   +5.2%   │ │   -2.1%   │ │   +8.3%   │ │   +3      │
+└───────────┘ └───────────┘ └───────────┘ └───────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  最近告警                                          查看全部 → │
+├─────────────────────────────────────────────────────────────┤
+│  告警标题              严重级别    状态       时间           │
+│  ─────────────────────────────────────────────────────────│
+│  设备A温度过高         [严重]     [待处理]    10:30        │
+│  网络连接中断           [高]      [处理中]    09:45        │
+│  磁盘空间不足           [中]      [已解决]    昨天         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 组件结构
+
+```tsx
+export default function DashboardPage() {
+  const { data: alarms, isLoading, error } = useAlarms(0, 100);
+  const user = useAuthStore((state) => state.user);
+
+  // 计算统计数据
+  const stats = useMemo(() => ({
+    total: alarms?.totalElements ?? 0,
+    pending: alarms?.content.filter(a => a.status === 'NEW').length ?? 0,
+    resolved: alarms?.content.filter(a => a.status === 'RESOLVED').length ?? 0,
+    today: alarms?.content.filter(a => isToday(a.createdAt)).length ?? 0,
+  }), [alarms]);
+
+  return (
+    <div className="dashboard-container">
+      {/* 欢迎横幅 */}
+      <Card className="welcome-banner" style={{ background: 'linear-gradient(...)' }}>
+        <Typography.Title>欢迎回来，{user?.username}</Typography.Title>
+        <Typography.Text>{formatDate(new Date())}</Typography.Text>
+      </Card>
+
+      {/* 统计卡片 (4列 Grid) */}
+      <Row gutter={16}>
+        <Col span={6}>
+          <StatCard title="总告警" value={stats.total} icon={<Bell />} color="sky" />
+        </Col>
+        <Col span={6}>
+          <StatCard title="待处理" value={stats.pending} icon={<Clock />} color="orange" />
+        </Col>
+        <Col span={6}>
+          <StatCard title="已解决" value={stats.resolved} icon={<CheckCircle />} color="green" />
+        </Col>
+        <Col span={6}>
+          <StatCard title="今日新增" value={stats.today} icon={<TrendingUp />} color="blue" />
+        </Col>
+      </Row>
+
+      {/* 最近告警列表 */}
+      <Card title="最近告警" extra={<a href="/alarms">查看全部</a>}>
+        <QueryErrorDisplay error={error} />
+        {isLoading ? <Skeleton /> : (
+          <List
+            dataSource={alarms?.content.slice(0, 5)}
+            renderItem={alarm => (
+              <List.Item>
+                <Text>{alarm.title}</Text>
+                <Tag color={getSeverityColor(alarm.severity)}>{alarm.severity}</Tag>
+                <Tag color={getStatusColor(alarm.status)}>{alarm.status}</Tag>
+                <Text type="secondary">{formatTime(alarm.createdAt)}</Text>
+              </List.Item>
+            )}
+          />
+        )}
+      </Card>
+    </div>
+  );
+}
+```
+
+### 统计卡片组件
+
+```tsx
+interface StatCardProps {
+  title: string;
+  value: number;
+  icon: ReactNode;
+  color: 'sky' | 'orange' | 'green' | 'blue';
+  trend?: number;  // 增长百分比
+}
+
+function StatCard({ title, value, icon, color, trend }: StatCardProps) {
+  return (
+    <Card>
+      <div className="flex items-center justify-between">
+        <div>
+          <Text type="secondary">{title}</Text>
+          <Typography.Title level={2}>{value}</Typography.Title>
+          {trend && (
+            <Text type={trend > 0 ? 'danger' : 'success'}>
+              {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+            </Text>
+          )}
+        </div>
+        <div className={`icon-wrapper bg-${color}-100 text-${color}-600`}>
+          {icon}
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+
+### 颜色映射
+
+```typescript
+const severityColors = {
+  CRITICAL: 'red',
+  HIGH: 'orange',
+  MEDIUM: 'gold',
+  LOW: 'green',
+};
+
+const statusColors = {
+  NEW: 'blue',
+  ACKNOWLEDGED: 'cyan',
+  IN_PROGRESS: 'processing',
+  RESOLVED: 'success',
+  CLOSED: 'default',
+};
+```
+
+### 数据获取
+
+```typescript
+// hooks/useAlarms.ts
+export function useAlarms(page: number, size: number) {
+  return useQuery({
+    queryKey: ['alarms', page, size],
+    queryFn: () => graphqlClient.request(ALARMS_QUERY, { page, size }),
+  });
+}
+
+// GraphQL 查询
+const ALARMS_QUERY = `
+  query Alarms($page: Int, $size: Int) {
+    alarms(page: $page, size: $size, orderBy: [{ field: "createdAt", direction: DESC }]) {
+      content { id title severity status createdAt }
+      totalElements
+    }
+  }
+`;
+```
+
+---
+
+## 17. 实现检查清单
 
 新项目实现时按此顺序：
 
@@ -522,15 +916,18 @@ export interface RoleItem {
 - [ ] 5. 创建目录结构
 - [ ] 6. 实现 apiClient (JWT 拦截器)
 - [ ] 7. 实现 graphqlClient (BigInt 处理)
-- [ ] 8. 配置 TanStack Query
-- [ ] 9. 实现 authStore
-- [ ] 10. 实现路由和布局
-- [ ] 11. 实现 DataTable 组件
-- [ ] 12. 按功能模块实现 features
+- [ ] 8. 实现 authStore (登录/登出/状态)
+- [ ] 9. 实现登录页面
+- [ ] 10. 实现 MenuContext (动态菜单)
+- [ ] 11. 实现 MainLayout + Sidebar
+- [ ] 12. 配置 TanStack Query
+- [ ] 13. 实现 DataTable 组件
+- [ ] 14. 实现首页 Dashboard
+- [ ] 15. 按功能模块实现 features
 
 ---
 
-## 15. 参考 URL
+## 18. 参考 URL
 
 | 资源 | URL |
 |------|-----|
