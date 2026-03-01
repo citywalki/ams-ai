@@ -7,6 +7,8 @@ description: Frontend development conventions - Use when creating or modifying A
 
 ## Overview
 
+**UI Framework**: Ant Design v6 + React 18 + TypeScript
+
 Reference implementation: `app-web/src/pages/admin/RoleManagementPage.tsx`
 
 Standard CRUD page features:
@@ -16,64 +18,21 @@ Standard CRUD page features:
 
 ## Development Workflow
 
-```dot
-digraph frontend_dev {
-    rankdir=TB;
-    "Define Types" [shape=box];
-    "Add i18n" [shape=box];
-    "Add API" [shape=box];
-    "Build Page" [shape=box];
-    "Configure Routes" [shape=box];
-    "Browser Verification" [shape=box];
-
-    "Define Types" -> "Add i18n";
-    "Add i18n" -> "Add API";
-    "Add API" -> "Build Page";
-    "Build Page" -> "Configure Routes";
-    "Configure Routes" -> "Browser Verification";
-}
-```
+1. Define Types → `lib/types.ts` or `features/*/types.ts`
+2. Add i18n → `i18n/locales/zh-CN.json` and `en-US.json`
+3. Add API → `features/*/queries.ts` (GraphQL) or `mutations.ts` (REST)
+4. Build Page → `pages/*/XManagementPage.tsx`
+5. Configure Routes → `Router.tsx`
+6. Browser Verification → Use `frontend-ui-verification` skill
 
 ## Internationalization (i18n)
 
 **All user-visible text must use i18n**
 
-### Adding Translation Keys
+### Language Files
 
-Add keys to both language files:
 - `app-web/src/i18n/locales/zh-CN.json`
 - `app-web/src/i18n/locales/en-US.json`
-
-```json
-{
-  "pages": {
-    "xManagement": {
-      "title": "X Management",
-      "searchPlaceholder": "Search by name or code...",
-      "addButton": "Add X",
-      "columns": {
-        "code": "Code",
-        "name": "Name",
-        "description": "Description",
-        "actions": "Actions"
-      },
-      "dialog": {
-        "createTitle": "Create X",
-        "editTitle": "Edit X"
-      },
-      "form": {
-        "code": "Code",
-        "codePlaceholder": "Please enter code"
-      },
-      "messages": {
-        "createSuccess": "Created successfully",
-        "updateSuccess": "Updated successfully",
-        "deleteSuccess": "Deleted successfully"
-      }
-    }
-  }
-}
-```
 
 ### Naming Conventions
 
@@ -99,42 +58,82 @@ const { t } = useTranslation();
 <Input placeholder={t('pages.xManagement.searchPlaceholder')} />
 
 // Toast message
-toast.success(t('pages.xManagement.messages.createSuccess'));
+message.success(t('pages.xManagement.messages.createSuccess'));
 ```
 
 ### Predefined Common Keys
 
-Use `common.*` keys for shared elements:
 - `common.loading`, `common.submit`, `common.cancel`, `common.confirm`
 - `common.save`, `common.delete`, `common.edit`, `common.add`, `common.search`
-- `common.loadFailed`, `common.retry` - For error display components
+- `common.loadFailed`, `common.retry`
 
-## Type Definitions
+## API Architecture
 
-Add in `app-web/src/utils/api.ts`:
+### Directory Structure
+
+```
+lib/
+├── apiClient.ts      # Axios REST client
+├── graphqlClient.ts  # Graffle GraphQL client
+├── queryClient.ts    # React Query config
+├── queryKeys.ts      # Query key definitions
+├── types.ts          # Shared types (UserItem, RoleItem, etc.)
+└── utils.ts
+
+features/admin/*/
+├── mutations.ts      # REST commands + useMutation
+├── queries.ts        # GraphQL queries
+├── types.ts          # Feature-specific types
+└── components/       # Dialog components
+```
+
+### Query (GraphQL)
 
 ```typescript
-export interface XQueryParams {
-  page?: number;  // zero-based for backend
-  size?: number;
-  keyword?: string;
-}
+// features/admin/roles/queries.ts
+import { graphqlClient } from '@/lib/graphqlClient';
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/queryKeys';
 
-type Id = number | string;
+export const ROLES_QUERY = `
+  query Roles($page: Int, $size: Int, $keyword: String) {
+    roles(page: $page, size: $size, keyword: $keyword) {
+      content { id name code description }
+      totalElements
+    }
+  }
+`;
 
-export interface XItem {
-  id: Id;
-  code: string;
-  name: string;
-  description?: string;
+export function useRoles(page: number, size: number, keyword?: string) {
+  return useQuery({
+    queryKey: queryKeys.roles.list(page, size, keyword),
+    queryFn: () => graphqlClient.request(ROLES_QUERY, { page, size, keyword }),
+  });
 }
+```
 
-export interface XPayload {
-  code: string;
-  name: string;
-  description?: string;
-  relatedIds?: Id[];
+### Mutation (REST)
+
+```typescript
+// features/admin/roles/mutations.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/lib/apiClient';
+import { queryKeys } from '@/lib/queryKeys';
+
+export function useCreateRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: RolePayload) => apiClient.post('/api/system/roles', data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.roles.all() }),
+  });
 }
+```
+
+### Type Definitions
+
+```typescript
+// lib/types.ts
+export type Id = number | string;
 
 export interface PageResponse<T> {
   content?: T[];
@@ -142,115 +141,118 @@ export interface PageResponse<T> {
   totalElements?: number;
   totalCount?: number;
 }
+
+// features/admin/roles/types.ts
+export interface RoleItem {
+  id: Id;
+  name: string;
+  code: string;
+  description?: string;
+}
+
+export interface RolePayload {
+  name: string;
+  code: string;
+  description?: string;
+}
 ```
 
-## API Methods
+## Ant Design Form Development
 
-Add in `app-web/src/utils/api.ts`:
+### Form Layout
 
-```typescript
-export const xApi = {
-  getList: (params?: XQueryParams) =>
-    apiClient.get<PageResponse<XItem>>('/system/x', { params }),
-  create: (payload: XPayload) =>
-    apiClient.post<XItem>('/system/x', payload),
-  update: (id: Id, payload: XPayload) =>
-    apiClient.put<XItem>(`/system/x/${id}`, payload),
-  delete: (id: Id) =>
-    apiClient.delete(`/system/x/${id}`),
-};
-```
-
-## Form Development Conventions
-
-### shadcn Form Components
-
-The project uses shadcn-style Form components adapted for TanStack Form:
+**All forms must use horizontal layout** (labels left, inputs right):
 
 ```tsx
-import {
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-} from '@/components/ui/form';
+<Form form={form} layout="horizontal" onFinish={handleSubmit}>
+  <Form.Item label={t('pages.xxx.form.name')} name="name" rules={[{ required: true }]}>
+    <Input />
+  </Form.Item>
+</Form>
 ```
 
-### Basic Usage
+### Dialog with Form
 
 ```tsx
-<form.Field name="fieldName">
-  {(field) => (
-    <FormItem>
-      <FormLabel required>{t('pages.xxx.form.fieldName')}</FormLabel>
-      <FormControl>
-        <Input
-          value={field.state.value as string}
-          onChange={(e) => field.handleChange(e.target.value)}
-          onBlur={field.handleBlur}
-          required
-        />
-      </FormControl>
-      <FormDescription>Helper text</FormDescription>
-      <FormMessage error={error} />
-    </FormItem>
-  )}
-</form.Field>
+import { Form, Modal, Input } from 'antd';
+import { useTranslation } from 'react-i18next';
+
+interface Props {
+  open: boolean;
+  mode: 'create' | 'edit';
+  initialValues?: RoleItem;
+  onClose: () => void;
+  onSubmit: (values: RolePayload) => Promise<void>;
+}
+
+export function RoleFormDialog({ open, mode, initialValues, onClose, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      form.resetFields();
+      if (initialValues) form.setFieldsValue(initialValues);
+    }
+  }, [open, initialValues, form]);
+
+  const handleOk = async () => {
+    const values = await form.validateFields();
+    setLoading(true);
+    try {
+      await onSubmit(values);
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal
+      open={open}
+      title={mode === 'create' ? t('pages.roleManagement.dialog.createTitle') : t('pages.roleManagement.dialog.editTitle')}
+      onOk={handleOk}
+      onCancel={onClose}
+      confirmLoading={loading}
+    >
+      <Form form={form} layout="horizontal" labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form.Item label={t('pages.roleManagement.form.name')} name="name" rules={[{ required: true }]}>
+          <Input />
+        </Form.Item>
+        <Form.Item label={t('pages.roleManagement.form.code')} name="code" rules={[{ required: true }]}>
+          <Input />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+}
 ```
 
 ### Required Field Markers
 
-- **Required fields**: Set `<FormLabel required>` to automatically show red asterisk `*`
-- Required field inputs should also have the `required` attribute
+Ant Design automatically shows red asterisk `*` when `rules={[{ required: true }]}` is set.
 
 ```tsx
-// ✅ Correct
-<FormItem>
-  <FormLabel required>{t('pages.xxx.form.username')}</FormLabel>
-  <FormControl>
-    <Input required />
-  </FormControl>
-</FormItem>
+// ✅ Correct - Use rules for required
+<Form.Item name="name" rules={[{ required: true, message: t('common.required') }]}>
+  <Input />
+</Form.Item>
 
-// ❌ Wrong - Do not manually add asterisk
-<FormItem>
-  <FormLabel>Username*</FormLabel>
-  <FormControl>
-    <Input required />
-  </FormControl>
-</FormItem>
+// ❌ Wrong - Don't add asterisk manually
+<Form.Item label="Name*">
+  <Input />
+</Form.Item>
 ```
-
-### Inline Controls (Switch/Checkbox)
-
-```tsx
-<FormItem className="flex items-center gap-2 space-y-0">
-  <FormControl>
-    <Switch checked={value} onCheckedChange={setValue} />
-  </FormControl>
-  <Label className="cursor-pointer">{t('pages.xxx.form.enabled')}</Label>
-</FormItem>
-```
-
-### Supported Input Controls
-
-FormControl supports all standard input controls:
-- `Input` - Text input
-- `Textarea` - Multi-line text
-- `Select` - Dropdown selection
-- `Switch` - Toggle switch
-- `Checkbox` - Checkbox
-- Custom components
 
 ## Page Component Construction
 
-### 1) State Patterns
+### State Patterns
 
 ```typescript
 const [items, setItems] = useState<XItem[]>([]);
 const [loading, setLoading] = useState(false);
-const [error, setError] = useState<string | null>(null);
+const [error, setError] = useState<Error | null>(null);
 
 // Search: Separate input state from query state
 const [searchKeyword, setSearchKeyword] = useState('');
@@ -265,197 +267,85 @@ const [total, setTotal] = useState(0);
 const [dialogOpen, setDialogOpen] = useState(false);
 const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
 const [editingItem, setEditingItem] = useState<XItem | null>(null);
-
-// Delete confirmation
-const [deleteOpen, setDeleteOpen] = useState(false);
-const [deleteItem, setDeleteItem] = useState<XItem | null>(null);
 ```
 
-### 2) Loading Pattern (Pagination)
+### Loading Pattern
 
 ```typescript
-const loadItems = useCallback(async (
-  targetPage = currentPage,
-  targetPageSize = pageSize,
-  targetKeyword = queryKeyword,
-) => {
+const loadItems = useCallback(async () => {
   setLoading(true);
   setError(null);
   try {
-    const params: { page: number; size: number; keyword?: string } = {
-      page: Math.max(targetPage - 1, 0),  // Convert to zero-based
-      size: targetPageSize,
+    const params = {
+      page: Math.max(currentPage - 1, 0),  // Convert to zero-based
+      size: pageSize,
+      keyword: queryKeyword || undefined,
     };
-    if (targetKeyword) params.keyword = targetKeyword;
-
     const res = await xApi.getList(params);
-    const list = Array.isArray(res.data) ? res.data : (res.data.content ?? res.data.items ?? []);
-
-    // Prefer reading total from header
-    const totalHeader =
-      (res.headers?.['x-total-count'] as string | number | undefined)
-      ?? (res.headers?.['X-Total-Count'] as string | number | undefined);
-
-    let totalCount = Number(totalHeader);
-    if (Number.isNaN(totalCount)) {
-      totalCount = Number(
-        !Array.isArray(res.data)
-          ? (res.data.totalElements ?? res.data.totalCount ?? list.length)
-          : list.length,
-      );
-    }
-
+    const list = res.data.content ?? res.data.items ?? [];
+    const totalHeader = res.headers?.['x-total-count'];
+    const totalCount = Number(totalHeader) || res.data.totalElements || list.length;
+    
     setItems(list);
     setTotal(totalCount);
-    return list;
   } catch (err) {
-    setError(err instanceof Error ? err.message : 'Load failed');
-    return [] as XItem[];
+    setError(err instanceof Error ? err : new Error('Load failed'));
   } finally {
     setLoading(false);
   }
 }, [currentPage, pageSize, queryKeyword]);
 ```
 
-### 3) Search and Reset
-
-```typescript
-const handleSearch = () => {
-  const keyword = searchKeyword.trim();
-  setQueryKeyword(keyword);
-  setCurrentPage(1);
-};
-
-const handleReset = () => {
-  setSearchKeyword('');
-  setQueryKeyword('');
-  setCurrentPage(1);
-};
-```
-
-### 4) Relationship Selection (Permissions/Tags)
-
-For role-like pages, use ID arrays to manage selection state:
-
-```typescript
-const toggleRelated = (id: Id) => {
-  setFormState((prev) => ({
-    ...prev,
-    relatedIds: (prev.relatedIds ?? []).includes(id)
-      ? (prev.relatedIds ?? []).filter((x) => x !== id)
-      : [...(prev.relatedIds ?? []), id],
-  }));
-};
-```
-
-## Error Handling with QueryErrorDisplay
-
-Use `QueryErrorDisplay` component for lightweight error feedback that preserves UI structure.
-
-### Component Location
-
-`app-web/src/components/common/QueryErrorDisplay.tsx`
-
-### Sizes
-
-| Size | Use Case | Layout |
-|------|----------|--------|
-| `inline` | Tables, sidebars | Horizontal bar with retry button |
-| `card` | Dashboard cards, management pages | Centered with icon and button |
-| `full` | Full-page errors | Large centered display |
-
-### Usage
+### Table with Actions
 
 ```tsx
-import { QueryErrorDisplay } from '@/components/common/QueryErrorDisplay';
+const columns: ColumnsType<XItem> = [
+  { title: t('pages.xxx.columns.code'), dataIndex: 'code', key: 'code' },
+  { title: t('pages.xxx.columns.name'), dataIndex: 'name', key: 'name' },
+  {
+    title: t('pages.xxx.columns.actions'),
+    key: 'actions',
+    render: (_, record) => (
+      <Space>
+        <Button type="link" onClick={() => handleEdit(record)}>{t('common.edit')}</Button>
+        <Popconfirm title={t('common.deleteConfirm')} onConfirm={() => handleDelete(record.id)}>
+          <Button type="link" danger>{t('common.delete')}</Button>
+        </Popconfirm>
+      </Space>
+    ),
+  },
+];
 
-// In data loading component
-const [error, setError] = useState<Error | null>(null);
-
-// Display inline (table top)
-{error && (
-  <QueryErrorDisplay
-    error={error}
-    onRetry={loadData}
-    size="inline"
-  />
-)}
-
-// Display in card
-{error && (
-  <QueryErrorDisplay
-    error={error}
-    onRetry={loadData}
-    size="card"
-  />
-)}
+<Table
+  columns={columns}
+  dataSource={items}
+  rowKey="id"
+  loading={loading}
+  pagination={{
+    current: currentPage,
+    pageSize,
+    total,
+    showSizeChanger: true,
+    showTotal: (total) => t('common.totalItems', { total }),
+    onChange: (page, size) => {
+      setCurrentPage(page);
+      setPageSize(size);
+    },
+  }}
+/>
 ```
-
-### Best Practices
-
-1. **Preserve UI structure** - Don't hide the entire component on error
-2. **Show retry option** - Always provide a way to reload data
-3. **Use appropriate size** - Match the error display to the container
-4. **Integrate with loading state** - Show error when loading=false and error!=null
-
-### Pattern for Page Components
-
-```tsx
-// In DataTable wrapper
-<DataTable>
-  {error && <QueryErrorDisplay error={error} onRetry={loadItems} size="inline" />}
-  {!error && <TableContent />}
-</DataTable>
-
-// In Card wrapper
-<Card>
-  <CardHeader>...</CardHeader>
-  <CardContent>
-    {loading && <LoadingSkeleton />}
-    {error && <QueryErrorDisplay error={error} onRetry={loadData} size="card" />}
-    {!loading && !error && <Content />}
-  </CardContent>
-</Card>
-```
-
-## UI Structure Standard
-
-1. Search card
-2. List card (title + add button + table)
-3. Create/edit dialog
-4. Delete confirmation dialog
-5. Pagination area (below list)
-
-## Route Configuration
-
-Add in `app-web/src/Router.tsx`:
-
-```typescript
-import XManagementPage from '@/pages/module/XManagementPage';
-
-<Route path="module/x" element={<XManagementPage />} />
-```
-
-## Style Conventions
-
-- Use Tailwind CSS 4
-- Form container spacing: `space-y-4`
-- Two-column layout: `grid grid-cols-2 gap-4`
-- Required asterisk color: `text-destructive`
 
 ## Common Mistakes
 
 | Mistake | Correction |
 |---------|------------|
 | Hardcoded text in components | Use `t('pages.xxx.key')` for all user text |
-| Adding key to only one language file | Must add to both `zh-CN.json` and `en-US.json` |
+| Adding i18n key to only one language file | Must add to both `zh-CN.json` and `en-US.json` |
 | Using `searchKeyword` directly when loading | Keep `queryKeyword` separate from input state |
 | Sending 1-based `page` to backend | Use `Math.max(currentPage - 1, 0)` to convert |
-| Ignoring `x-total-count` | Prefer response header, then fallback to body |
+| Ignoring `x-total-count` header | Prefer response header, then fallback to body |
 | JS long integer precision issues | Use `string` or `number \| string` for ID fields |
 | Not handling empty page after delete | Go back one page when current page becomes empty |
-| Hiding entire UI on load failure | Use QueryErrorDisplay to preserve structure |
-| Missing retry on error states | Always provide onRetry callback for error recovery |
 
 ## Verification
 
@@ -476,7 +366,6 @@ After completion, use the `frontend-ui-verification` skill for browser verificat
 | https://ant.design/llms-full.txt | **Full API** - All 73 components (EN) |
 | https://ant.design/llms-full-cn.txt | **Full API** - All 73 components (CN) |
 | https://ant.design/llms-semantic.md | **Semantic DOM** - Styling guide (EN) |
-| https://ant.design/llms-semantic-cn.md | **Semantic DOM** - Styling guide (CN) |
 
 ### Key Design Docs
 
@@ -484,98 +373,28 @@ After completion, use the `frontend-ui-verification` skill for browser verificat
 - [Data Display](https://ant.design/docs/spec/data-display.md) - Table/List patterns
 - [Navigation](https://ant.design/docs/spec/navigation.md) - Menu/breadcrumb patterns
 - [Feedback](https://ant.design/docs/spec/feedback.md) - Message/notification patterns
-- [Layout](https://ant.design/docs/spec/layout.md) - Page structure
 
 ### Key Components
 
 | Component | Use Case | Key Props |
 |-----------|----------|-----------|
-| `Form` | Data entry forms | `layout="horizontal"`, `Form.Item`, `name`, `label` |
+| `Form` | Data entry forms | `layout="horizontal"`, `Form.Item`, `name`, `rules` |
 | `Table` | Data display with pagination | `columns`, `dataSource`, `pagination`, `rowKey` |
-| `Modal` | Dialogs | `open`, `onCancel`, `onOk`, `title` |
+| `Modal` | Dialogs | `open`, `onCancel`, `onOk`, `title`, `confirmLoading` |
 | `Select` | Dropdown selection | `options`, `value`, `onChange`, `mode="multiple"` |
-| `Input` | Text input | `placeholder`, `value`, `onChange`, `prefix`, `suffix` |
+| `Input` | Text input | `placeholder`, `value`, `onChange` |
 | `Button` | Actions | `type`, `loading`, `disabled`, `icon` |
-| `Card` | Content container | `title`, `extra`, `loading` |
-| `Space` | Layout spacing | `direction`, `size`, `wrap` |
-| `message` | Toast notifications | `success()`, `error()`, `warning()`, `info()` |
-| `notification` | Alert notifications | `open()`, `success()`, `error()` |
-| `Popconfirm` | Delete confirmation | `title`, `onConfirm`, `okText`, `cancelText` |
+| `Card` | Content container | `title`, `extra` |
+| `Space` | Layout spacing | `direction`, `size` |
+| `message` | Toast notifications | `success()`, `error()`, `warning()` |
+| `Popconfirm` | Delete confirmation | `title`, `onConfirm`, `okText` |
 
-### Form Layout Standard
-
-**All forms must use horizontal layout** (labels on left, inputs on right):
-
-```tsx
-<Form layout="horizontal">
-  <Form.Item label="字段名" name="fieldName">
-    <Input />
-  </Form.Item>
-</Form>
-```
-
-### Type Utilities
+### Type Utilities (v5+)
 
 ```tsx
 import type { GetProps, GetRef, GetProp } from 'antd';
 
-// Get component props type
 type SelectProps = GetProps<typeof Select>;
-
-// Get ref type
 type SelectRef = GetRef<typeof Select>;
-
-// Get single prop type
 type OptionType = GetProp<typeof Select, 'options'>[number];
-```
-
-### Semantic DOM Styling (v5+)
-
-```tsx
-<Alert
-  classNames={{ root: 'custom-alert', icon: 'custom-icon' }}
-  styles={{ root: { borderRadius: 8 }, icon: { fontSize: 18 } }}
-/>
-```
-
-### Common Patterns
-
-#### Master-Detail with Drawer
-```tsx
-<Drawer open={open} onClose={onClose} title="Details" width={600}>
-  <Descriptions column={1}>
-    <Descriptions.Item label="Name">{item.name}</Descriptions.Item>
-  </Descriptions>
-</Drawer>
-```
-
-#### Table with Actions
-```tsx
-const columns = [
-  { title: 'Name', dataIndex: 'name', key: 'name' },
-  {
-    title: 'Actions',
-    key: 'actions',
-    render: (_, record) => (
-      <Space>
-        <Button type="link" onClick={() => onEdit(record)}>Edit</Button>
-        <Popconfirm title="Delete?" onConfirm={() => onDelete(record.id)}>
-          <Button type="link" danger>Delete</Button>
-        </Popconfirm>
-      </Space>
-    ),
-  },
-];
-```
-
-#### Search Form
-```tsx
-<Form layout="inline">
-  <Form.Item name="keyword">
-    <Input.Search placeholder="Search..." onSearch={onSearch} />
-  </Form.Item>
-  <Form.Item>
-    <Button onClick={onReset}>Reset</Button>
-  </Form.Item>
-</Form>
 ```
