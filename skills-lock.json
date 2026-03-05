@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "feature-arch": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "8891e09eeaac4e2d233b5286be05eab86874a00af01d2ba98fe7e22949474077"
+    },
+    "tanstack-query": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "e7d35b4fa0a3f167de1f465a31e25d7087ee553ab894083716894d61ca1091f9"
+    },
+    "ui-design": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "70bee268d0830dd3767aea118892afd43703ca967a6917774759a86743ad4618"
+    },
+    "zustand": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "e9a0f8275e0a62ad9e3cf1a6553a6f51b6caa46d0ecb0ccb3e6e1d346f98475d"
+    }
+  }
+}
