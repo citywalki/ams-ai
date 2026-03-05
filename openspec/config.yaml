@@ -1,0 +1,104 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+context: |
+  Project: AMS-AI (Alarm Management System for semiconductor fab equipment).
+  Architecture: Monolith cluster (no microservices). Multi-tenant design.
+
+  Backend:
+  - Java 25, Quarkus 3.31.2, Gradle multi-module
+  - Persistence: Hibernate ORM + Panache Next (Repository pattern)
+  - APIs: GraphQL for queries (read); REST for commands/updates (write)
+  - Migrations: Liquibase (required for schema changes)
+  - Cache/cluster: Hazelcast 5.4.0 distributed cache
+  - Logging: SLF4J
+  - Tests: JUnit 5, AssertJ, Mockito, Testcontainers
+
+  Caching policy:
+  - feature-admin: queries exposed to frontend MUST NOT use caching
+  - feature-core: only alarm-configuration related queries MAY use caching
+  - Cluster invalidation pattern: local cache + Hazelcast topic broadcast; reference:
+    - lib-cluster/src/main/java/pro/walkin/ams/cluster/event/CacheInvalidationListener.java
+    - Topic: cache-invalidate
+    - Payload: CacheInvalidationEvent(cacheName, cacheKey)
+    - Behavior: invalidateAll when cacheKey empty; otherwise invalidate(cacheKey)
+
+  Data & multi-tenancy:
+  - Core tables include tenant_id; always filter by TenantContext.getCurrentTenantId()
+  - Cross-tenant access is forbidden
+  - Timestamps: created_at/updated_at via @CreationTimestamp/@UpdateTimestamp
+  - JSON columns: Map<String, Object> with @JdbcTypeCode(SqlTypes.JSON)
+
+  Persistence conventions (Panache Next):
+  - Entities MUST extend BaseEntity (PanacheEntityBase)
+  - Entity fields are public (no Lombok; Lombok is forbidden)
+  - Repositories are nested in entities: `public interface Repo extends PanacheRepository<Entity>`
+  - Access pattern: `Entity_.managedBlocking()` / `Entity_.managed()`
+  - Constants: nested static classes, e.g. Constants.Alarm.STATUS_NEW
+
+  Frontend:
+  - React 18 + TypeScript 5 + Vite
+  - Architecture: Feature-Sliced Design (FSD)
+  - UI: Ant Design 6.x
+  - Routing: React Router 6+
+  - State: Zustand
+  - Data: Axios + GraphQL
+  - Data fetching: TanStack Query; both GraphQL and REST calls MUST be wrapped as hooks
+  - Tables/forms: @tanstack/react-table; @tanstack/react-form + Zod validation
+  - Strict TS: noUnusedLocals, noUnusedParameters
+  - Path alias: @/* -> src/*
+
+  Repo conventions:
+  - Indentation: 2 spaces (no tabs); line width: 120
+  - Branches: main; feature/*; fix/*
+  - Commits: conventional style (feat:, fix:, docs:, chore:)
+  - Prefer Chinese in generated artifacts and documentation.
+
+  Common commands:
+  - Build/test: ./gradlew build; ./gradlew test; ./gradlew spotlessApply; ./gradlew check
+  - Backend dev: ./gradlew quarkusDev
+  - Frontend: (from app-web) pnpm dev|build|lint|test:e2e
+
+rules:
+  proposal:
+    - Write in Chinese.
+    - Include sections: Summary, Goals, Non-goals, Design (Backend/Frontend/DB), Migration (Liquibase), Testing, Risks/Rollback.
+    - Preserve existing architecture and conventions; avoid microservice suggestions.
+    - Call out multi-tenant implications explicitly (tenant_id, TenantContext filters).
+    - API direction: queries via GraphQL; updates via REST (command endpoints).
+    - Respect caching policy: no cache for feature-admin frontend queries; cache only for feature-core alarm-config queries with cluster invalidation.
+    - When changing APIs (frontend or backend), always verify the other side matches (params, types, nullability, defaults, error shapes).
+
+  spec:
+    - Write in Chinese.
+    - Prefer concrete contracts (API routes/GraphQL schema snippets, DTOs, validation rules).
+    - For read paths, define/extend GraphQL queries; for write paths, define REST endpoints.
+    - Include data model changes and required Liquibase steps when applicable.
+    - If caching is proposed, justify it and ensure it follows project policy and uses the Hazelcast invalidation pattern.
+    - Include an API alignment checklist for any contract change (frontend <-> backend).
+
+  tasks:
+    - Write in Chinese.
+    - Make tasks runnable and scoped (module/path, command to verify).
+    - Always include required tests and/or verification steps.
+    - If DB changes are needed, include Liquibase changeLog tasks.
+    - If caching is used in feature-core (alarm-config only), include tasks for invalidation broadcasting and cluster behavior verification.
+    - For any API change, include tasks to update and verify both frontend hooks and backend contracts in the same change.
