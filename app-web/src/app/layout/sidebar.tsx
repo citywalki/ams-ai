@@ -183,7 +183,12 @@ function findParentIdsByPath(
   return [];
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { data: menus, isLoading, error } = useUserMenus();
   const location = useLocation();
   const [expandedKeys, setExpandedKeys] = useState<Set<number>>(new Set());
@@ -226,39 +231,91 @@ export function Sidebar() {
     });
   };
 
+  const loadingContent = (
+    <>
+      <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center gap-3 h-10 px-3 rounded animate-pulse"
+          >
+            <div className="w-5 h-5 bg-gray-200 rounded" />
+            <div className="flex-1 h-4 bg-gray-200 rounded" />
+          </div>
+        ))}
+      </nav>
+      <div className="p-3 border-t border-[#E5E5E5] flex-shrink-0">
+        <p className="text-xs text-[#A9A9A9] text-center">AMS v1.0.0</p>
+      </div>
+    </>
+  );
+
+  const errorContent = (
+    <>
+      <nav className="flex-1 overflow-y-auto p-2">
+        <div className="text-sm text-red-500 text-center py-4">
+          加载菜单失败
+        </div>
+      </nav>
+      <div className="p-3 border-t border-[#E5E5E5] flex-shrink-0">
+        <p className="text-xs text-[#A9A9A9] text-center">AMS v1.0.0</p>
+      </div>
+    </>
+  );
+
   if (isLoading) {
     return (
-      <aside className="w-60 bg-white border-r border-[#E5E5E5] h-full flex flex-col">
-        <nav className="flex-1 overflow-y-auto p-2 space-y-1">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 h-10 px-3 rounded animate-pulse"
-            >
-              <div className="w-5 h-5 bg-gray-200 rounded" />
-              <div className="flex-1 h-4 bg-gray-200 rounded" />
-            </div>
-          ))}
-        </nav>
-        <div className="p-3 border-t border-[#E5E5E5] flex-shrink-0">
-          <p className="text-xs text-[#A9A9A9] text-center">AMS v1.0.0</p>
-        </div>
-      </aside>
+      <>
+        {/* Desktop */}
+        <aside className="hidden lg:flex w-60 bg-white border-r border-[#E5E5E5] h-full flex-col">
+          {loadingContent}
+        </aside>
+        {/* Mobile */}
+        <aside
+          className={`
+            lg:hidden fixed inset-y-0 left-0 z-40 w-60 bg-white shadow-xl
+            transform transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          {loadingContent}
+        </aside>
+        {isOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-30 bg-black/50 transition-opacity duration-300"
+            onClick={onClose}
+            aria-hidden="true"
+          />
+        )}
+      </>
     );
   }
 
   if (error) {
     return (
-      <aside className="w-60 bg-white border-r border-[#E5E5E5] h-full flex flex-col">
-        <nav className="flex-1 overflow-y-auto p-2">
-          <div className="text-sm text-red-500 text-center py-4">
-            加载菜单失败
-          </div>
-        </nav>
-        <div className="p-3 border-t border-[#E5E5E5] flex-shrink-0">
-          <p className="text-xs text-[#A9A9A9] text-center">AMS v1.0.0</p>
-        </div>
-      </aside>
+      <>
+        {/* Desktop */}
+        <aside className="hidden lg:flex w-60 bg-white border-r border-[#E5E5E5] h-full flex-col">
+          {errorContent}
+        </aside>
+        {/* Mobile */}
+        <aside
+          className={`
+            lg:hidden fixed inset-y-0 left-0 z-40 w-60 bg-white shadow-xl
+            transform transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          {errorContent}
+        </aside>
+        {isOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-30 bg-black/50 transition-opacity duration-300"
+            onClick={onClose}
+            aria-hidden="true"
+          />
+        )}
+      </>
     );
   }
 
@@ -271,16 +328,16 @@ export function Sidebar() {
     return !menuIds.has(menu.parentId);
   }) ?? [];
 
-  return (
-    <aside className="w-60 bg-white border-r border-[#E5E5E5] h-full flex flex-col">
+  const sidebarContent = (
+    <>
       <nav className="flex-1 overflow-y-auto p-2 space-y-1">
         {rootMenus.length === 0 && (
           <div className="text-sm text-gray-500 text-center py-4">暂无菜单</div>
         )}
         {rootMenus.map((menu) => (
-          <NavItem 
-            key={menu.id} 
-            menu={menu} 
+          <NavItem
+            key={menu.id}
+            menu={menu}
             expandedKeys={expandedKeys}
             onToggle={handleToggle}
           />
@@ -290,6 +347,35 @@ export function Sidebar() {
       <div className="p-3 border-t border-[#E5E5E5] flex-shrink-0">
         <p className="text-xs text-[#A9A9A9] text-center">AMS v1.0.0</p>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar - always visible on lg screens */}
+      <aside className="hidden lg:flex w-60 bg-white border-r border-[#E5E5E5] h-full flex-col">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile drawer */}
+      <aside
+        className={`
+          lg:hidden fixed inset-y-0 left-0 z-40 w-60 bg-white shadow-xl
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-30 bg-black/50 transition-opacity duration-300"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+    </>
   );
 }
