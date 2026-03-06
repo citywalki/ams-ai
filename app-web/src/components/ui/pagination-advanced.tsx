@@ -61,7 +61,8 @@ export function PaginationAdvanced({
     onChange(newPage, pageSize);
   };
 
-  const handlePageSizeChange = (newPageSize: string) => {
+  const handlePageSizeChange = (newPageSize: string | null) => {
+    if (newPageSize === null) return;
     const newSize = parseInt(newPageSize, 10);
     if (isNaN(newSize) || newSize === pageSize) return;
 
