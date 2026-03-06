@@ -29,14 +29,20 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await restClient.post<AuthResponse>("/auth/login", credentials);
-          const { user, tokens } = response.data;
-          localStorage.setItem("token", tokens.token);
-          localStorage.setItem("refreshToken", tokens.refreshToken);
+          const { userId, username, accessToken, refreshToken, tenantId } = response.data;
+          localStorage.setItem("token", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
           set({
             isAuthenticated: true,
-            user,
-            token: tokens.token,
-            refreshToken: tokens.refreshToken,
+            user: {
+              id: userId,
+              username,
+              email: "",
+              status: "ACTIVE",
+              roles: [],
+            },
+            token: accessToken,
+            refreshToken: refreshToken,
             isLoading: false,
           });
         } catch (error) {
