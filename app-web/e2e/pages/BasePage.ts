@@ -10,7 +10,8 @@ export abstract class BasePage {
   }
 
   async goto() {
-    await this.page.goto(this.url);
+    const baseURL = 'http://localhost:5173';
+    await this.page.goto(baseURL + this.url);
   }
 
   async expectUrl(expectedUrl: string) {
