@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { UserConnection, UserFilterInput } from "../schema/user";
 
 const USERS_QUERY = `
-  query GetUsers($where: UserFilterInput, $page: Int, $size: Int) {
+  query GetUsers($where: UserFilter, $page: Int, $size: Int) {
     users(where: $where, page: $page, size: $size) {
       content {
         id
