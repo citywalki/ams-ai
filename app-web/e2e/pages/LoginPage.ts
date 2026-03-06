@@ -24,11 +24,9 @@ export class LoginPage extends BasePage {
     if (rememberMe) {
       await this.rememberMeCheckbox.check();
     }
-    // 点击登录并等待导航完成
-    await Promise.all([
-      this.page.waitForURL('**/dashboard', { timeout: 10000 }),
-      this.loginButton.click(),
-    ]);
+    await this.loginButton.click();
+    // 等待登录完成：成功跳转或显示错误
+    await this.page.waitForTimeout(2000);
   }
 
   async expectErrorMessage(message: string) {
