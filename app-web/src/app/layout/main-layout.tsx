@@ -12,7 +12,7 @@ export function MainLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#F5F5F5]">
       <Header />
       <div className="flex">
         <Sidebar />
