@@ -149,6 +149,7 @@ Imports（Spotless 配置见 `buildSrc/src/main/kotlin/google-java-format-conven
 - `buildSrc/src/main/kotlin/code-quality-convention.gradle.kts`：SpotBugs 规则与报告
 - `lib-common/src/main/java/pro/walkin/ams/common/web/GlobalExceptionHandler.java`：错误映射与响应结构
 - `lib-common/src/main/java/pro/walkin/ams/common/security/TenantContext.java`：租户上下文
+- `docs/ui-style-guide.md`：前端 UI 主题风格设计规范（色彩、布局、组件）
 
 ## 10) 项目架构与约束
 
