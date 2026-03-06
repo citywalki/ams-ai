@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import type { User } from "../schema/user";
 import { USER_STATUSES } from "../schema/user";
+import { useCreateUser, useUpdateUser } from "../hooks/use-user-mutations";
 
 const userSchema = z.object({
   username: z.string().min(2, "用户名至少2个字符").max(50, "用户名最多50个字符"),
@@ -41,18 +43,19 @@ interface UserFormProps {
   user?: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: UserFormData) => void | Promise<void>;
-  isLoading: boolean;
+  onSuccess?: () => void;
 }
 
 export function UserForm({
   user,
   open,
   onOpenChange,
-  onSubmit,
-  isLoading,
+  onSuccess,
 }: UserFormProps) {
   const isEditing = !!user;
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  const isPending = createUser.isPending || updateUser.isPending;
 
   const {
     register,
@@ -72,12 +75,32 @@ export function UserForm({
   });
 
   const handleFormSubmit = async (data: UserFormData) => {
-    // 清理空密码：编辑模式下空密码表示不修改密码
-    const cleanedData = {
-      ...data,
-      password: data.password || undefined,
-    };
-    await onSubmit(cleanedData);
+    try {
+      if (isEditing && user) {
+        await updateUser.mutateAsync({
+          id: user.id,
+          input: {
+            username: data.username,
+            email: data.email,
+            status: data.status,
+          },
+        });
+        toast.success("用户更新成功");
+      } else {
+        await createUser.mutateAsync({
+          username: data.username,
+          email: data.email,
+          password: data.password!,
+          status: data.status,
+        });
+        toast.success("用户创建成功");
+      }
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (err) {
+      toast.error(isEditing ? "更新用户失败" : "创建用户失败");
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -91,12 +114,12 @@ export function UserForm({
     }
   }, [user, open, reset]);
 
-  // 当提交完成时（isLoading 从 true 变为 false），重置表单
+  // 当对话框关闭时，重置表单
   useEffect(() => {
-    if (!isLoading && !open) {
+    if (!open) {
       reset();
     }
-  }, [isLoading, open, reset]);
+  }, [open, reset]);
 
   const handleClose = () => {
     onOpenChange(false);
@@ -121,7 +144,7 @@ export function UserForm({
               id="username"
               {...register("username")}
               placeholder="请输入用户名"
-              disabled={isEditing || isLoading}
+              disabled={isEditing || isPending}
             />
             {errors.username && (
               <p className="text-sm text-red-500">{errors.username.message}</p>
@@ -135,7 +158,7 @@ export function UserForm({
               type="email"
               {...register("email")}
               placeholder="请输入邮箱"
-              disabled={isLoading}
+              disabled={isPending}
             />
             {errors.email && (
               <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -150,7 +173,7 @@ export function UserForm({
                 type="password"
                 {...register("password")}
                 placeholder="请输入密码"
-                disabled={isLoading}
+                disabled={isPending}
               />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password.message}</p>
@@ -165,7 +188,7 @@ export function UserForm({
               onValueChange={(value) =>
                 setValue("status", value as "ACTIVE" | "INACTIVE")
               }
-              disabled={isLoading}
+              disabled={isPending}
             >
               <SelectTrigger>
                 <SelectValue placeholder="选择状态" />
@@ -184,11 +207,11 @@ export function UserForm({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
               取消
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? "保存" : "创建"}
             </Button>
           </DialogFooter>

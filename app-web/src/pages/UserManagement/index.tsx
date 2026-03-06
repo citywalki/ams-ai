@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Plus, Search, RotateCcw, Loader2, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,13 +17,6 @@ import { DeleteUserDialog } from "@/features/user/components/delete-user-dialog"
 import { ResetPasswordDialog } from "@/features/user/components/reset-password-dialog";
 import { ToggleStatusDialog } from "@/features/user/components/toggle-status-dialog";
 import { useUsers } from "@/features/user/hooks/use-users";
-import {
-  useCreateUser,
-  useUpdateUser,
-  useDeleteUser,
-  useResetPassword,
-  useUpdateUserStatus,
-} from "@/features/user/hooks/use-user-mutations";
 import type { User, UserFilterInput } from "@/features/user/schema/user";
 
 // 简单检查当前用户是否有管理员权限
@@ -54,12 +46,6 @@ export default function UserManagementPage() {
     filters: appliedFilters,
   });
 
-  const createUser = useCreateUser();
-  const updateUser = useUpdateUser();
-  const deleteUser = useDeleteUser();
-  const resetPassword = useResetPassword();
-  const toggleStatus = useUpdateUserStatus();
-
   const handleCreate = () => {
     setSelectedUser(null);
     setIsFormOpen(true);
@@ -83,83 +69,6 @@ export default function UserManagementPage() {
   const handleToggleStatus = (user: User) => {
     setSelectedUser(user);
     setIsToggleStatusDialogOpen(true);
-  };
-
-  const handleConfirmToggleStatus = async () => {
-    if (!selectedUser) return;
-    const newStatus = selectedUser.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    const actionText = newStatus === "ACTIVE" ? "启用" : "禁用";
-    try {
-      await toggleStatus.mutateAsync({
-        id: selectedUser.id,
-        status: newStatus,
-      });
-      toast.success(`用户${actionText}成功`);
-      setIsToggleStatusDialogOpen(false);
-    } catch (err) {
-      toast.error(`用户${actionText}失败`);
-      console.error(err);
-    }
-  };
-
-  const handleFormSubmit = async (formData: {
-    username: string;
-    email: string;
-    password?: string;
-    status: "ACTIVE" | "INACTIVE";
-  }) => {
-    try {
-      if (selectedUser) {
-        await updateUser.mutateAsync({
-          id: selectedUser.id,
-          input: {
-            username: formData.username,
-            email: formData.email,
-            status: formData.status,
-          },
-        });
-        toast.success("用户更新成功");
-      } else {
-        await createUser.mutateAsync({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password!,
-          status: formData.status,
-        });
-        toast.success("用户创建成功");
-      }
-      setIsFormOpen(false);
-    } catch (err) {
-      toast.error(selectedUser ? "更新用户失败" : "创建用户失败");
-      console.error(err);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!selectedUser) return;
-    try {
-      await deleteUser.mutateAsync(selectedUser.id);
-      toast.success("用户删除成功");
-      setIsDeleteDialogOpen(false);
-    } catch (err) {
-      toast.error("删除用户失败");
-      console.error(err);
-    }
-  };
-
-  const handleConfirmResetPassword = async (newPassword: string) => {
-    if (!selectedUser) return;
-    try {
-      await resetPassword.mutateAsync({
-        id: selectedUser.id,
-        newPassword,
-      });
-      toast.success("密码重置成功");
-      setIsResetPasswordDialogOpen(false);
-    } catch (err) {
-      toast.error("密码重置失败");
-      console.error(err);
-    }
   };
 
   const handleResetFilters = () => {
@@ -269,7 +178,7 @@ export default function UserManagementPage() {
           </div>
 
           {/* 分页 */}
-          {data && data.totalPages > 1 && (
+          {data && (
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="text-sm text-gray-500">
                 共 {data.totalElements} 条记录，第 {page + 1} / {data.totalPages} 页
@@ -302,8 +211,6 @@ export default function UserManagementPage() {
         user={selectedUser}
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        onSubmit={handleFormSubmit}
-        isLoading={createUser.isPending || updateUser.isPending}
       />
 
       {/* 删除确认对话框 */}
@@ -311,8 +218,6 @@ export default function UserManagementPage() {
         user={selectedUser}
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleConfirmDelete}
-        isLoading={deleteUser.isPending}
       />
 
       {/* 重置密码对话框 */}
@@ -320,8 +225,6 @@ export default function UserManagementPage() {
         user={selectedUser}
         open={isResetPasswordDialogOpen}
         onOpenChange={setIsResetPasswordDialogOpen}
-        onConfirm={handleConfirmResetPassword}
-        isLoading={resetPassword.isPending}
       />
 
       {/* 切换状态确认对话框 */}
@@ -329,8 +232,6 @@ export default function UserManagementPage() {
         user={selectedUser}
         open={isToggleStatusDialogOpen}
         onOpenChange={setIsToggleStatusDialogOpen}
-        onConfirm={handleConfirmToggleStatus}
-        isLoading={toggleStatus.isPending}
       />
     </div>
   );

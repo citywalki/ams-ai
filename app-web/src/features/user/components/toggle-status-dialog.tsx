@@ -1,4 +1,5 @@
 import { Loader2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,24 +10,42 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { User } from "../schema/user";
+import { useUpdateUserStatus } from "../hooks/use-user-mutations";
 
 interface ToggleStatusDialogProps {
   user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  isLoading: boolean;
+  onSuccess?: () => void;
 }
 
 export function ToggleStatusDialog({
   user,
   open,
   onOpenChange,
-  onConfirm,
-  isLoading,
+  onSuccess,
 }: ToggleStatusDialogProps) {
+  const toggleStatus = useUpdateUserStatus();
+  const isLoading = toggleStatus.isPending;
   const isDisabling = user?.status === "ACTIVE";
   const actionText = isDisabling ? "禁用" : "启用";
+
+  const handleConfirm = async () => {
+    if (!user) return;
+    const newStatus = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    try {
+      await toggleStatus.mutateAsync({
+        id: user.id,
+        status: newStatus,
+      });
+      toast.success(`用户${actionText}成功`);
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (err) {
+      toast.error(`用户${actionText}失败`);
+      console.error(err);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,7 +74,7 @@ export function ToggleStatusDialog({
           <Button
             type="button"
             variant={isDisabling ? "destructive" : "default"}
-            onClick={onConfirm}
+            onClick={handleConfirm}
             disabled={isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

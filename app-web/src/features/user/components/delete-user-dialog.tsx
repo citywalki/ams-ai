@@ -1,4 +1,5 @@
 import { Loader2, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,22 +10,37 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { User } from "../schema/user";
+import { useDeleteUser } from "../hooks/use-user-mutations";
 
 interface DeleteUserDialogProps {
   user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  isLoading: boolean;
+  onSuccess?: () => void;
 }
 
 export function DeleteUserDialog({
   user,
   open,
   onOpenChange,
-  onConfirm,
-  isLoading,
+  onSuccess,
 }: DeleteUserDialogProps) {
+  const deleteUser = useDeleteUser();
+  const isLoading = deleteUser.isPending;
+
+  const handleConfirm = async () => {
+    if (!user) return;
+    try {
+      await deleteUser.mutateAsync(user.id);
+      toast.success("用户删除成功");
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (err) {
+      toast.error("删除用户失败");
+      console.error(err);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -49,7 +65,7 @@ export function DeleteUserDialog({
           <Button
             type="button"
             variant="destructive"
-            onClick={onConfirm}
+            onClick={handleConfirm}
             disabled={isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

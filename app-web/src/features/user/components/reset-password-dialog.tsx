@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Loader2, KeyRound } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,27 +13,28 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { User } from "../schema/user";
+import { useResetPassword } from "../hooks/use-user-mutations";
 
 interface ResetPasswordDialogProps {
   user: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (newPassword: string) => void;
-  isLoading: boolean;
+  onSuccess?: () => void;
 }
 
 export function ResetPasswordDialog({
   user,
   open,
   onOpenChange,
-  onConfirm,
-  isLoading,
+  onSuccess,
 }: ResetPasswordDialogProps) {
+  const resetPassword = useResetPassword();
+  const isLoading = resetPassword.isPending;
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setError(null);
 
     if (newPassword.length < 8) {
@@ -45,7 +47,20 @@ export function ResetPasswordDialog({
       return;
     }
 
-    onConfirm(newPassword);
+    if (!user) return;
+
+    try {
+      await resetPassword.mutateAsync({
+        id: user.id,
+        newPassword,
+      });
+      toast.success("密码重置成功");
+      handleClose();
+      onSuccess?.();
+    } catch (err) {
+      toast.error("密码重置失败");
+      console.error(err);
+    }
   };
 
   const handleClose = () => {
