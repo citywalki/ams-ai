@@ -1,8 +1,8 @@
 export const testUsers = {
   admin: {
-    username: 'test-admin',
-    password: 'Test@123456',
-    email: 'test-admin@example.com',
+    username: 'admin',
+    password: 'Admin123!',
+    email: 'admin@example.com',
   },
   user: {
     username: 'test-user',
@@ -23,7 +23,7 @@ export const invalidUsers = {
     password: 'wrong-password',
   },
   wrongPassword: {
-    username: 'test-admin',
+    username: 'admin',
     password: 'wrong-password-123',
   },
 };
