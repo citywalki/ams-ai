@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,7 +27,11 @@ import { USER_STATUSES } from "../schema/user";
 const userSchema = z.object({
   username: z.string().min(2, "用户名至少2个字符").max(50, "用户名最多50个字符"),
   email: z.string().email("请输入有效的邮箱地址"),
-  password: z.string().min(8, "密码至少8个字符").max(100, "密码最多100个字符").optional(),
+  password: z.union([
+    z.string().min(8, "密码至少8个字符").max(100, "密码最多100个字符"),
+    z.literal(""),
+    z.undefined(),
+  ]).optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]),
 });
 
@@ -36,7 +41,7 @@ interface UserFormProps {
   user?: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: UserFormData) => void;
+  onSubmit: (data: UserFormData) => void | Promise<void>;
   isLoading: boolean;
 }
 
@@ -66,12 +71,32 @@ export function UserForm({
     },
   });
 
-  const handleFormSubmit = (data: UserFormData) => {
-    onSubmit(data);
-    if (!isLoading) {
+  const handleFormSubmit = async (data: UserFormData) => {
+    // 清理空密码：编辑模式下空密码表示不修改密码
+    const cleanedData = {
+      ...data,
+      password: data.password || undefined,
+    };
+    await onSubmit(cleanedData);
+  };
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        username: user?.username || "",
+        email: user?.email || "",
+        password: "",
+        status: (user?.status as "ACTIVE" | "INACTIVE") || "ACTIVE",
+      });
+    }
+  }, [user, open, reset]);
+
+  // 当提交完成时（isLoading 从 true 变为 false），重置表单
+  useEffect(() => {
+    if (!isLoading && !open) {
       reset();
     }
-  };
+  }, [isLoading, open, reset]);
 
   const handleClose = () => {
     onOpenChange(false);
@@ -96,7 +121,7 @@ export function UserForm({
               id="username"
               {...register("username")}
               placeholder="请输入用户名"
-              disabled={isEditing}
+              disabled={isEditing || isLoading}
             />
             {errors.username && (
               <p className="text-sm text-red-500">{errors.username.message}</p>
@@ -110,6 +135,7 @@ export function UserForm({
               type="email"
               {...register("email")}
               placeholder="请输入邮箱"
+              disabled={isLoading}
             />
             {errors.email && (
               <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -124,6 +150,7 @@ export function UserForm({
                 type="password"
                 {...register("password")}
                 placeholder="请输入密码"
+                disabled={isLoading}
               />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password.message}</p>
@@ -138,6 +165,7 @@ export function UserForm({
               onValueChange={(value) =>
                 setValue("status", value as "ACTIVE" | "INACTIVE")
               }
+              disabled={isLoading}
             >
               <SelectTrigger>
                 <SelectValue placeholder="选择状态" />
@@ -156,7 +184,7 @@ export function UserForm({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               取消
             </Button>
             <Button type="submit" disabled={isLoading}>
