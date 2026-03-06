@@ -1,7 +1,7 @@
 import { Bell, Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuthStore } from "@/features/auth/model/auth-store";
+import { useAuthStore } from "@/store/auth-store";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,

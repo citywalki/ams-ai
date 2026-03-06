@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuthStore } from "@/features/auth/model/auth-store";
+import { useAuthStore } from "@/store/auth-store";
 
 const loginSchema = z.object({
   username: z.string().min(1, "用户名不能为空"),

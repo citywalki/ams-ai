@@ -1,38 +1,52 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
-import { useAuthStore } from "@/features/auth/model/auth-store";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { MainLayout } from "@/app/layout/main-layout";
 import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
 
-// 根路由重定向组件
-function RootRedirect() {
-  const { isAuthenticated } = useAuthStore();
-  return <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />;
+// 检查是否已登录（同时检查 store 和 localStorage）
+function isLoggedIn(): boolean {
+  const token = localStorage.getItem("token");
+  return !!token;
 }
 
-// 登录页路由守卫 - 已登录用户自动跳转到 dashboard
-function LoginGuard() {
-  const { isAuthenticated } = useAuthStore();
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  return <LoginPage />;
+// 保护路由包装器
+function ProtectedRoute() {
+  return isLoggedIn() ? <Outlet /> : <Navigate to="/login" replace />;
+}
+
+// 公开路由包装器（已登录用户不能访问）
+function PublicRoute() {
+  return !isLoggedIn() ? <Outlet /> : <Navigate to="/dashboard" replace />;
 }
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <RootRedirect />,
-  },
-  {
-    path: "/login",
-    element: <LoginGuard />,
+    element: <Navigate to="/dashboard" replace />,
   },
   {
     path: "/",
-    element: <MainLayout />,
+    element: <PublicRoute />,
     children: [
-      { path: "dashboard", element: <DashboardPage /> },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+    ],
+  },
+  {
+    path: "/",
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          {
+            path: "dashboard",
+            element: <DashboardPage />,
+          },
+        ],
+      },
     ],
   },
 ]);

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { restClient } from "@/shared/api/rest-client";
-import type { User, LoginCredentials, AuthResponse } from "./auth-types";
+import type { User, LoginCredentials, AuthResponse } from "@/features/auth/schema/auth";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -29,7 +29,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await restClient.post<AuthResponse>("/auth/login", credentials);
-          const { userId, username, accessToken, refreshToken, tenantId } = response.data;
+          const { userId, username, accessToken, refreshToken } = response.data;
           localStorage.setItem("token", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
           set({
