@@ -24,8 +24,8 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
     return (
-        <aside className="w-60 bg-white border-r border-[#E5E5E5] min-h-[calc(100vh-48px)] relative">
-            <nav className="p-2 space-y-1">
+        <aside className="w-60 bg-white border-r border-[#E5E5E5] h-full flex flex-col">
+            <nav className="flex-1 overflow-y-auto p-2 space-y-1">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.to}
@@ -49,9 +49,9 @@ export function Sidebar() {
                     />
                 ))}
             </nav>
-            
+
             {/* 底部信息 */}
-            <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-[#E5E5E5]">
+            <div className="p-3 border-t border-[#E5E5E5] flex-shrink-0">
                 <p className="text-xs text-[#A9A9A9] text-center">
                     AMS v1.0.0
                 </p>

@@ -12,11 +12,11 @@ export function MainLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
+    <div className="h-screen flex flex-col bg-[#F5F5F5] overflow-hidden">
       <Header />
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-y-auto">
           <Outlet />
         </main>
       </div>
