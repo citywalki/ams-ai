@@ -15,7 +15,8 @@ export abstract class BasePage {
   }
 
   async expectUrl(expectedUrl: string) {
-    await expect(this.page).toHaveURL(expectedUrl);
+    // 支持部分匹配，处理完整 URL 和相对路径
+    await expect(this.page).toHaveURL(new RegExp(expectedUrl.replace(/\//g, '\\/') + '$'));
   }
 
   async expectToBeOnPage() {

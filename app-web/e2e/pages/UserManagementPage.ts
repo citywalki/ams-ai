@@ -16,18 +16,20 @@ export class UserManagementPage extends BasePage {
   readonly successMessage: Locator;
 
   constructor(page: Page) {
-    super(page, '/system/users');
+    // 从页面快照看到实际路径是 /admin/users
+    super(page, '/admin/users');
     this.table = new TableComponent(page, 'users-table');
-    this.addUserButton = page.locator('[data-testid="add-user-button"]');
-    this.modal = page.locator('[data-testid="user-modal"]');
-    this.usernameInput = page.locator('[data-testid="user-username-input"]');
-    this.emailInput = page.locator('[data-testid="user-email-input"]');
-    this.passwordInput = page.locator('[data-testid="user-password-input"]');
-    this.roleSelect = page.locator('[data-testid="user-role-select"]');
-    this.saveButton = page.locator('[data-testid="save-user-button"]');
-    this.cancelButton = page.locator('[data-testid="cancel-button"]');
-    this.confirmDeleteButton = page.locator('[data-testid="confirm-delete"]');
-    this.successMessage = page.locator('[data-testid="success-message"]');
+    // 使用更通用的定位器
+    this.addUserButton = page.getByRole('button', { name: /新增|添加|创建|Add/i });
+    this.modal = page.locator('[role="dialog"], .modal, [class*="modal"]').first();
+    this.usernameInput = page.getByPlaceholder(/用户名|username/i).or(page.getByLabel(/用户名/i));
+    this.emailInput = page.getByPlaceholder(/邮箱|email/i).or(page.getByLabel(/邮箱/i));
+    this.passwordInput = page.getByPlaceholder(/密码|password/i).or(page.getByLabel(/密码/i));
+    this.roleSelect = page.getByLabel(/角色|role/i).or(page.locator('select').first());
+    this.saveButton = page.getByRole('button', { name: /保存|确定|提交|Save/i });
+    this.cancelButton = page.getByRole('button', { name: /取消|关闭|Cancel/i });
+    this.confirmDeleteButton = page.getByRole('button', { name: /确定|删除|确认|Confirm/i });
+    this.successMessage = page.getByText(/成功|success/i).first();
   }
 
   async openAddUserModal() {

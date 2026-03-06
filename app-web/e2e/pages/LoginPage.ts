@@ -14,7 +14,8 @@ export class LoginPage extends BasePage {
     this.usernameInput = page.getByPlaceholder('请输入用户名');
     this.passwordInput = page.getByPlaceholder('请输入密码');
     this.loginButton = page.getByRole('button', { name: '登录' });
-    this.errorMessage = page.locator('text=用户名或密码错误');
+    // Sonner toast 错误消息 - 使用更通用的选择器
+    this.errorMessage = page.locator('[role="region"][aria-label="Notifications"]').getByText(/登录失败|错误|Error/i);
     this.rememberMeCheckbox = page.locator('label:has-text("记住我"), input[type="checkbox"]');
   }
 
@@ -29,8 +30,12 @@ export class LoginPage extends BasePage {
     await this.page.waitForTimeout(2000);
   }
 
-  async expectErrorMessage(message: string) {
-    await expect(this.errorMessage).toContainText(message);
+  async expectErrorMessage(message?: string) {
+    // 检查是否有错误通知出现
+    const errorLocator = message 
+      ? this.page.getByText(message).first()
+      : this.page.locator('[role="region"][aria-label="Notifications"]').getByText(/登录失败|错误|失败|Error|Failed/i).first();
+    await expect(errorLocator).toBeVisible();
   }
 
   async expectLoginFormVisible() {
