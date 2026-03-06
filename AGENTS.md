@@ -8,7 +8,7 @@
 - 持久化：Hibernate ORM + Panache（实体内嵌 Repo）；Liquibase（YAML）
 - 集群/缓存：Hazelcast
 - 多租户：`tenant_id` + Hibernate Filter + `TenantContext`（ThreadLocal）
-- 仓库当前不包含可运行的前端工程目录（`app-web/` 不存在；如未来引入，请把脚本同步到本文）
+- 前端工程：`app-web/` 目录已存在，使用 React 19 + TypeScript 5 + Vite
 
 模块：
 
@@ -149,6 +149,8 @@ Imports（Spotless 配置见 `buildSrc/src/main/kotlin/google-java-format-conven
 - `buildSrc/src/main/kotlin/code-quality-convention.gradle.kts`：SpotBugs 规则与报告
 - `lib-common/src/main/java/pro/walkin/ams/common/web/GlobalExceptionHandler.java`：错误映射与响应结构
 - `lib-common/src/main/java/pro/walkin/ams/common/security/TenantContext.java`：租户上下文
+- `app-web/`：前端工程目录（React 19 + TypeScript + Vite）
+- `app-web/src/app/routes/`：前端路由配置
 - `docs/ui-style-guide.md`：前端 UI 主题风格设计规范（色彩、布局、组件）
 
 ## 10) 项目架构与约束
@@ -191,16 +193,42 @@ Imports（Spotless 配置见 `buildSrc/src/main/kotlin/google-java-format-conven
 
 ### 前端技术栈（app-web）
 
-- React 18 + TypeScript 5 + Vite
+- React 19 + TypeScript 5.9 + Vite 7
 - 架构: Feature-Sliced Design (FSD)
-- UI: Ant Design 6.x
-- 路由: React Router 6+
-- 状态: Zustand
-- 数据: Axios + GraphQL
-- 数据获取: TanStack Query; GraphQL 和 REST 调用必须封装为 hooks
-- 表格/表单: @tanstack/react-table; @tanstack/react-form + Zod validation
+- UI: Base UI + shadcn/ui + Tailwind CSS 4
+- 路由: React Router 7 (Data API / createBrowserRouter)
+- 状态: Zustand 5
+- 数据: Axios + TanStack Query 5
+- 表单: React Hook Form + Zod
+- 图标: Phosphor Icons + Lucide React
+- 字体: Geist (Variable)
+- 通知: Sonner
+- 主题: next-themes (dark/light)
 - TS 严格模式: noUnusedLocals, noUnusedParameters
 - 路径别名: `@/*` -> `src/*`
+
+### 前端命令
+
+```bash
+cd app-web
+pnpm dev              # 开发服务器
+pnpm build            # 构建 (tsc + vite build)
+pnpm lint             # ESLint 检查
+pnpm preview          # 预览生产构建
+```
+
+### 前端架构 (FSD)
+
+```
+app-web/src/
+├── app/               # 应用层: providers, router, layout
+├── entities/          # 实体层: menu, user 等
+├── features/          # 特性层: auth, login-form 等
+├── pages/             # 页面层: Login, Dashboard 等
+├── components/        # 共享 UI 组件 (shadcn/ui)
+├── shared/            # 共享层: api (axios, query-client), lib
+└── lib/               # 工具库: utils (cn)
+```
 
 ### 仓库约定
 
