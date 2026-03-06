@@ -253,6 +253,8 @@ export function useUserMenus() {
 ### 组件规范
 
 - **UI 组件**: 优先使用 `components/ui/` 下的 shadcn/ui 组件
+  - **shadcn/ui 组件必须通过 CLI 安装**: 使用 `npx shadcn add <component-name>` 命令安装，禁止手动复制粘贴组件代码
+  - **示例**: `npx shadcn add button`, `npx shadcn add dialog`, `npx shadcn add dropdown-menu`
 - **业务组件**: 可复用的业务逻辑组件放在 `features/{feature}/components/`
 - **样式工具**: 使用 `cn()` 函数合并 Tailwind 类名
 - **图标**: 优先使用 Phosphor Icons (`@phosphor-icons/react`)
