@@ -1,4 +1,5 @@
 import { createClient, fetchExchange, type OperationResult } from '@urql/core';
+import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
 
 /**
@@ -36,6 +37,13 @@ export async function graphql<T = unknown>(
     .toPromise();
 
   if (result.error) {
+    // 401 错误由 rest-client 的拦截器统一处理，这里不显示 toast
+    const isUnauthorized = result.error.response?.status === 401 ||
+      result.error.message?.includes('Unauthorized');
+    
+    if (!isUnauthorized) {
+      toast.error(`请求失败: ${result.error.message}`);
+    }
     throw new Error(result.error.message);
   }
 

@@ -48,7 +48,7 @@ export default function UserManagementPage() {
 
   const canManageUsers = useCanManageUsers();
 
-  const { data, isLoading, error, refetch } = useUsers({
+  const { data, isLoading, refetch } = useUsers({
     page,
     size: pageSize,
     filters: appliedFilters,
@@ -188,14 +188,6 @@ export default function UserManagementPage() {
       setPage(0);
     }
   };
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="text-red-500">加载用户列表失败: {error.message}</div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-full flex flex-col">
