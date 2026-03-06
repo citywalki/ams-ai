@@ -12,7 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-export function Header() {
+interface HeaderProps {
+  onMenuToggle: () => void;
+}
+
+export function Header({ onMenuToggle }: HeaderProps) {
   const { user, logout } = useAuthStore();
 
   return (
@@ -24,6 +28,8 @@ export function Header() {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-[#32363A] hover:bg-[#F5F5F5]"
+            onClick={onMenuToggle}
+            aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </Button>
