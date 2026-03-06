@@ -64,8 +64,8 @@ describe("PaginationAdvanced", () => {
     expect(screen.getByLabelText("Go to next page")).toBeInTheDocument();
   });
 
-  it("should render quick jumper", () => {
-    render(<PaginationAdvanced {...defaultProps} />);
+  it("should render quick jumper when enabled", () => {
+    render(<PaginationAdvanced {...defaultProps} showQuickJumper />);
     expect(screen.getByText("前往第")).toBeInTheDocument();
     expect(screen.getByText("页")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "确定" })).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe("PaginationAdvanced", () => {
 
   it("should handle quick jump", async () => {
     const onChange = vi.fn();
-    render(<PaginationAdvanced {...defaultProps} onChange={onChange} />);
+    render(<PaginationAdvanced {...defaultProps} onChange={onChange} showQuickJumper />);
     
     const input = screen.getByRole("spinbutton");
     await userEvent.type(input, "5");
@@ -106,23 +106,23 @@ describe("PaginationAdvanced", () => {
 
   it("should handle quick jump with Enter key", async () => {
     const onChange = vi.fn();
-    render(<PaginationAdvanced {...defaultProps} onChange={onChange} />);
-    
+    render(<PaginationAdvanced {...defaultProps} onChange={onChange} showQuickJumper />);
+
     const input = screen.getByRole("spinbutton");
     await userEvent.type(input, "3");
     await userEvent.keyboard("{Enter}");
-    
+
     expect(onChange).toHaveBeenCalledWith(3, 10);
   });
 
   it("should clamp jump value to valid range", async () => {
     const onChange = vi.fn();
-    render(<PaginationAdvanced {...defaultProps} onChange={onChange} />);
-    
+    render(<PaginationAdvanced {...defaultProps} onChange={onChange} showQuickJumper />);
+
     const input = screen.getByRole("spinbutton");
     await userEvent.type(input, "999");
     await userEvent.click(screen.getByRole("button", { name: "确定" }));
-    
+
     expect(onChange).toHaveBeenCalledWith(10, 10);
   });
 

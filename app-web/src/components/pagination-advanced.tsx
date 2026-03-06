@@ -49,7 +49,7 @@ export function PaginationAdvanced({
   pageSizeOptions = [10, 20, 50, 100],
   showTotal = true,
   showSizeChanger = true,
-  showQuickJumper = true,
+  showQuickJumper = false,
   className,
 }: PaginationAdvancedProps) {
   const totalPages = calculateTotalPages(total, pageSize);
