@@ -11,9 +11,11 @@ const client = createClient({
   exchanges: [fetchExchange],
   fetchOptions: () => {
     const token = useAuthStore.getState().token;
-    return {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    };
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return { headers };
   },
 });
 
