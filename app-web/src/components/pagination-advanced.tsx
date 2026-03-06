@@ -96,93 +96,100 @@ export function PaginationAdvanced({
   }
 
   return (
-    <div className={cn("flex items-center gap-4 text-sm", className)}>
-      {showTotal && (
-        <span className="text-muted-foreground">
-          共 {total} 条
-        </span>
-      )}
+    <div className={cn("flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm", className)}>
+      {/* 左侧：总条数和每页条数 */}
+      <div className="flex items-center gap-4">
+        {showTotal && (
+          <span className="text-muted-foreground whitespace-nowrap">
+            共 {total} 条
+          </span>
+        )}
 
-      {showSizeChanger && (
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">每页</span>
-          <Select
-            value={pageSize.toString()}
-            onValueChange={handlePageSizeChange}
-          >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {pageSizeOptions.map((size) => (
-                <SelectItem key={size} value={size.toString()}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className="text-muted-foreground">条</span>
-        </div>
-      )}
+        {showSizeChanger && (
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground whitespace-nowrap">每页</span>
+            <Select
+              value={pageSize.toString()}
+              onValueChange={handlePageSizeChange}
+            >
+              <SelectTrigger className="w-[70px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {pageSizeOptions.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-muted-foreground whitespace-nowrap">条</span>
+          </div>
+        )}
+      </div>
 
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => handlePageChange(page - 1)}
-              className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-            />
-          </PaginationItem>
-
-          {pageNumbers.map((pageNum, index) => (
-            <PaginationItem key={index}>
-              {pageNum === "ellipsis" ? (
-                <PaginationEllipsis />
-              ) : (
-                <PaginationLink
-                  isActive={pageNum === page}
-                  onClick={() => handlePageChange(pageNum)}
-                  className="cursor-pointer"
-                >
-                  {pageNum}
-                </PaginationLink>
-              )}
+      {/* 右侧：分页和快速跳转 */}
+      <div className="flex items-center gap-4">
+        <Pagination className="w-auto mx-0">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => handlePageChange(page - 1)}
+                className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
             </PaginationItem>
-          ))}
 
-          <PaginationItem>
-            <PaginationNext
-              onClick={() => handlePageChange(page + 1)}
-              className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            {pageNumbers.map((pageNum, index) => (
+              <PaginationItem key={index}>
+                {pageNum === "ellipsis" ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <PaginationLink
+                    isActive={pageNum === page}
+                    onClick={() => handlePageChange(pageNum)}
+                    className="cursor-pointer"
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => handlePageChange(page + 1)}
+                className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+
+        {showQuickJumper && totalPages > 1 && (
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground whitespace-nowrap">前往第</span>
+            <Input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={jumpPage}
+              onChange={(e) => setJumpPage(e.target.value)}
+              onKeyDown={handleJumpKeyDown}
+              className="w-[60px] h-8 text-center"
+              placeholder=""
             />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-
-      {showQuickJumper && totalPages > 1 && (
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">前往第</span>
-          <Input
-            type="number"
-            min={1}
-            max={totalPages}
-            value={jumpPage}
-            onChange={(e) => setJumpPage(e.target.value)}
-            onKeyDown={handleJumpKeyDown}
-            className="w-[60px] text-center"
-            placeholder=""
-          />
-          <span className="text-muted-foreground">页</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleJump}
-            disabled={!jumpPage}
-          >
-            确定
-          </Button>
-        </div>
-      )}
+            <span className="text-muted-foreground whitespace-nowrap">页</span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              onClick={handleJump}
+              disabled={!jumpPage}
+            >
+              确定
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
