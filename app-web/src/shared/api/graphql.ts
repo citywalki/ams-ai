@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth-store';
  */
 const client = createClient({
   url: '/graphql',
+  preferGetMethod: false,
   exchanges: [fetchExchange],
   fetchOptions: () => {
     const token = useAuthStore.getState().token;
