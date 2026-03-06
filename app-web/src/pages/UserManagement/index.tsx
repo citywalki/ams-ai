@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PaginationAdvanced } from "@/components/pagination-advanced";
 import { UserList } from "@/features/user/components/user-list";
 import { UserForm } from "@/features/user/components/user-form";
 import { DeleteUserDialog } from "@/features/user/components/delete-user-dialog";
@@ -27,8 +28,8 @@ function useCanManageUsers(): boolean {
 }
 
 export default function UserManagementPage() {
-  const [page, setPage] = useState(0);
-  const [pageSize] = useState(20);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [appliedFilters, setAppliedFilters] = useState<UserFilterInput | undefined>(undefined);
@@ -41,7 +42,7 @@ export default function UserManagementPage() {
   const canManageUsers = useCanManageUsers();
 
   const { data, isLoading, refetch } = useUsers({
-    page,
+    page: page - 1, // 后端使用 0-based，组件使用 1-based
     size: pageSize,
     filters: appliedFilters,
   });
@@ -75,7 +76,7 @@ export default function UserManagementPage() {
     setSearchText("");
     setStatusFilter("");
     setAppliedFilters(undefined);
-    setPage(0);
+    setPage(1);
   };
 
   const handleRefresh = async () => {
@@ -89,12 +90,12 @@ export default function UserManagementPage() {
     const newFilters = Object.keys(filters).length > 0 ? filters : undefined;
 
     // 如果筛选条件没变且页码已经是第一页，直接强制刷新
-    if (JSON.stringify(newFilters) === JSON.stringify(appliedFilters) && page === 0) {
+    if (JSON.stringify(newFilters) === JSON.stringify(appliedFilters) && page === 1) {
       await refetch();
     } else {
       // 否则更新筛选条件和页码
       setAppliedFilters(newFilters);
-      setPage(0);
+      setPage(1);
     }
   };
 
@@ -179,28 +180,16 @@ export default function UserManagementPage() {
 
           {/* 分页 */}
           {data && (
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="text-sm text-gray-500">
-                共 {data.totalElements} 条记录，第 {page + 1} / {data.totalPages} 页
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0 || isLoading}
-                >
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "上一页"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(data.totalPages - 1, p + 1))}
-                  disabled={page >= data.totalPages - 1 || isLoading}
-                >
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "下一页"}
-                </Button>
-              </div>
+            <div className="pt-4 border-t">
+              <PaginationAdvanced
+                page={page}
+                pageSize={pageSize}
+                total={data.totalElements}
+                onChange={(newPage, newPageSize) => {
+                  setPage(newPage);
+                  setPageSize(newPageSize);
+                }}
+              />
             </div>
           )}
         </CardContent>
