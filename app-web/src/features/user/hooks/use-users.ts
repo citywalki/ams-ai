@@ -37,7 +37,7 @@ interface UseUsersOptions {
 export function useUsers(options: UseUsersOptions = {}) {
   const { page = 0, size = 20, filters } = options;
 
-  return useQuery<UserConnection, Error>({
+  const query = useQuery<UserConnection, Error>({
     queryKey: [...USERS_QUERY_KEY, { page, size, filters }],
     queryFn: async () => {
       const response = await fetch("/graphql", {
@@ -65,4 +65,9 @@ export function useUsers(options: UseUsersOptions = {}) {
       return result.data.users;
     },
   });
+
+  return {
+    ...query,
+    isLoading: query.isLoading || query.isFetching,
+  };
 }

@@ -30,15 +30,23 @@ export interface UserFilterInput {
 }
 
 export interface StringFilterInput {
-  contains?: string;
-  startsWith?: string;
-  endsWith?: string;
-  equals?: string;
+  _eq?: string;
+  _neq?: string;
+  _like?: string;
+  _ilike?: string;
+  _startsWith?: string;
+  _endsWith?: string;
+  _in?: string[];
+  _nin?: string[];
+  _isNull?: boolean;
 }
 
 export interface EnumFilterInput {
-  in?: string[];
-  equals?: string;
+  _eq?: string;
+  _neq?: string;
+  _in?: string[];
+  _nin?: string[];
+  _isNull?: boolean;
 }
 
 export interface CreateUserInput {

@@ -49,7 +49,7 @@ const recentAlarms: Alarm[] = [
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="h-full overflow-y-auto space-y-6">
       {/* 页面标题 */}
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold text-[#32363A]">仪表盘</h1>

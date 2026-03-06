@@ -12,6 +12,7 @@ interface AuthState {
   error: string | null;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  setToken: (token: string) => void;
   clearError: () => void;
 }
 
@@ -68,6 +69,8 @@ export const useAuthStore = create<AuthState>()(
           });
         }
       },
+
+      setToken: (token: string) => set({ token }),
 
       clearError: () => set({ error: null }),
     }),
