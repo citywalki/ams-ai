@@ -10,11 +10,12 @@ export class LoginPage extends BasePage {
 
   constructor(page: Page) {
     super(page, '/login');
-    this.usernameInput = page.locator('[data-testid="username-input"]');
-    this.passwordInput = page.locator('[data-testid="password-input"]');
-    this.loginButton = page.locator('[data-testid="login-button"]');
-    this.errorMessage = page.locator('[data-testid="error-message"]');
-    this.rememberMeCheckbox = page.locator('[data-testid="remember-me"]');
+    // 使用 placeholder 和 role 定位器，不依赖 data-testid
+    this.usernameInput = page.getByPlaceholder('请输入用户名');
+    this.passwordInput = page.getByPlaceholder('请输入密码');
+    this.loginButton = page.getByRole('button', { name: '登录' });
+    this.errorMessage = page.locator('text=用户名或密码错误');
+    this.rememberMeCheckbox = page.locator('label:has-text("记住我"), input[type="checkbox"]');
   }
 
   async login(username: string, password: string, rememberMe: boolean = false) {
