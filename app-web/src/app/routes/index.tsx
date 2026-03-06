@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { MainLayout } from "@/app/layout/main-layout";
 import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
+import UserManagementPage from "@/pages/UserManagement";
 
 // 检查是否已登录（同时检查 store 和 localStorage）
 function isLoggedIn(): boolean {
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
           {
             path: "dashboard",
             element: <DashboardPage />,
+          },
+          {
+            path: "admin/users",
+            element: <UserManagementPage />,
           },
         ],
       },

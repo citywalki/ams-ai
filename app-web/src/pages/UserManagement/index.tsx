@@ -1,4 +1,4 @@
-import { useState } from "react"";
+import { useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -155,7 +155,12 @@ export default function UserManagementPage() {
     <div className="p-6 space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>用户管理</CardTitle>
+          <div className="flex items-center gap-3">
+            <CardTitle>用户管理</CardTitle>
+            <span className="text-sm text-muted-foreground">
+              管理系统用户账户
+            </span>
+          </div>
           {canManageUsers && (
             <Button onClick={handleCreate}>
               <Plus className="mr-2 h-4 w-4" />
@@ -175,7 +180,7 @@ export default function UserManagementPage() {
                 className="pl-10"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value ?? "")}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="筛选状态" />
               </SelectTrigger>

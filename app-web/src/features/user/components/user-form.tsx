@@ -23,27 +23,20 @@ import {
 import type { User } from "../schema/user";
 import { USER_STATUSES } from "../schema/user";
 
-const createUserSchema = z.object({
+const userSchema = z.object({
   username: z.string().min(2, "用户名至少2个字符").max(50, "用户名最多50个字符"),
   email: z.string().email("请输入有效的邮箱地址"),
-  password: z.string().min(8, "密码至少8个字符").max(100, "密码最多100个字符"),
+  password: z.string().min(8, "密码至少8个字符").max(100, "密码最多100个字符").optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]),
 });
 
-const updateUserSchema = z.object({
-  username: z.string().min(2, "用户名至少2个字符").max(50, "用户名最多50个字符"),
-  email: z.string().email("请输入有效的邮箱地址"),
-  status: z.enum(["ACTIVE", "INACTIVE"]),
-});
-
-type CreateUserFormData = z.infer<typeof createUserSchema>;
-type UpdateUserFormData = z.infer<typeof updateUserSchema>;
+type UserFormData = z.infer<typeof userSchema>;
 
 interface UserFormProps {
   user?: User | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateUserFormData | UpdateUserFormData) => void;
+  onSubmit: (data: UserFormData) => void;
   isLoading: boolean;
 }
 
@@ -55,7 +48,6 @@ export function UserForm({
   isLoading,
 }: UserFormProps) {
   const isEditing = !!user;
-  const schema = isEditing ? updateUserSchema : createUserSchema;
 
   const {
     register,
@@ -64,8 +56,8 @@ export function UserForm({
     setValue,
     watch,
     reset,
-  } = useForm<CreateUserFormData | UpdateUserFormData>({
-    resolver: zodResolver(schema),
+  } = useForm<UserFormData>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
       username: user?.username || "",
       email: user?.email || "",
@@ -74,7 +66,7 @@ export function UserForm({
     },
   });
 
-  const handleFormSubmit = (data: CreateUserFormData | UpdateUserFormData) => {
+  const handleFormSubmit = (data: UserFormData) => {
     onSubmit(data);
     if (!isLoading) {
       reset();
