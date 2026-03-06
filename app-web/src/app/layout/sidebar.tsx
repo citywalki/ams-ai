@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Bell,
@@ -6,6 +7,8 @@ import {
   Users,
   FileText,
   Folder,
+  ChevronDown,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,11 +41,14 @@ interface NavItemProps {
   menu: Menu;
   level?: number;
   parentRoute?: string;
+  expandedKeys?: Set<number>;
+  onToggle?: (menuId: number) => void;
 }
 
-function NavItem({ menu, level = 0, parentRoute = "" }: NavItemProps) {
+function NavItem({ menu, level = 0, parentRoute = "", expandedKeys = new Set(), onToggle }: NavItemProps) {
   const hasChildren = menu.children && menu.children.length > 0;
   const paddingLeft = level * 16 + 12;
+  const isExpanded = expandedKeys.has(menu.id);
   
   // 计算完整路由：父路由 + 当前路由
   const fullRoute = parentRoute + (menu.route || "");
@@ -51,19 +57,43 @@ function NavItem({ menu, level = 0, parentRoute = "" }: NavItemProps) {
     return (
       <div className="space-y-1">
         <div
-          className="flex items-center gap-3 h-10 px-3 text-sm font-medium text-[#6A6D70] rounded cursor-default"
+          className="flex items-center gap-3 h-10 px-3 text-sm font-medium text-[#6A6D70] rounded cursor-pointer hover:bg-[#F5F5F5] transition-colors duration-150"
           style={{ paddingLeft: `${paddingLeft}px` }}
+          onClick={() => onToggle?.(menu.id)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onToggle?.(menu.id);
+            }
+          }}
+          aria-expanded={isExpanded}
         >
           <span className="flex-shrink-0">{getIconComponent(menu.icon)}</span>
           <span className="flex-1">{menu.label}</span>
+          <span className="flex-shrink-0 transition-transform duration-200">
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </span>
         </div>
-        <div className="space-y-1">
+        <div 
+          className={cn(
+            "space-y-1 overflow-hidden transition-all duration-200 ease-in-out",
+            isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
           {menu.children.map((child) => (
             <NavItem 
               key={child.id} 
               menu={child} 
               level={level + 1} 
               parentRoute={fullRoute}
+              expandedKeys={expandedKeys}
+              onToggle={onToggle}
             />
           ))}
         </div>
@@ -106,8 +136,95 @@ function NavItem({ menu, level = 0, parentRoute = "" }: NavItemProps) {
   );
 }
 
+// 递归查找包含指定路径的所有父菜单ID
+function findParentIdsByPath(
+  menus: Menu[],
+  pathname: string,
+  parentRoute: string = ""
+): number[] {
+  for (const menu of menus) {
+    // 计算当前菜单的完整路由
+    const currentFullRoute = parentRoute + (menu.route || "");
+
+    // 检查当前菜单是否匹配路径（如果是叶子节点且匹配）
+    if (
+      (!menu.children || menu.children.length === 0) &&
+      currentFullRoute &&
+      pathname.startsWith(currentFullRoute)
+    ) {
+      // 返回空数组，表示已找到匹配，但当前节点不是父菜单
+      return [];
+    }
+
+    // 递归检查子菜单
+    if (menu.children && menu.children.length > 0) {
+      const childResult = findParentIdsByPath(
+        menu.children,
+        pathname,
+        currentFullRoute
+      );
+
+      // 如果子菜单链中有匹配的，当前菜单ID也应该被包含
+      if (childResult !== null) {
+        return [menu.id, ...childResult];
+      }
+
+      // 检查是否有子菜单直接匹配
+      const hasMatchingChild = menu.children.some((child) => {
+        const childFullRoute = currentFullRoute + (child.route || "");
+        return childFullRoute && pathname.startsWith(childFullRoute);
+      });
+
+      if (hasMatchingChild) {
+        return [menu.id];
+      }
+    }
+  }
+  return [];
+}
+
 export function Sidebar() {
   const { data: menus, isLoading, error } = useUserMenus();
+  const location = useLocation();
+  const [expandedKeys, setExpandedKeys] = useState<Set<number>>(new Set());
+
+  // 当路由变化时，自动展开包含当前路由的父菜单
+  useEffect(() => {
+    if (!menus) return;
+
+    // 找出根菜单
+    const menuIds = new Set(menus.map((m) => m.id));
+    const rootMenus = menus.filter((menu) => {
+      if (!menu.parentId) return true;
+      return !menuIds.has(menu.parentId);
+    });
+
+    // 找到需要展开的父菜单ID
+    const parentIdsToExpand = findParentIdsByPath(
+      rootMenus,
+      location.pathname
+    );
+
+    if (parentIdsToExpand.length > 0) {
+      setExpandedKeys((prev) => {
+        const newSet = new Set(prev);
+        parentIdsToExpand.forEach((id) => newSet.add(id));
+        return newSet;
+      });
+    }
+  }, [location.pathname, menus]);
+
+  const handleToggle = (menuId: number) => {
+    setExpandedKeys((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(menuId)) {
+        newSet.delete(menuId);
+      } else {
+        newSet.add(menuId);
+      }
+      return newSet;
+    });
+  };
 
   if (isLoading) {
     return (
@@ -161,7 +278,12 @@ export function Sidebar() {
           <div className="text-sm text-gray-500 text-center py-4">暂无菜单</div>
         )}
         {rootMenus.map((menu) => (
-          <NavItem key={menu.id} menu={menu} />
+          <NavItem 
+            key={menu.id} 
+            menu={menu} 
+            expandedKeys={expandedKeys}
+            onToggle={handleToggle}
+          />
         ))}
       </nav>
 
