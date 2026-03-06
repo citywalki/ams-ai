@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { graphql } from "@/shared/api/graphql";
 import type { UserConnection, UserFilterInput } from "../schema/user";
 
 const USERS_QUERY = `
@@ -34,35 +35,22 @@ interface UseUsersOptions {
   filters?: UserFilterInput;
 }
 
+interface UsersResponse {
+  users: UserConnection;
+}
+
 export function useUsers(options: UseUsersOptions = {}) {
   const { page = 0, size = 20, filters } = options;
 
   const query = useQuery<UserConnection, Error>({
     queryKey: [...USERS_QUERY_KEY, { page, size, filters }],
     queryFn: async () => {
-      const response = await fetch("/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          query: USERS_QUERY,
-          variables: {
-            where: filters,
-            page,
-            size,
-          },
-        }),
+      const data = await graphql<UsersResponse>(USERS_QUERY, {
+        where: filters,
+        page,
+        size,
       });
-
-      const result = await response.json();
-
-      if (result.errors) {
-        throw new Error(result.errors[0]?.message || "获取用户列表失败");
-      }
-
-      return result.data.users;
+      return data.users;
     },
   });
 
