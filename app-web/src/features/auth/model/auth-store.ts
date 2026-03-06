@@ -1,0 +1,78 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { restClient } from "@/shared/api/rest-client";
+import type { User, LoginCredentials, AuthResponse } from "./auth-types";
+
+interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  token: string | null;
+  refreshToken: string | null;
+  isLoading: boolean;
+  error: string | null;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  logout: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      isAuthenticated: false,
+      user: null,
+      token: null,
+      refreshToken: null,
+      isLoading: false,
+      error: null,
+
+      login: async (credentials) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await restClient.post<AuthResponse>("/auth/login", credentials);
+          const { user, tokens } = response.data;
+          localStorage.setItem("token", tokens.token);
+          localStorage.setItem("refreshToken", tokens.refreshToken);
+          set({
+            isAuthenticated: true,
+            user,
+            token: tokens.token,
+            refreshToken: tokens.refreshToken,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : "登录失败",
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      logout: async () => {
+        try {
+          await restClient.post("/auth/logout");
+        } finally {
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          set({
+            isAuthenticated: false,
+            user: null,
+            token: null,
+            refreshToken: null,
+          });
+        }
+      },
+
+      clearError: () => set({ error: null }),
+    }),
+    {
+      name: "auth-storage",
+      partialize: (state) => ({
+        isAuthenticated: state.isAuthenticated,
+        user: state.user,
+        token: state.token,
+        refreshToken: state.refreshToken,
+      }),
+    }
+  )
+);
