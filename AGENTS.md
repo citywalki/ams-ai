@@ -149,3 +149,61 @@ Imports（Spotless 配置见 `buildSrc/src/main/kotlin/google-java-format-conven
 - `buildSrc/src/main/kotlin/code-quality-convention.gradle.kts`：SpotBugs 规则与报告
 - `lib-common/src/main/java/pro/walkin/ams/common/web/GlobalExceptionHandler.java`：错误映射与响应结构
 - `lib-common/src/main/java/pro/walkin/ams/common/security/TenantContext.java`：租户上下文
+
+## 10) 项目架构与约束
+
+### 技术栈
+
+- **运行时**: Java 25, Quarkus 3.31.2, Gradle 多模块
+- **持久化**: Hibernate ORM + Panache Next (Repository pattern)
+- **API**: GraphQL 用于查询（读操作）; REST 用于命令/更新（写操作）
+- **数据库迁移**: Liquibase（YAML 格式）
+- **缓存/集群**: Hazelcast 5.4.0 分布式缓存
+- **日志**: SLF4J
+- **测试**: JUnit 5, AssertJ, Mockito, Testcontainers
+
+### 缓存策略
+
+- **feature-admin**: 暴露给前端的查询**禁止使用缓存**
+- **feature-core**: 仅告警配置（alarm-configuration）相关查询**可以使用缓存**
+- **集群失效模式**: 本地缓存 + Hazelcast Topic 广播
+  - Topic: `cache-invalidate`
+  - Payload: `CacheInvalidationEvent(cacheName, cacheKey)`
+  - 行为: `cacheKey` 为空时执行 `invalidateAll()`; 否则执行 `invalidate(cacheKey)`
+  - 参考: `lib-cluster/src/main/java/pro/walkin/ams/cluster/event/CacheInvalidationListener.java`
+
+### 数据与多租户
+
+- 核心表必须包含 `tenant_id` 字段
+- 始终使用 `TenantContext.getCurrentTenantId()` 进行数据过滤
+- 禁止跨租户访问
+- 时间戳使用 `@CreationTimestamp`/`@UpdateTimestamp`
+- JSON 列使用 `Map<String, Object>` + `@JdbcTypeCode(SqlTypes.JSON)`
+
+### 持久化约定（Panache Next）
+
+- 实体必须继承 `BaseEntity` (PanacheEntityBase)
+- 实体字段使用 `public`（不使用 Lombok，Lombok 被禁止）
+- Repository 内嵌在实体中: `public interface Repo extends PanacheRepository<Entity>`
+- 访问模式: `Entity_.managedBlocking()` / `Entity_.managed()`
+- 常量使用嵌套静态类，如 `Constants.Alarm.STATUS_NEW`
+
+### 前端技术栈（app-web）
+
+- React 18 + TypeScript 5 + Vite
+- 架构: Feature-Sliced Design (FSD)
+- UI: Ant Design 6.x
+- 路由: React Router 6+
+- 状态: Zustand
+- 数据: Axios + GraphQL
+- 数据获取: TanStack Query; GraphQL 和 REST 调用必须封装为 hooks
+- 表格/表单: @tanstack/react-table; @tanstack/react-form + Zod validation
+- TS 严格模式: noUnusedLocals, noUnusedParameters
+- 路径别名: `@/*` -> `src/*`
+
+### 仓库约定
+
+- 缩进: 2 空格（不使用 tab）; 行宽: 120
+- 分支: main; feature/*; fix/*
+- 提交: conventional style (feat:, fix:, docs:, chore:)
+- 生成的产物和文档优先使用中文
