@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "8891e09eeaac4e2d233b5286be05eab86874a00af01d2ba98fe7e22949474077"
     },
+    "quarkus": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "computedHash": "961f41dc9be3918f1ed5113c5cf94ed05e0f2b3daab6a8c7db97b06c1db6878f"
+    },
     "tanstack-query": {
       "source": "pproenca/dot-skills",
       "sourceType": "github",
