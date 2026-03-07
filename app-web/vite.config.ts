@@ -28,5 +28,10 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./vitest.setup.ts",
+    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    // 确保 MSW 可以正常工作
+    deps: {
+      inline: [/msw/],
+    },
   },
 })
