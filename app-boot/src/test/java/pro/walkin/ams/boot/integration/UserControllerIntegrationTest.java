@@ -19,9 +19,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
-/**
- * 用户管理集成测试
- */
+/** 用户管理集成测试 */
 @QuarkusTest
 @DisplayName("用户管理集成测试")
 class UserControllerIntegrationTest extends GraphQLTestBase {
@@ -37,8 +35,13 @@ class UserControllerIntegrationTest extends GraphQLTestBase {
 
   @BeforeEach
   void setUpAuth() {
-    var loginResponse = authApi.login(
-        Map.of("username", TestConstants.ADMIN_USERNAME, "password", TestConstants.ADMIN_PASSWORD));
+    var loginResponse =
+        authApi.login(
+            Map.of(
+                "username",
+                TestConstants.ADMIN_USERNAME,
+                "password",
+                TestConstants.ADMIN_PASSWORD));
     @SuppressWarnings("unchecked")
     Map<String, Object> body = loginResponse.readEntity(Map.class);
     authToken = "Bearer " + body.get("accessToken");
@@ -57,15 +60,20 @@ class UserControllerIntegrationTest extends GraphQLTestBase {
   void shouldCreateUser() {
     // Given
     String uniqueCode = TestDataBuilder.uniqueCode("USER");
-    Map<String, Object> userData = Map.of(
-        "username", uniqueCode,
-        "email", uniqueCode + "@test.com",
-        "password", "password123",
-        "status", "ACTIVE");
+    Map<String, Object> userData =
+        Map.of(
+            "username",
+            uniqueCode,
+            "email",
+            uniqueCode + "@test.com",
+            "password",
+            "password123",
+            "status",
+            "ACTIVE");
 
     // When
-    var response = userApi.createUser(
-        authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
+    var response =
+        userApi.createUser(authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
 
     // Then
     assertThat(response.getStatus()).isEqualTo(TestConstants.HTTP_CREATED);
@@ -76,16 +84,18 @@ class UserControllerIntegrationTest extends GraphQLTestBase {
     assertThat(body.get("username")).isEqualTo(uniqueCode);
 
     Object idValue = body.get("id");
-    createdUserId = idValue instanceof Number
-        ? ((Number) idValue).longValue()
-        : Long.parseLong(idValue.toString());
+    createdUserId =
+        idValue instanceof Number
+            ? ((Number) idValue).longValue()
+            : Long.parseLong(idValue.toString());
   }
 
   @Test
   @DisplayName("USER-INT-02: 查询用户列表成功")
   void shouldListUsers() {
     // Given
-    String query = """
+    String query =
+        """
         query {
             users {
                 content {
@@ -124,26 +134,33 @@ class UserControllerIntegrationTest extends GraphQLTestBase {
   void shouldGetUserById() {
     // Given - 先创建一个用户
     String uniqueCode = TestDataBuilder.uniqueCode("USER");
-    Map<String, Object> userData = Map.of(
-        "username", uniqueCode,
-        "email", uniqueCode + "@test.com",
-        "password", "password123",
-        "status", "ACTIVE");
+    Map<String, Object> userData =
+        Map.of(
+            "username",
+            uniqueCode,
+            "email",
+            uniqueCode + "@test.com",
+            "password",
+            "password123",
+            "status",
+            "ACTIVE");
 
-    var createResponse = userApi.createUser(
-        authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
+    var createResponse =
+        userApi.createUser(authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
     assertThat(createResponse.getStatus()).isEqualTo(TestConstants.HTTP_CREATED);
 
     @SuppressWarnings("unchecked")
     Map<String, Object> createBody = createResponse.readEntity(Map.class);
     Object idValue = createBody.get("id");
-    Long userId = idValue instanceof Number
-        ? ((Number) idValue).longValue()
-        : Long.parseLong(idValue.toString());
+    Long userId =
+        idValue instanceof Number
+            ? ((Number) idValue).longValue()
+            : Long.parseLong(idValue.toString());
     createdUserId = userId;
 
     // When - 查询用户
-    String query = """
+    String query =
+        """
         query($id: String!) {
             users(where: {id: {_eq: $id}}) {
                 content {
@@ -157,8 +174,9 @@ class UserControllerIntegrationTest extends GraphQLTestBase {
         }
         """;
 
-    var response = graphQLClient.executeQuery(
-        authToken, createQuery(query, Map.of("id", String.valueOf(userId))));
+    var response =
+        graphQLClient.executeQuery(
+            authToken, createQuery(query, Map.of("id", String.valueOf(userId))));
 
     // Then
     assertThat(response.getStatus()).isEqualTo(TestConstants.HTTP_OK);
@@ -178,31 +196,37 @@ class UserControllerIntegrationTest extends GraphQLTestBase {
   void shouldUpdateUser() {
     // Given - 先创建一个用户
     String uniqueCode = TestDataBuilder.uniqueCode("USER");
-    Map<String, Object> userData = Map.of(
-        "username", uniqueCode,
-        "email", uniqueCode + "@test.com",
-        "password", "password123",
-        "status", "ACTIVE");
+    Map<String, Object> userData =
+        Map.of(
+            "username",
+            uniqueCode,
+            "email",
+            uniqueCode + "@test.com",
+            "password",
+            "password123",
+            "status",
+            "ACTIVE");
 
-    var createResponse = userApi.createUser(
-        authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
+    var createResponse =
+        userApi.createUser(authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
     assertThat(createResponse.getStatus()).isEqualTo(TestConstants.HTTP_CREATED);
 
     @SuppressWarnings("unchecked")
     Map<String, Object> createBody = createResponse.readEntity(Map.class);
     Object idValue = createBody.get("id");
-    Long userId = idValue instanceof Number
-        ? ((Number) idValue).longValue()
-        : Long.parseLong(idValue.toString());
+    Long userId =
+        idValue instanceof Number
+            ? ((Number) idValue).longValue()
+            : Long.parseLong(idValue.toString());
     createdUserId = userId;
 
     // When - 更新用户
-    Map<String, Object> updateData = Map.of(
-        "email", "updated" + userId + "@test.com",
-        "status", "INACTIVE");
+    Map<String, Object> updateData =
+        Map.of("email", "updated" + userId + "@test.com", "status", "INACTIVE");
 
-    var response = userApi.updateUser(
-        authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userId, updateData);
+    var response =
+        userApi.updateUser(
+            authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userId, updateData);
 
     // Then
     assertThat(response.getStatus()).isEqualTo(TestConstants.HTTP_OK);
@@ -217,26 +241,32 @@ class UserControllerIntegrationTest extends GraphQLTestBase {
   void shouldDeleteUser() {
     // Given - 先创建一个用户
     String uniqueCode = TestDataBuilder.uniqueCode("USER");
-    Map<String, Object> userData = Map.of(
-        "username", uniqueCode,
-        "email", uniqueCode + "@test.com",
-        "password", "password123",
-        "status", "ACTIVE");
+    Map<String, Object> userData =
+        Map.of(
+            "username",
+            uniqueCode,
+            "email",
+            uniqueCode + "@test.com",
+            "password",
+            "password123",
+            "status",
+            "ACTIVE");
 
-    var createResponse = userApi.createUser(
-        authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
+    var createResponse =
+        userApi.createUser(authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
     assertThat(createResponse.getStatus()).isEqualTo(TestConstants.HTTP_CREATED);
 
     @SuppressWarnings("unchecked")
     Map<String, Object> createBody = createResponse.readEntity(Map.class);
     Object idValue = createBody.get("id");
-    Long userId = idValue instanceof Number
-        ? ((Number) idValue).longValue()
-        : Long.parseLong(idValue.toString());
+    Long userId =
+        idValue instanceof Number
+            ? ((Number) idValue).longValue()
+            : Long.parseLong(idValue.toString());
 
     // When - 删除用户
-    var response = userApi.deleteUser(
-        authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userId);
+    var response =
+        userApi.deleteUser(authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userId);
 
     // Then
     assertThat(response.getStatus()).isEqualTo(TestConstants.HTTP_NO_CONTENT);
@@ -248,30 +278,40 @@ class UserControllerIntegrationTest extends GraphQLTestBase {
   void shouldFailToCreateDuplicateUser() {
     // Given - 创建第一个用户
     String username = TestDataBuilder.uniqueCode("USER");
-    Map<String, Object> userData = Map.of(
-        "username", username,
-        "email", username + "@test.com",
-        "password", "password123",
-        "status", "ACTIVE");
+    Map<String, Object> userData =
+        Map.of(
+            "username",
+            username,
+            "email",
+            username + "@test.com",
+            "password",
+            "password123",
+            "status",
+            "ACTIVE");
 
-    var firstResponse = userApi.createUser(
-        authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
+    var firstResponse =
+        userApi.createUser(authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData);
     assertThat(firstResponse.getStatus()).isEqualTo(TestConstants.HTTP_CREATED);
 
     @SuppressWarnings("unchecked")
     Map<String, Object> firstBody = firstResponse.readEntity(Map.class);
     Object idValue = firstBody.get("id");
-    createdUserId = idValue instanceof Number
-        ? ((Number) idValue).longValue()
-        : Long.parseLong(idValue.toString());
+    createdUserId =
+        idValue instanceof Number
+            ? ((Number) idValue).longValue()
+            : Long.parseLong(idValue.toString());
 
     // When/Then - 创建重复用户应失败
-    assertThatThrownBy(() -> userApi.createUser(
-        authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData))
+    assertThatThrownBy(
+            () ->
+                userApi.createUser(
+                    authToken, String.valueOf(TestConstants.DEFAULT_TENANT_ID), userData))
         .isInstanceOf(jakarta.ws.rs.WebApplicationException.class)
-        .satisfies(ex -> {
-          jakarta.ws.rs.WebApplicationException wae = (jakarta.ws.rs.WebApplicationException) ex;
-          assertThat(wae.getResponse().getStatus()).isEqualTo(TestConstants.HTTP_BAD_REQUEST);
-        });
+        .satisfies(
+            ex -> {
+              jakarta.ws.rs.WebApplicationException wae =
+                  (jakarta.ws.rs.WebApplicationException) ex;
+              assertThat(wae.getResponse().getStatus()).isEqualTo(TestConstants.HTTP_BAD_REQUEST);
+            });
   }
 }

@@ -1,8 +1,6 @@
 package pro.walkin.ams.boot.support;
 
-/**
- * 测试常量类，集中管理所有测试配置和默认值
- */
+/** 测试常量类，集中管理所有测试配置和默认值 */
 public final class TestConstants {
 
   private TestConstants() {

@@ -12,9 +12,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
-/**
- * 菜单服务测试类
- */
+/** 菜单服务测试类 */
 @QuarkusComponentTest
 @DisplayName("MenuService 测试")
 class MenuServiceTest {

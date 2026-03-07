@@ -9,9 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.*;
 
-/**
- * RBAC 服务测试类
- */
+/** RBAC 服务测试类 */
 @QuarkusComponentTest
 @TestConfigProperty(key = "smallrye.jwt.sign.key.location", value = "privateKey.jwk")
 @DisplayName("RbacService 测试")

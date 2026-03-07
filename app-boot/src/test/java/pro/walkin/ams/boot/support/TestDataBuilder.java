@@ -8,32 +8,24 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * 测试数据构建器，提供流式 API 创建测试实体
- */
+/** 测试数据构建器，提供流式 API 创建测试实体 */
 public final class TestDataBuilder {
 
   private TestDataBuilder() {
     // 工具类，禁止实例化
   }
 
-  /**
-   * 创建用户构建器
-   */
+  /** 创建用户构建器 */
   public static UserBuilder user() {
     return new UserBuilder();
   }
 
-  /**
-   * 创建角色构建器
-   */
+  /** 创建角色构建器 */
   public static RoleBuilder role() {
     return new RoleBuilder();
   }
 
-  /**
-   * 创建权限构建器
-   */
+  /** 创建权限构建器 */
   public static PermissionBuilder permission() {
     return new PermissionBuilder();
   }
@@ -48,9 +40,7 @@ public final class TestDataBuilder {
     return prefix + "_" + UUID.randomUUID().toString().substring(0, 8);
   }
 
-  /**
-   * 用户构建器
-   */
+  /** 用户构建器 */
   public static class UserBuilder {
     private Long id = System.currentTimeMillis();
     private String username = TestConstants.TEST_USERNAME;
@@ -106,9 +96,7 @@ public final class TestDataBuilder {
     }
   }
 
-  /**
-   * 角色构建器
-   */
+  /** 角色构建器 */
   public static class RoleBuilder {
     private Long id = System.currentTimeMillis();
     private String code = "TEST_ROLE";
@@ -164,9 +152,7 @@ public final class TestDataBuilder {
     }
   }
 
-  /**
-   * 权限构建器
-   */
+  /** 权限构建器 */
   public static class PermissionBuilder {
     private Long id = System.currentTimeMillis();
     private String code = "test:permission";

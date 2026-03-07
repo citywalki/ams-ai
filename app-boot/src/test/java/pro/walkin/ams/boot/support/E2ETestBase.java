@@ -33,33 +33,29 @@ public abstract class E2ETestBase {
     authToken = authenticateAsAdmin();
   }
 
-  /**
-   * 使用管理员账号登录获取真实 token
-   */
+  /** 使用管理员账号登录获取真实 token */
   private String authenticateAsAdmin() {
     try {
-      String jsonBody = String.format(
-          "{\"username\": \"%s\", \"password\": \"%s\"}",
-          TestConstants.ADMIN_USERNAME,
-          TestConstants.ADMIN_PASSWORD
-      );
+      String jsonBody =
+          String.format(
+              "{\"username\": \"%s\", \"password\": \"%s\"}",
+              TestConstants.ADMIN_USERNAME, TestConstants.ADMIN_PASSWORD);
 
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(URI.create(baseUri.toString() + "/auth/login"))
-          .header("Content-Type", "application/json")
-          .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-          .build();
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(baseUri.toString() + "/auth/login"))
+              .header("Content-Type", "application/json")
+              .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+              .build();
 
-      HttpResponse<String> response = HttpClient.newHttpClient()
-          .send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
-      assertThat(response.statusCode())
-          .as("Login should succeed")
-          .isEqualTo(TestConstants.HTTP_OK);
+      assertThat(response.statusCode()).as("Login should succeed").isEqualTo(TestConstants.HTTP_OK);
 
       @SuppressWarnings("unchecked")
-      Map<String, Object> body = new com.fasterxml.jackson.databind.ObjectMapper()
-          .readValue(response.body(), Map.class);
+      Map<String, Object> body =
+          new com.fasterxml.jackson.databind.ObjectMapper().readValue(response.body(), Map.class);
 
       return (String) body.get("accessToken");
     } catch (Exception e) {
@@ -75,9 +71,7 @@ public abstract class E2ETestBase {
         .executeUpdate();
   }
 
-  /**
-   * 获取 Authorization Header
-   */
+  /** 获取 Authorization Header */
   protected String getAuthHeader() {
     return "Bearer " + authToken;
   }
