@@ -42,12 +42,12 @@ class UserGraphQLApiE2EIT extends GraphQLTestBase {
         """
             query {
                 users {
-                    data {
+                    content {
                         id
                         username
                         email
                     }
-                    total
+                    totalElements
                     page
                     size
                 }
@@ -66,64 +66,51 @@ class UserGraphQLApiE2EIT extends GraphQLTestBase {
     Map<String, Object> data = (Map<String, Object>) body.get("data");
     Map<String, Object> users = (Map<String, Object>) data.get("users");
 
-    assertThat(users).containsKeys("data", "total", "page", "size");
+    assertThat(users).containsKeys("content", "totalElements", "page", "size");
 
-    List<Map<String, Object>> userList = (List<Map<String, Object>>) users.get("data");
+    List<Map<String, Object>> userList = (List<Map<String, Object>>) users.get("content");
     assertThat(userList).isNotEmpty();
   }
 
   @Test
   @Order(2)
-  @DisplayName("GRAPHQL-USER-02: 根据ID查询用户")
-  void shouldQueryUserById() {
-    // Given - 先获取一个用户ID
-    String listQuery =
-        """
-            query {
-                users(page: 0, size: 1) {
-                    data {
-                        id
-                    }
-                }
-            }
-            """;
-
-    var listResponse = graphQLClient.executeQuery(authToken, createQuery(listQuery, null));
-
-    Map<String, Object> listBody = listResponse.readEntity(Map.class);
-    Map<String, Object> listData = (Map<String, Object>) listBody.get("data");
-    Map<String, Object> users = (Map<String, Object>) listData.get("users");
-    List<Map<String, Object>> userList = (List<Map<String, Object>>) users.get("data");
-
-    if (userList.isEmpty()) {
-      org.junit.jupiter.api.Assertions.fail("No users found for testing");
-    }
-
-    Integer userId = (Integer) userList.get(0).get("id");
-
-    // When
+  @DisplayName("GRAPHQL-USER-02: 分页查询用户")
+  void shouldQueryUsersWithPagination() {
+    // Given
     String query =
         """
-            query($id: Long!) {
-                user(id: $id) {
-                    id
-                    username
-                    email
-                    status
+            query {
+                users(page: 0, size: 5) {
+                    content {
+                        id
+                        username
+                        email
+                    }
+                    totalElements
+                    totalPages
+                    page
+                    size
                 }
             }
             """;
 
-    var response = graphQLClient.executeQuery(authToken, createQuery(query, Map.of("id", userId)));
+    // When
+    var response = graphQLClient.executeQuery(authToken, createQuery(query, null));
 
     // Then
     assertThat(response.getStatus()).isEqualTo(200);
 
     Map<String, Object> body = response.readEntity(Map.class);
-    Map<String, Object> data = (Map<String, Object>) body.get("data");
-    Map<String, Object> user = (Map<String, Object>) data.get("user");
+    assertThat(body).containsKey("data");
 
-    assertThat(user.get("id")).isEqualTo(userId);
-    assertThat(user).containsKeys("username", "email", "status");
+    Map<String, Object> data = (Map<String, Object>) body.get("data");
+    Map<String, Object> users = (Map<String, Object>) data.get("users");
+
+    assertThat(users).containsKeys("content", "totalElements", "totalPages", "page", "size");
+    assertThat(users.get("page")).isEqualTo(0);
+    assertThat(users.get("size")).isEqualTo(5);
+
+    List<Map<String, Object>> userList = (List<Map<String, Object>>) users.get("content");
+    assertThat(userList.size()).isLessThanOrEqualTo(5);
   }
 }
