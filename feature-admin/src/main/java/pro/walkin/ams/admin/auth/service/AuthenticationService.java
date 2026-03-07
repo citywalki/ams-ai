@@ -79,7 +79,12 @@ public class AuthenticationService {
     String refreshToken = tokenService.generateRefreshToken(user);
 
     LOG.info("Successful login for user: {}", username);
-    return Optional.of(new AuthenticationResult(user, accessToken, refreshToken));
+    return Optional.of(
+        new AuthenticationResult(
+            user,
+            accessToken,
+            refreshToken,
+            Constants.Auth.JWT_ACCESS_TOKEN_EXPIRATION_TIME / 1000));
   }
 
   /** 刷新访问令牌 */

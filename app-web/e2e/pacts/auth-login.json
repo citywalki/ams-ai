@@ -29,7 +29,7 @@
         "body": {
           "accessToken": "eyJhbGc...",
           "refreshToken": "eyJhbGc...",
-          "expiresIn": 3600,
+          "expiresIn": 900,
           "tokenType": "Bearer"
         },
         "matchingRules": {

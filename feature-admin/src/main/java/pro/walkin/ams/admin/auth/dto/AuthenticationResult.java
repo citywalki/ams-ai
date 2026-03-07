@@ -7,10 +7,12 @@ public class AuthenticationResult {
   public final User user;
   public final String accessToken;
   public final String refreshToken;
+  public final Long expiresIn;
 
-  public AuthenticationResult(User user, String accessToken, String refreshToken) {
+  public AuthenticationResult(User user, String accessToken, String refreshToken, Long expiresIn) {
     this.user = user;
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
+    this.expiresIn = expiresIn;
   }
 }

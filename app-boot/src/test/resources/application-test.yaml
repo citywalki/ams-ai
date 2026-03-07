@@ -12,6 +12,8 @@ quarkus:
     enabled: false
   scheduler:
     enabled: false
+  http:
+    test-port: 8081
   rest-client:
     auth-api:
       url: http://localhost:8081
@@ -19,3 +21,12 @@ quarkus:
       url: http://localhost:8081
     role-api:
       url: http://localhost:8081
+    graphql-api:
+      url: http://localhost:8081
+
+ams:
+  auth:
+    init-default-data: true
+
+# 禁用 Rest Client 的默认异常映射，让测试能检查 HTTP 状态码
+microprofile.rest.client.disable-default-mapper: true

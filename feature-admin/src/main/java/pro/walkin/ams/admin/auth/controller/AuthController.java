@@ -44,7 +44,8 @@ public class AuthController {
                   authResult.user.username,
                   authResult.accessToken,
                   authResult.refreshToken,
-                  authResult.user.tenant))
+                  authResult.user.tenant,
+                  authResult.expiresIn))
           .build();
     } else {
       return Response.status(Response.Status.UNAUTHORIZED)
@@ -157,14 +158,23 @@ public class AuthController {
     public final String accessToken;
     public final String refreshToken;
     public final Long tenantId;
+    public final Long expiresIn;
+    public final String tokenType;
 
     public LoginResponse(
-        Long userId, String username, String accessToken, String refreshToken, Long tenantId) {
+        Long userId,
+        String username,
+        String accessToken,
+        String refreshToken,
+        Long tenantId,
+        Long expiresIn) {
       this.userId = userId;
       this.username = username;
       this.accessToken = accessToken;
       this.refreshToken = refreshToken;
       this.tenantId = tenantId;
+      this.expiresIn = expiresIn;
+      this.tokenType = "Bearer";
     }
   }
 

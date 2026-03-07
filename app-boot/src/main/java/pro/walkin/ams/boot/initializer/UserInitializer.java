@@ -30,8 +30,8 @@ public class UserInitializer extends DataInitializer {
 
     long adminCount = User_.repo().count("username", "admin");
     if (adminCount == 0) {
-      createUser("admin", "admin@example.com", "Admin123!", Constants.Auth.ROLE_ADMIN, tenant);
-      log.info("Created default admin user with username 'admin' and password 'Admin123!'");
+      createUser("admin", "admin@example.com", "admin123", Constants.Auth.ROLE_ADMIN, tenant);
+      log.info("Created default admin user with username 'admin' and password 'admin123'");
     } else {
       User existingAdmin = User_.repo().find("username", "admin").firstResult();
       log.info(
