@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.admin.auth.service.TokenService;
+import pro.walkin.ams.admin.system.query.RbacQuery;
 import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.persistence.entity.system.RolePermission;
 import pro.walkin.ams.persistence.entity.system.User;
@@ -31,11 +32,7 @@ public class RbacService implements pro.walkin.ams.common.security.service.RbacS
 
   @Inject TokenService tokenService;
 
-  @Inject User.Repo userRepo;
-
-  @Inject UserRole.Repo userRoleRepo;
-
-  @Inject RolePermission.Repo rolePermissionRepo;
+  @Inject RbacQuery rbacQuery;
 
   public boolean hasPermission(Long userId, String permission) {
     Long tenantId = TenantContext.getCurrentTenantId();
@@ -133,7 +130,7 @@ public class RbacService implements pro.walkin.ams.common.security.service.RbacS
     if (userId == null || role == null || tenantId == null) {
       return false;
     }
-    List<UserRole> userRoles = userRoleRepo.listByUserId(userId);
+    List<UserRole> userRoles = rbacQuery.listUserRolesByUserId(userId);
     for (UserRole userRole : userRoles) {
       if (userRole.role != null
           && role.equals(userRole.role.code)
@@ -159,7 +156,7 @@ public class RbacService implements pro.walkin.ams.common.security.service.RbacS
 
   public Set<String> getUserRoles(Long userId, Long tenantId) {
     LOG.debug("Fetching roles from database for user {} in tenant {}", userId, tenantId);
-    Optional<User> userOpt = userRepo.findByIdOptional(userId);
+    Optional<User> userOpt = rbacQuery.findUserById(userId);
     if (userOpt.isEmpty()) {
       LOG.warn("User {} not found", userId);
       return Set.of();
@@ -169,7 +166,7 @@ public class RbacService implements pro.walkin.ams.common.security.service.RbacS
       LOG.warn("User {} does not belong to tenant {}", userId, tenantId);
       return Set.of();
     }
-    List<UserRole> userRoles = userRoleRepo.listByUserId(userId);
+    List<UserRole> userRoles = rbacQuery.listUserRolesByUserId(userId);
     Set<String> roles = new HashSet<>();
     for (UserRole userRole : userRoles) {
       if (userRole.role != null && tenantId.equals(userRole.role.tenant)) {
@@ -188,7 +185,7 @@ public class RbacService implements pro.walkin.ams.common.security.service.RbacS
             key -> {
               LOG.debug(
                   "Fetching permissions from database for user {} in tenant {}", userId, tenantId);
-              Optional<User> userOpt = userRepo.findByIdOptional(userId);
+              Optional<User> userOpt = rbacQuery.findUserById(userId);
               if (userOpt.isEmpty()) {
                 LOG.warn("User {} not found", userId);
                 return Set.of();
@@ -198,7 +195,7 @@ public class RbacService implements pro.walkin.ams.common.security.service.RbacS
                 LOG.warn("User {} does not belong to tenant {}", userId, tenantId);
                 return Set.of();
               }
-              List<RolePermission> rolePermissions = rolePermissionRepo.listOfUser(userId);
+              List<RolePermission> rolePermissions = rbacQuery.listRolePermissionsByUserId(userId);
               Set<String> permissions = new HashSet<>();
               for (RolePermission rp : rolePermissions) {
                 if (rp.permission != null && tenantId.equals(rp.role.tenant)) {

@@ -13,6 +13,7 @@ import pro.walkin.ams.common.Constants;
 import pro.walkin.ams.core.event.AlarmEscalatedEvent;
 import pro.walkin.ams.core.metrics.CoreMetrics;
 import pro.walkin.ams.core.processor.PriorityCalculator;
+import pro.walkin.ams.core.query.AlarmQuery;
 import pro.walkin.ams.persistence.entity.running.Alarm;
 
 import java.time.Duration;
@@ -42,6 +43,7 @@ public class AlarmEscalator {
   private final CoreMetrics metrics;
 
   @Inject public Alarm.Repo alarmRepo;
+  @Inject public AlarmQuery alarmQuery;
 
   @Inject
   public AlarmEscalator(
@@ -81,7 +83,7 @@ public class AlarmEscalator {
       List<Alarm> alarms;
 
       do {
-        alarms = alarmRepo.fetchPendingAlarms(offset, BATCH_SIZE);
+        alarms = alarmQuery.fetchPendingAlarms(offset, BATCH_SIZE);
 
         if (alarms.isEmpty()) {
           break;

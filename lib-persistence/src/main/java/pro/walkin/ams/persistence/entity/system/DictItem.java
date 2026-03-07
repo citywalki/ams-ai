@@ -59,20 +59,7 @@ public class DictItem extends BaseEntity {
   public LocalDateTime updatedAt;
 
   public interface Repo extends PanacheRepository<DictItem> {
-
     @Find
     DictItem findByCode(String code);
-
-    default long countByCodeAndCategoryId(String code, Long categoryId) {
-      return count("code = ?1 and categoryId = ?2", code, categoryId);
-    }
-
-    default long countByCodeAndCategoryIdExcludingId(String code, Long categoryId, Long excludeId) {
-      return count("code = ?1 and categoryId = ?2 and id != ?3", code, categoryId, excludeId);
-    }
-
-    default long countByParentId(Long parentId) {
-      return count("parentId", parentId);
-    }
   }
 }

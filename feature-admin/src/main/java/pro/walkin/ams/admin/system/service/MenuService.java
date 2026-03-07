@@ -14,6 +14,7 @@ import pro.walkin.ams.common.dto.MenuDto;
 import pro.walkin.ams.common.dto.MenuResponseDto;
 import pro.walkin.ams.common.exception.NotFoundException;
 import pro.walkin.ams.common.exception.ValidationException;
+import pro.walkin.ams.admin.system.query.MenuQuery;
 import pro.walkin.ams.persistence.entity.system.Menu;
 
 import java.util.ArrayList;
@@ -38,6 +39,8 @@ public class MenuService {
 
   @Inject Menu.Repo menuRepo;
 
+  @Inject MenuQuery menuQuery;
+
   @Inject RbacService rbacService;
 
   // ========== CRUD 操作 ==========
@@ -48,13 +51,13 @@ public class MenuService {
 
     // 检查key是否已存在（同一租户内唯一）
 
-    if (menuRepo.countByKey(dto.key()) > 0) {
+    if (menuQuery.countByKey(dto.key()) > 0) {
       throw new ValidationException("菜单标识符已存在", "key", dto.key());
     }
 
     // 如果指定了parentId，检查父菜单是否存在且属于同一租户
     if (dto.parentId() != null) {
-      Menu parent = menuRepo.findById(dto.parentId());
+      Menu parent = menuQuery.findById(dto.parentId());
       if (parent == null) {
         throw new NotFoundException("Menu", dto.parentId().toString());
       }
@@ -77,7 +80,7 @@ public class MenuService {
     Objects.requireNonNull(dto, "菜单数据不能为空");
     Objects.requireNonNull(tenantId, "租户ID不能为空");
 
-    Menu menu = menuRepo.findById(id);
+    Menu menu = menuQuery.findById(id);
     if (menu == null) {
       throw new NotFoundException("Menu", id.toString());
     }
@@ -87,7 +90,7 @@ public class MenuService {
 
     // 如果key被修改，检查新key是否已存在（同一租户内唯一）
     if (!dto.key().equals(menu.key)
-        && menuRepo.count("key = ?1 and tenant = ?2 and id != ?3", dto.key(), tenantId, id) > 0) {
+        && menuQuery.countByKeyAndTenantAndIdNot(dto.key(), tenantId, id) > 0) {
       throw new ValidationException("菜单标识符已存在", "key", dto.key());
     }
 
@@ -96,7 +99,7 @@ public class MenuService {
       if (dto.parentId().equals(id)) {
         throw new ValidationException("不能将菜单设置为自己的父菜单", "parentId", dto.parentId());
       }
-      Menu parent = menuRepo.findById(dto.parentId());
+      Menu parent = menuQuery.findById(dto.parentId());
       if (parent == null) {
         throw new NotFoundException("Menu", dto.parentId().toString());
       }
@@ -120,7 +123,7 @@ public class MenuService {
     Objects.requireNonNull(id, "菜单ID不能为空");
     Objects.requireNonNull(tenantId, "租户ID不能为空");
 
-    Menu menu = menuRepo.findById(id);
+    Menu menu = menuQuery.findById(id);
     if (menu == null) {
       throw new NotFoundException("Menu", id.toString());
     }
@@ -129,11 +132,11 @@ public class MenuService {
     }
 
     // 检查是否有子菜单
-    if (menuRepo.count("parentId = ?1 and tenant = ?2", id, tenantId) > 0) {
+    if (menuQuery.countByParentIdAndTenant(id, tenantId) > 0) {
       throw new ValidationException("请先删除子菜单", "id", id);
     }
 
-    menuRepo.delete(menu);
+    menu.delete();
     LOG.debug("删除菜单成功: id={}, key={}, tenant={}", id, menu.key, tenantId);
 
     // 失效相关缓存
@@ -144,7 +147,7 @@ public class MenuService {
     Objects.requireNonNull(id, "菜单ID不能为空");
     Objects.requireNonNull(tenantId, "租户ID不能为空");
 
-    Menu menu = menuRepo.findById(id);
+    Menu menu = menuQuery.findById(id);
     if (menu == null) {
       throw new NotFoundException("Menu", id.toString());
     }
@@ -156,24 +159,24 @@ public class MenuService {
   }
 
   public Menu findByKey(String key) {
-    return menuRepo.findByKey(key);
+    return menuQuery.findByKey(key);
   }
 
   public Menu findById(Long id) {
-    return menuRepo.findById(id);
+    return menuQuery.findById(id);
   }
 
   public List<MenuResponseDto> getAllMenus(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
 
-    List<Menu> menus = menuRepo.list("tenant", tenantId);
+    List<Menu> menus = menuQuery.listByTenant(tenantId);
     return menus.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
   }
 
   public List<MenuResponseDto> getFolders(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
     List<Menu> folders =
-        menuRepo.list("menuType = ?1 and tenant = ?2", Menu.MenuType.FOLDER, tenantId);
+        menuQuery.listByMenuTypeAndTenant(Menu.MenuType.FOLDER, tenantId);
 
     // 过滤掉根目录菜单
     folders =
@@ -182,7 +185,7 @@ public class MenuService {
             .collect(Collectors.toList());
 
     Map<Long, Long> childCountByParent =
-        menuRepo.list("parentId is not null and tenant = ?1", tenantId).stream()
+        menuQuery.listByParentIdNotNullAndTenant(tenantId).stream()
             .collect(Collectors.groupingBy(menu -> menu.parentId, Collectors.counting()));
 
     return folders.stream()
@@ -218,15 +221,15 @@ public class MenuService {
     if (parentId == null) {
       // 获取根目录的子菜单
       Menu rootMenu =
-          menuRepo.find("key = ?1 and tenant = ?2", ROOT_MENU_KEY, tenantId).firstResult();
+          menuQuery.findByKeyAndTenant(ROOT_MENU_KEY, tenantId).orElse(null);
       if (rootMenu != null) {
-        menus = menuRepo.list("parentId = ?1 and tenant = ?2", rootMenu.id, tenantId);
+        menus = menuQuery.listByParentIdAndTenant(rootMenu.id, tenantId);
       } else {
         // 如果根目录不存在，返回空列表
         menus = new ArrayList<>();
       }
     } else {
-      menus = menuRepo.list("parentId = ?1 and tenant = ?2", parentId, tenantId);
+      menus = menuQuery.listByParentIdAndTenant(parentId, tenantId);
     }
     return menus.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
   }
@@ -243,7 +246,7 @@ public class MenuService {
     LOG.debug("User roles: {}", userRoles);
 
     // 获取所有菜单（按租户过滤）
-    List<Menu> allMenus = menuRepo.list("tenant", tenantId);
+    List<Menu> allMenus = menuQuery.listByTenant(tenantId);
     LOG.debug("Found {} menus for tenant {}", allMenus.size(), tenantId);
 
     // 过滤有权限的菜单并构建树形结构
@@ -404,7 +407,7 @@ public class MenuService {
   public List<MenuResponseDto> getMenuTree(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
 
-    List<Menu> allMenus = menuRepo.list("tenant", tenantId);
+    List<Menu> allMenus = menuQuery.listByTenant(tenantId);
     return buildMenuTreeForAdmin(allMenus);
   }
 

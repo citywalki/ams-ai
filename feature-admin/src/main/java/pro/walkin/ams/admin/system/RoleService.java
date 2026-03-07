@@ -3,6 +3,7 @@ package pro.walkin.ams.admin.system;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import pro.walkin.ams.admin.system.query.RoleQuery;
 import pro.walkin.ams.common.dto.RoleUsersResponseDto;
 import pro.walkin.ams.common.exception.BusinessException;
 import pro.walkin.ams.common.security.TenantContext;
@@ -21,6 +22,7 @@ import java.util.Set;
 public class RoleService {
 
   @Inject Role.Repo roleRepo;
+  @Inject RoleQuery roleQuery;
   @Inject Permission.Repo permissionRepo;
   @Inject User.Repo userRepo;
   @Inject Menu.Repo menuRepo;
@@ -58,7 +60,7 @@ public class RoleService {
     if (tenantId == null) {
       return List.of();
     }
-    return roleRepo.listByTenantAndKeyword(tenantId, keyword, sortBy, sortOrder, page, size);
+    return roleQuery.listByTenantAndKeyword(tenantId, keyword, sortBy, sortOrder, page, size);
   }
 
   public long count() {
@@ -70,7 +72,7 @@ public class RoleService {
     if (tenantId == null) {
       return 0;
     }
-    return roleRepo.countByTenantAndKeyword(tenantId, keyword);
+    return roleQuery.countByTenantAndKeyword(tenantId, keyword);
   }
 
   @Transactional

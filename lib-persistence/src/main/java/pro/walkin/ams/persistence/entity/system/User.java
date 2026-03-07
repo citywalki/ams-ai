@@ -13,7 +13,6 @@ import pro.walkin.ams.persistence.entity.BaseEntity;
 
 import java.time.Instant;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -116,77 +115,5 @@ public class User extends BaseEntity {
 
     @Find
     Optional<User> findByEmail(String email);
-
-    default List<User> listByTenant(Long tenantId, int page, int size) {
-      return find("tenant", tenantId).page(page, size).list();
-    }
-
-    default List<User> findByFilters(
-        Long tenantId,
-        String username,
-        String email,
-        String status,
-        String sortBy,
-        String sortOrder,
-        int page,
-        int size) {
-      StringBuilder query = new StringBuilder("tenant = :tenantId");
-      java.util.HashMap<String, Object> params = new java.util.HashMap<>();
-      params.put("tenantId", tenantId);
-
-      if (username != null && !username.isBlank()) {
-        query.append(" and lower(username) like lower(:username)");
-        params.put("username", "%" + username + "%");
-      }
-      if (email != null && !email.isBlank()) {
-        query.append(" and lower(email) like lower(:email)");
-        params.put("email", "%" + email + "%");
-      }
-      if (status != null && !status.isBlank()) {
-        query.append(" and status = :status");
-        params.put("status", status);
-      }
-
-      String sortField = mapSortField(sortBy);
-      String direction = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
-      query.append(" order by ").append(sortField).append(" ").append(direction);
-
-      return find(query.toString(), params).page(page, size).list();
-    }
-
-    default String mapSortField(String sortBy) {
-      if (sortBy == null) {
-        return "createdAt";
-      }
-      return switch (sortBy) {
-        case "username" -> "username";
-        case "email" -> "email";
-        case "status" -> "status";
-        case "createdAt" -> "createdAt";
-        case "updatedAt" -> "updatedAt";
-        default -> "createdAt";
-      };
-    }
-
-    default long countByFilters(Long tenantId, String username, String email, String status) {
-      StringBuilder query = new StringBuilder("tenant = :tenantId");
-      java.util.HashMap<String, Object> params = new java.util.HashMap<>();
-      params.put("tenantId", tenantId);
-
-      if (username != null && !username.isBlank()) {
-        query.append(" and lower(username) like lower(:username)");
-        params.put("username", "%" + username + "%");
-      }
-      if (email != null && !email.isBlank()) {
-        query.append(" and lower(email) like lower(:email)");
-        params.put("email", "%" + email + "%");
-      }
-      if (status != null && !status.isBlank()) {
-        query.append(" and status = :status");
-        params.put("status", status);
-      }
-
-      return count(query.toString(), params);
-    }
   }
 }

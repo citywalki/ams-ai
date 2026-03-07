@@ -42,22 +42,7 @@ public class DictCategory extends BaseEntity {
   public List<DictItem> items = new ArrayList<>();
 
   public interface Repo extends PanacheRepository<DictCategory> {
-
     @Find
     DictCategory findByCode(String code);
-
-    default long countByCodeAndTenant(String code, Long tenantId) {
-      if (tenantId == null) {
-        return count("code = ?1 and tenant is null", code);
-      }
-      return count("code = ?1 and tenant = ?2", code, tenantId);
-    }
-
-    default long countByCodeAndTenantExcludingId(String code, Long tenantId, Long excludeId) {
-      if (tenantId == null) {
-        return count("code = ?1 and tenant is null and id != ?2", code, excludeId);
-      }
-      return count("code = ?1 and tenant = ?2 and id != ?3", code, tenantId, excludeId);
-    }
   }
 }

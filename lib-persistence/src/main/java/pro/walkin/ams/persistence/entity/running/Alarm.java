@@ -1,7 +1,6 @@
 package pro.walkin.ams.persistence.entity.running;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
-import io.quarkus.panache.common.Parameters;
 import jakarta.persistence.*;
 import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
@@ -13,7 +12,6 @@ import pro.walkin.ams.common.Constants;
 import pro.walkin.ams.persistence.entity.BaseEntity;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -120,27 +118,7 @@ public class Alarm extends BaseEntity {
   }
 
   public interface Repo extends PanacheRepository<Alarm> {
-
     @Find
     Stream<Alarm> findBySourceId(String sourceId);
-
-    default List<Alarm> fetchPendingAlarms(int offset, int limit) {
-      List<Constants.Alarm.Status> statuses =
-          List.of(
-              Constants.Alarm.Status.NEW,
-              Constants.Alarm.Status.ACKNOWLEDGED,
-              Constants.Alarm.Status.IN_PROGRESS);
-
-      return find("status in (:statuses)", Parameters.with("statuses", statuses).map()).stream()
-          .sorted(
-              (a1, a2) -> {
-                LocalDateTime t1 = a1.occurredAt != null ? a1.occurredAt : LocalDateTime.MIN;
-                LocalDateTime t2 = a2.occurredAt != null ? a2.occurredAt : LocalDateTime.MIN;
-                return t1.compareTo(t2);
-              })
-          .skip(offset)
-          .limit(limit)
-          .toList();
-    }
   }
 }

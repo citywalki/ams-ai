@@ -11,7 +11,6 @@ import pro.walkin.ams.persistence.entity.BaseEntity;
 
 import java.time.Instant;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -69,60 +68,7 @@ public class Role extends BaseEntity {
   public Instant updatedAt;
 
   public interface Repo extends PanacheRepository<Role> {
-
     @Find
     Optional<Role> findByCode(String code);
-
-    default List<Role> listByTenant(Long tenantId, int page, int size) {
-      return find("tenant", tenantId).page(page, size).list();
-    }
-
-    default List<Role> listByTenantAndKeyword(
-        Long tenantId, String keyword, String sortBy, String sortOrder, int page, int size) {
-      StringBuilder query = new StringBuilder("tenant = :tenantId");
-      java.util.HashMap<String, Object> params = new java.util.HashMap<>();
-      params.put("tenantId", tenantId);
-
-      if (keyword != null && !keyword.isBlank()) {
-        String pattern = "%" + keyword.trim().toLowerCase() + "%";
-        query.append(" and (lower(code) like :pattern or lower(name) like :pattern)");
-        params.put("pattern", pattern);
-      }
-
-      String sortField = mapSortField(sortBy);
-      String direction = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
-      query.append(" order by ").append(sortField).append(" ").append(direction);
-
-      return find(query.toString(), params).page(page, size).list();
-    }
-
-    default String mapSortField(String sortBy) {
-      if (sortBy == null) {
-        return "createdAt";
-      }
-      return switch (sortBy) {
-        case "code" -> "code";
-        case "name" -> "name";
-        case "createdAt" -> "createdAt";
-        case "updatedAt" -> "updatedAt";
-        default -> "createdAt";
-      };
-    }
-
-    default long countByTenant(Long tenantId) {
-      return count("tenant", tenantId);
-    }
-
-    default long countByTenantAndKeyword(Long tenantId, String keyword) {
-      if (keyword == null || keyword.isBlank()) {
-        return countByTenant(tenantId);
-      }
-      String pattern = "%" + keyword.trim().toLowerCase() + "%";
-      java.util.HashMap<String, Object> params = new java.util.HashMap<>();
-      params.put("tenant", tenantId);
-      params.put("pattern", pattern);
-      return count(
-          "tenant = :tenant and (lower(code) like :pattern or lower(name) like :pattern)", params);
-    }
   }
 }
