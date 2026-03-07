@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { UserListPage } from '../pages/UserListPage';
 import { testUsers } from '../fixtures/users';
 
 test.describe('用户管理流程', () => {
@@ -30,5 +31,37 @@ test.describe('用户管理流程', () => {
   test('USER-03: 页面包含搜索功能', async ({ page }) => {
     const searchInput = page.getByPlaceholder(/搜索|Search/i).first();
     await expect(searchInput).toBeVisible();
+  });
+
+  test('USER-E2E-01: 管理员可以查看用户列表', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const dashboardPage = new DashboardPage(page);
+    const userListPage = new UserListPage(page);
+
+    // 登录
+    await loginPage.goto();
+    await loginPage.login(testUsers.admin.username, testUsers.admin.password);
+    await dashboardPage.expectToBeOnPage();
+
+    // 导航到用户管理
+    await dashboardPage.navigateToUserManagement();
+    await userListPage.expectToBeOnPage();
+    await userListPage.expectUserTableVisible();
+  });
+
+  test('USER-E2E-02: 管理员可以搜索用户', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const dashboardPage = new DashboardPage(page);
+    const userListPage = new UserListPage(page);
+
+    await loginPage.goto();
+    await loginPage.login(testUsers.admin.username, testUsers.admin.password);
+    await dashboardPage.navigateToUserManagement();
+    
+    await userListPage.searchUser('admin');
+    
+    // 验证搜索结果
+    const table = page.locator('[data-testid="user-table"]');
+    await expect(table).toContainText('admin');
   });
 });
