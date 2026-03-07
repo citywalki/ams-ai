@@ -7,29 +7,27 @@ import java.util.Map;
 
 public class PostgresTestResource implements QuarkusTestResourceLifecycleManager {
 
-  private static final PostgreSQLContainer<?> POSTGRES =
-      new PostgreSQLContainer<>("postgres:16-alpine")
-          .withDatabaseName("ams_test")
-          .withUsername("test")
-          .withPassword("test");
+  private PostgreSQLContainer<?> postgres;
 
   @Override
   public Map<String, String> start() {
-    POSTGRES.start();
+    postgres =
+        new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("ams_test")
+            .withUsername("test")
+            .withPassword("test");
+    postgres.start();
     return Map.of(
-        "quarkus.datasource.jdbc.url", POSTGRES.getJdbcUrl(),
-        "quarkus.datasource.username", POSTGRES.getUsername(),
-        "quarkus.datasource.password", POSTGRES.getPassword(),
+        "quarkus.datasource.jdbc.url", postgres.getJdbcUrl(),
+        "quarkus.datasource.username", postgres.getUsername(),
+        "quarkus.datasource.password", postgres.getPassword(),
         "quarkus.datasource.db-kind", "postgresql");
   }
 
   @Override
   public void stop() {
-    POSTGRES.stop();
-  }
-
-  @Override
-  public void init(Map<String, String> initArgs) {
-    // No initialization needed
+    if (postgres != null) {
+      postgres.stop();
+    }
   }
 }
