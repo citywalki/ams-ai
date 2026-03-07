@@ -50,6 +50,10 @@ dependencies {
     // REST Client for E2E testing
     testImplementation("io.quarkus:quarkus-rest-client")
     testImplementation("io.quarkus:quarkus-rest-client-jackson")
+
+    // Pact for contract testing
+    testImplementation(libs.pact.consumer)
+    testImplementation(libs.pact.provider)
 }
 
 tasks.withType<Test> {
