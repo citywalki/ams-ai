@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import pro.walkin.ams.boot.client.AuthApiClient;
+import pro.walkin.ams.boot.client.GraphQLClient;
 import pro.walkin.ams.boot.client.RoleApiClient;
-import pro.walkin.ams.boot.support.E2ETestBase;
+import pro.walkin.ams.boot.support.GraphQLTestBase;
 import pro.walkin.ams.boot.support.TestDataFactory;
 
 import java.util.List;
@@ -24,14 +25,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("角色管理 E2E 测试")
-class RoleControllerE2EIT extends E2ETestBase {
+class RoleControllerE2EIT extends GraphQLTestBase {
 
   @Inject @RestClient AuthApiClient authApi;
 
   @Inject @RestClient RoleApiClient roleApi;
 
+  @Inject @RestClient GraphQLClient graphQLClient;
+
   private String authToken;
   private Long createdRoleId;
+  private String createdRoleCode;
 
   @BeforeAll
   void setUpAuth() {
@@ -65,22 +69,52 @@ class RoleControllerE2EIT extends E2ETestBase {
     assertThat(body).containsKeys("id", "code", "name");
     assertThat(body.get("code")).isEqualTo(roleCode);
 
-    createdRoleId = ((Number) body.get("id")).longValue();
+    createdRoleCode = roleCode;
+    Object idValue = body.get("id");
+    if (idValue instanceof Number) {
+      createdRoleId = ((Number) idValue).longValue();
+    } else if (idValue instanceof String) {
+      createdRoleId = Long.parseLong((String) idValue);
+    }
   }
 
   @Test
   @Order(2)
   @DisplayName("ROLE-E2E-02: 查询角色列表成功")
   void shouldListRoles() {
+    // Given
+    String query =
+        """
+            query {
+                roles {
+                    content {
+                        id
+                        code
+                        name
+                    }
+                    totalElements
+                    page
+                    size
+                }
+            }
+            """;
+
     // When
-    var response = roleApi.listRoles(authToken, String.valueOf(testTenantId));
+    var response = graphQLClient.executeQuery(authToken, createQuery(query, null));
 
     // Then
     assertThat(response.getStatus()).isEqualTo(200);
 
     Map<String, Object> body = response.readEntity(Map.class);
-    List<Map<String, Object>> roles = (List<Map<String, Object>>) body.get("data");
-    assertThat(roles).isNotEmpty();
+    assertThat(body).containsKey("data");
+
+    Map<String, Object> data = (Map<String, Object>) body.get("data");
+    Map<String, Object> roles = (Map<String, Object>) data.get("roles");
+
+    assertThat(roles).containsKeys("content", "totalElements", "page", "size");
+
+    List<Map<String, Object>> roleList = (List<Map<String, Object>>) roles.get("content");
+    assertThat(roleList).isNotEmpty();
   }
 
   @Test
@@ -90,14 +124,43 @@ class RoleControllerE2EIT extends E2ETestBase {
     // Given
     assertThat(createdRoleId).isNotNull();
 
+    String query =
+        """
+            query($id: String!) {
+                roles(where: {id: {_eq: $id}}) {
+                    content {
+                        id
+                        code
+                        name
+                        description
+                    }
+                    totalElements
+                }
+            }
+            """;
+
     // When
-    var response = roleApi.getRole(authToken, String.valueOf(testTenantId), createdRoleId);
+    var response =
+        graphQLClient.executeQuery(
+            authToken, createQuery(query, Map.of("id", String.valueOf(createdRoleId))));
 
     // Then
     assertThat(response.getStatus()).isEqualTo(200);
 
     Map<String, Object> body = response.readEntity(Map.class);
-    assertThat(body.get("id")).isEqualTo(createdRoleId.intValue());
+    assertThat(body).containsKey("data");
+
+    Map<String, Object> data = (Map<String, Object>) body.get("data");
+    Map<String, Object> roles = (Map<String, Object>) data.get("roles");
+    List<Map<String, Object>> roleList = (List<Map<String, Object>>) roles.get("content");
+
+    assertThat(roleList).isNotEmpty();
+    Object actualId = roleList.get(0).get("id");
+    long actualIdLong =
+        actualId instanceof Number
+            ? ((Number) actualId).longValue()
+            : Long.parseLong(actualId.toString());
+    assertThat(actualIdLong).isEqualTo(createdRoleId);
   }
 
   @Test
@@ -108,6 +171,7 @@ class RoleControllerE2EIT extends E2ETestBase {
     assertThat(createdRoleId).isNotNull();
     Map<String, Object> updateData =
         Map.of(
+            "code", createdRoleCode,
             "name", "Updated Role Name",
             "description", "Updated description");
 
@@ -135,8 +199,29 @@ class RoleControllerE2EIT extends E2ETestBase {
     // Then
     assertThat(response.getStatus()).isEqualTo(204);
 
-    // Verify deletion
-    var getResponse = roleApi.getRole(authToken, String.valueOf(testTenantId), createdRoleId);
-    assertThat(getResponse.getStatus()).isEqualTo(404);
+    // Verify deletion via GraphQL
+    String query =
+        """
+            query($id: String!) {
+                roles(where: {id: {_eq: $id}}) {
+                    content {
+                        id
+                    }
+                    totalElements
+                }
+            }
+            """;
+    var getResponse =
+        graphQLClient.executeQuery(
+            authToken, createQuery(query, Map.of("id", String.valueOf(createdRoleId))));
+
+    // When role is deleted, GraphQL returns empty list
+    assertThat(getResponse.getStatus()).isEqualTo(200);
+    Map<String, Object> body = getResponse.readEntity(Map.class);
+    assertThat(body).containsKey("data");
+    Map<String, Object> data = (Map<String, Object>) body.get("data");
+    Map<String, Object> roles = (Map<String, Object>) data.get("roles");
+    List<Map<String, Object>> roleList = (List<Map<String, Object>>) roles.get("content");
+    assertThat(roleList).isEmpty();
   }
 }
