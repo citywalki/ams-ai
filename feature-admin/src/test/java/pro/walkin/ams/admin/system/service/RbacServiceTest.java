@@ -9,29 +9,33 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.*;
 
+/**
+ * RBAC 服务测试类
+ */
 @QuarkusComponentTest
 @TestConfigProperty(key = "smallrye.jwt.sign.key.location", value = "privateKey.jwk")
+@DisplayName("RbacService 测试")
 class RbacServiceTest {
 
   @Inject RbacService rbacService;
 
   @Nested
-  @DisplayName("Injection")
+  @DisplayName("服务注入")
   class Injection {
 
     @Test
-    @DisplayName("should be injectable")
+    @DisplayName("服务应可注入")
     void shouldBeInjectable() {
       assertThat(rbacService).isNotNull();
     }
   }
 
   @Nested
-  @DisplayName("hasPermission without tenant context")
+  @DisplayName("无租户上下文时的权限检查")
   class HasPermissionWithoutTenant {
 
     @Test
-    @DisplayName("should return false when no tenant context")
+    @DisplayName("应返回 false")
     void shouldReturnFalseWhenNoTenantContext() {
       boolean result = rbacService.hasPermission(1L, "view:dashboard");
       assertThat(result).isFalse();
@@ -39,11 +43,11 @@ class RbacServiceTest {
   }
 
   @Nested
-  @DisplayName("hasRole without tenant context")
+  @DisplayName("无租户上下文时的角色检查")
   class HasRoleWithoutTenant {
 
     @Test
-    @DisplayName("should return false when no tenant context")
+    @DisplayName("应返回 false")
     void shouldReturnFalseWhenNoTenantContext() {
       boolean result = rbacService.hasRole(1L, "USER");
       assertThat(result).isFalse();
