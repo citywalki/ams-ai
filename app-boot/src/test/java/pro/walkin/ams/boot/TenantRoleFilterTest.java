@@ -42,6 +42,24 @@ class TenantRoleFilterTest {
         entityManager
             .createNativeQuery("select id from tenants order by id limit 2")
             .getResultList();
+
+    // Ensure we have at least 2 tenants for testing
+    if (tenants.size() < 2) {
+      // Create second tenant if needed
+      entityManager
+          .createNativeQuery("insert into tenants (id, code, name, status) values (?1, ?2, ?3, ?4)")
+          .setParameter(1, System.currentTimeMillis())
+          .setParameter(2, "test-tenant-" + UUID.randomUUID().toString().substring(0, 8))
+          .setParameter(3, "Test Tenant")
+          .setParameter(4, "ACTIVE")
+          .executeUpdate();
+
+      tenants =
+          entityManager
+              .createNativeQuery("select id from tenants order by id limit 2")
+              .getResultList();
+    }
+
     assertThat(tenants).hasSizeGreaterThanOrEqualTo(2);
 
     tenantAId = tenants.get(0).longValue();

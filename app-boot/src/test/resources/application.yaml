@@ -1,0 +1,2 @@
+# Empty application.yaml to enable test profile loading
+# Actual test configuration is in application-test.yaml

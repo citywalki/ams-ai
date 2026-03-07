@@ -32,7 +32,7 @@ public class RolePermission extends PanacheEntityBase {
   @JoinColumn(name = "permission_id", nullable = false, insertable = false, updatable = false)
   public Permission permission;
 
-  @Column(name = "granted_at", nullable = false, updatable = false)
+  @Column(name = "granted_at", updatable = false)
   @CreationTimestamp
   public LocalDateTime grantedAt;
 

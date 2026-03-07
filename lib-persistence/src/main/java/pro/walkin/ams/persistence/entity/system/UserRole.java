@@ -31,7 +31,7 @@ public class UserRole extends PanacheEntityBase {
   @JoinColumn(name = "role_id", nullable = false, insertable = false, updatable = false)
   public Role role;
 
-  @Column(name = "granted_at", nullable = false, updatable = false)
+  @Column(name = "granted_at", updatable = false)
   @CreationTimestamp
   public LocalDateTime grantedAt;
 

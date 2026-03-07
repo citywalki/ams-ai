@@ -1,4 +1,6 @@
 quarkus:
+  devservices:
+    enabled: false
   datasource:
     db-kind: postgresql
   hibernate-orm:
@@ -7,6 +9,8 @@ quarkus:
     log:
       sql: true
   liquibase:
+    enabled: false
+  scheduler:
     enabled: false
   rest-client:
     auth-api:
