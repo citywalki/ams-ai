@@ -46,6 +46,10 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.postgresql)
+
+    // REST Client for E2E testing
+    testImplementation("io.quarkus:quarkus-rest-client")
+    testImplementation("io.quarkus:quarkus-rest-client-jackson")
 }
 
 tasks.withType<Test> {

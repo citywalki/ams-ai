@@ -8,3 +8,10 @@ quarkus:
       sql: true
   liquibase:
     enabled: false
+  rest-client:
+    auth-api:
+      url: http://localhost:8081
+    user-api:
+      url: http://localhost:8081
+    role-api:
+      url: http://localhost:8081
