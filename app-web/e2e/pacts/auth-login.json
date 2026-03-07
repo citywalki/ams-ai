@@ -1,0 +1,56 @@
+{
+  "consumer": {
+    "name": "ams-web"
+  },
+  "provider": {
+    "name": "ams-api"
+  },
+  "pactVersion": "3.0.0",
+  "interactions": [
+    {
+      "description": "用户登录成功",
+      "providerState": "用户存在且密码正确",
+      "request": {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "username": "admin",
+          "password": "admin123"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "accessToken": "eyJhbGc...",
+          "refreshToken": "eyJhbGc...",
+          "expiresIn": 3600,
+          "tokenType": "Bearer"
+        },
+        "matchingRules": {
+          "body": {
+            "$.accessToken": {
+              "match": "type"
+            },
+            "$.refreshToken": {
+              "match": "type"
+            },
+            "$.expiresIn": {
+              "match": "integer"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  }
+}
