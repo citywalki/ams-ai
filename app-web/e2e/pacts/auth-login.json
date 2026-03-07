@@ -27,22 +27,23 @@
           "Content-Type": "application/json"
         },
         "body": {
-          "accessToken": "eyJhbGc...",
-          "refreshToken": "eyJhbGc...",
-          "expiresIn": 900,
+          "accessToken": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.signature",
+          "refreshToken": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.signature",
+          "expiresIn": "900",
           "tokenType": "Bearer"
         },
         "matchingRules": {
-          "body": {
-            "$.accessToken": {
-              "match": "type"
-            },
-            "$.refreshToken": {
-              "match": "type"
-            },
-            "$.expiresIn": {
-              "match": "integer"
-            }
+          "$.body.accessToken": {
+            "match": "type"
+          },
+          "$.body.refreshToken": {
+            "match": "type"
+          },
+          "$.body.expiresIn": {
+            "match": "type"
+          },
+          "$.body.tokenType": {
+            "match": "type"
           }
         }
       }
