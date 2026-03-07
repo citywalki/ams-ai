@@ -1,6 +1,7 @@
 package pro.walkin.ams.boot.client;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -16,5 +17,5 @@ public interface GraphQLClient {
   @POST
   @Consumes("application/json")
   @Produces("application/json")
-  Response executeQuery(String token, Map<String, Object> query);
+  Response executeQuery(@HeaderParam("Authorization") String token, Map<String, Object> query);
 }
