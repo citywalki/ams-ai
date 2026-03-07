@@ -1,7 +1,6 @@
 package pro.walkin.ams.admin.auth.service;
 
 import io.quarkus.test.component.QuarkusComponentTest;
-import io.quarkus.test.component.TestConfigProperty;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

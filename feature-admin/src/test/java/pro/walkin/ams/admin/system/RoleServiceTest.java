@@ -122,8 +122,7 @@ class RoleServiceTest {
     @DisplayName("should fail when role is assigned to users")
     void shouldFailWhenRoleIsAssignedToUsers() {
       long roleId = 99L;
-      when(userRepo.count(
-              "select count(u) from User u join u.roles r where r.id = ?1", roleId))
+      when(userRepo.count("select count(u) from User u join u.roles r where r.id = ?1", roleId))
           .thenReturn(1L);
 
       assertThatThrownBy(() -> roleService.deleteRole(roleId))
@@ -135,8 +134,7 @@ class RoleServiceTest {
     @DisplayName("should delete role when no users are assigned")
     void shouldDeleteRoleWhenNoUsersAreAssigned() {
       long roleId = 100L;
-      when(userRepo.count(
-              "select count(u) from User u join u.roles r where r.id = ?1", roleId))
+      when(userRepo.count("select count(u) from User u join u.roles r where r.id = ?1", roleId))
           .thenReturn(0L);
 
       roleService.deleteRole(roleId);
