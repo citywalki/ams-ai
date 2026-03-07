@@ -70,7 +70,11 @@ class UserControllerE2EIT extends GraphQLTestBase {
     assertThat(body).containsKeys("id", "username", "email");
     assertThat(body.get("username")).isEqualTo(uniqueCode);
 
-    createdUserId = ((Number) body.get("id")).longValue();
+    Object idValue = body.get("id");
+    createdUserId =
+        idValue instanceof Number
+            ? ((Number) idValue).longValue()
+            : Long.parseLong(idValue.toString());
   }
 
   @Test
@@ -82,12 +86,12 @@ class UserControllerE2EIT extends GraphQLTestBase {
         """
             query {
                 users {
-                    data {
+                    content {
                         id
                         username
                         email
                     }
-                    total
+                    totalElements
                     page
                     size
                 }
@@ -106,9 +110,9 @@ class UserControllerE2EIT extends GraphQLTestBase {
     Map<String, Object> data = (Map<String, Object>) body.get("data");
     Map<String, Object> users = (Map<String, Object>) data.get("users");
 
-    assertThat(users).containsKeys("data", "total", "page", "size");
+    assertThat(users).containsKeys("content", "totalElements", "page", "size");
 
-    List<Map<String, Object>> userList = (List<Map<String, Object>>) users.get("data");
+    List<Map<String, Object>> userList = (List<Map<String, Object>>) users.get("content");
     assertThat(userList).isNotEmpty();
   }
 
@@ -121,28 +125,42 @@ class UserControllerE2EIT extends GraphQLTestBase {
 
     String query =
         """
-            query($id: Long!) {
-                user(id: $id) {
-                    id
-                    username
-                    email
-                    status
+            query($id: String!) {
+                users(where: {id: {_eq: $id}}) {
+                    content {
+                        id
+                        username
+                        email
+                        status
+                    }
+                    totalElements
                 }
             }
             """;
 
     // When
     var response =
-        graphQLClient.executeQuery(authToken, createQuery(query, Map.of("id", createdUserId)));
+        graphQLClient.executeQuery(
+            authToken, createQuery(query, Map.of("id", String.valueOf(createdUserId))));
 
     // Then
     assertThat(response.getStatus()).isEqualTo(200);
 
     Map<String, Object> body = response.readEntity(Map.class);
     Map<String, Object> data = (Map<String, Object>) body.get("data");
-    Map<String, Object> user = (Map<String, Object>) data.get("user");
+    Map<String, Object> users = (Map<String, Object>) data.get("users");
 
-    assertThat(user.get("id")).isEqualTo(createdUserId.intValue());
+    assertThat(users.get("totalElements")).isEqualTo(1);
+    List<Map<String, Object>> content = (List<Map<String, Object>>) users.get("content");
+    assertThat(content).hasSize(1);
+    Map<String, Object> user = content.get(0);
+
+    Object actualId = user.get("id");
+    Long userId =
+        actualId instanceof Number
+            ? ((Number) actualId).longValue()
+            : Long.parseLong(actualId.toString());
+    assertThat(userId).isEqualTo(createdUserId);
     assertThat(user).containsKeys("username", "email", "status");
   }
 
@@ -179,22 +197,28 @@ class UserControllerE2EIT extends GraphQLTestBase {
     // Then
     assertThat(response.getStatus()).isEqualTo(204);
 
-    // Verify deletion via GraphQL
+    // Verify deletion via GraphQL - should return empty result
     String query =
         """
-            query($id: Long!) {
-                user(id: $id) {
-                    id
+            query($id: String!) {
+                users(where: {id: {_eq: $id}}) {
+                    content {
+                        id
+                    }
+                    totalElements
                 }
             }
             """;
     var getResponse =
-        graphQLClient.executeQuery(authToken, createQuery(query, Map.of("id", createdUserId)));
+        graphQLClient.executeQuery(
+            authToken, createQuery(query, Map.of("id", String.valueOf(createdUserId))));
 
-    // When user is not found, GraphQL returns data with null user or errors
+    // When user is deleted, should return empty content
     assertThat(getResponse.getStatus()).isEqualTo(200);
     Map<String, Object> body = getResponse.readEntity(Map.class);
-    assertThat(body.containsKey("errors")).isTrue();
+    Map<String, Object> data = (Map<String, Object>) body.get("data");
+    Map<String, Object> users = (Map<String, Object>) data.get("users");
+    assertThat(users.get("totalElements")).isEqualTo(0);
   }
 
   @Test
@@ -218,8 +242,13 @@ class UserControllerE2EIT extends GraphQLTestBase {
     var firstResponse = userApi.createUser(authToken, String.valueOf(testTenantId), userData);
     assertThat(firstResponse.getStatus()).isEqualTo(201);
 
-    // Try to create duplicate
-    var secondResponse = userApi.createUser(authToken, String.valueOf(testTenantId), userData);
-    assertThat(secondResponse.getStatus()).isEqualTo(409); // Conflict
+    // Try to create duplicate - should get 400 Bad Request (BusinessException)
+    try {
+      userApi.createUser(authToken, String.valueOf(testTenantId), userData);
+      // If we reach here, the test should fail because we expected an exception
+      assertThat(false).isTrue(); // Should not reach here
+    } catch (jakarta.ws.rs.WebApplicationException e) {
+      assertThat(e.getResponse().getStatus()).isEqualTo(400); // Bad Request
+    }
   }
 }

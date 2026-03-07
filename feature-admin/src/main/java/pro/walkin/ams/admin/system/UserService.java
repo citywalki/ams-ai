@@ -84,7 +84,6 @@ public class UserService {
     user.tenant = tenantId;
 
     userRepo.persist(user);
-    userRepo.flush();
     return toResponse(user);
   }
 
