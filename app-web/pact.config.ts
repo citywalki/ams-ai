@@ -19,5 +19,8 @@ export const pactConfig = {
   publishVerificationResult: false,
   providerVersionBranch: process.env.GIT_BRANCH || 'main',
   providerBaseUrl: 'http://localhost:8080',
-  pactUrls: [path.resolve(process.cwd(), 'e2e', 'pacts', 'ams-web-ams-api.json')],
+  pactUrls: [
+    path.resolve(process.cwd(), 'e2e', 'pacts', 'auth-login.json'),
+    // Add more pact files here as they are generated
+  ],
 };
