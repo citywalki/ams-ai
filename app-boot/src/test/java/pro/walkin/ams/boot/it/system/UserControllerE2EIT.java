@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import pro.walkin.ams.boot.client.AuthApiClient;
+import pro.walkin.ams.boot.client.GraphQLClient;
 import pro.walkin.ams.boot.client.UserApiClient;
-import pro.walkin.ams.boot.support.E2ETestBase;
+import pro.walkin.ams.boot.support.GraphQLTestBase;
 import pro.walkin.ams.boot.support.TestDataFactory;
 
 import java.util.List;
@@ -24,11 +25,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("用户管理 E2E 测试")
-class UserControllerE2EIT extends E2ETestBase {
+class UserControllerE2EIT extends GraphQLTestBase {
 
   @Inject @RestClient AuthApiClient authApi;
 
   @Inject @RestClient UserApiClient userApi;
+
+  @Inject @RestClient GraphQLClient graphQLClient;
 
   private String authToken;
   private Long createdUserId;
@@ -74,8 +77,25 @@ class UserControllerE2EIT extends E2ETestBase {
   @Order(2)
   @DisplayName("USER-E2E-02: 查询用户列表成功")
   void shouldListUsers() {
+    // Given
+    String query =
+        """
+            query {
+                users {
+                    data {
+                        id
+                        username
+                        email
+                    }
+                    total
+                    page
+                    size
+                }
+            }
+            """;
+
     // When
-    var response = userApi.listUsers(authToken, String.valueOf(testTenantId));
+    var response = graphQLClient.executeQuery(authToken, createQuery(query, null));
 
     // Then
     assertThat(response.getStatus()).isEqualTo(200);
@@ -83,8 +103,13 @@ class UserControllerE2EIT extends E2ETestBase {
     Map<String, Object> body = response.readEntity(Map.class);
     assertThat(body).containsKey("data");
 
-    List<Map<String, Object>> users = (List<Map<String, Object>>) body.get("data");
-    assertThat(users).isNotEmpty();
+    Map<String, Object> data = (Map<String, Object>) body.get("data");
+    Map<String, Object> users = (Map<String, Object>) data.get("users");
+
+    assertThat(users).containsKeys("data", "total", "page", "size");
+
+    List<Map<String, Object>> userList = (List<Map<String, Object>>) users.get("data");
+    assertThat(userList).isNotEmpty();
   }
 
   @Test
@@ -94,14 +119,31 @@ class UserControllerE2EIT extends E2ETestBase {
     // Given
     assertThat(createdUserId).isNotNull();
 
+    String query =
+        """
+            query($id: Long!) {
+                user(id: $id) {
+                    id
+                    username
+                    email
+                    status
+                }
+            }
+            """;
+
     // When
-    var response = userApi.getUser(authToken, String.valueOf(testTenantId), createdUserId);
+    var response =
+        graphQLClient.executeQuery(authToken, createQuery(query, Map.of("id", createdUserId)));
 
     // Then
     assertThat(response.getStatus()).isEqualTo(200);
 
     Map<String, Object> body = response.readEntity(Map.class);
-    assertThat(body.get("id")).isEqualTo(createdUserId.intValue());
+    Map<String, Object> data = (Map<String, Object>) body.get("data");
+    Map<String, Object> user = (Map<String, Object>) data.get("user");
+
+    assertThat(user.get("id")).isEqualTo(createdUserId.intValue());
+    assertThat(user).containsKeys("username", "email", "status");
   }
 
   @Test
@@ -137,9 +179,22 @@ class UserControllerE2EIT extends E2ETestBase {
     // Then
     assertThat(response.getStatus()).isEqualTo(204);
 
-    // Verify deletion
-    var getResponse = userApi.getUser(authToken, String.valueOf(testTenantId), createdUserId);
-    assertThat(getResponse.getStatus()).isEqualTo(404);
+    // Verify deletion via GraphQL
+    String query =
+        """
+            query($id: Long!) {
+                user(id: $id) {
+                    id
+                }
+            }
+            """;
+    var getResponse =
+        graphQLClient.executeQuery(authToken, createQuery(query, Map.of("id", createdUserId)));
+
+    // When user is not found, GraphQL returns data with null user or errors
+    assertThat(getResponse.getStatus()).isEqualTo(200);
+    Map<String, Object> body = getResponse.readEntity(Map.class);
+    assertThat(body.containsKey("errors")).isTrue();
   }
 
   @Test
