@@ -16,7 +16,6 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.*;
 
 @QuarkusComponentTest
-@TestConfigProperty(key = "smallrye.jwt.sign.key.location", value = "privateKey.jwk")
 class TokenServiceTest {
 
   @Inject TokenService tokenService;
