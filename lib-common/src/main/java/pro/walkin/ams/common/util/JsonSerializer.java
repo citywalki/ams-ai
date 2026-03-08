@@ -9,12 +9,12 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule;
 
 import java.io.IOException;
 
-/** JSON工具类 */
-public class JsonUtils {
+/** JSON 序列化器 - 处理对象的 JSON 序列化与反序列化 */
+public class JsonSerializer {
 
   private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
 
-  private JsonUtils() {
+  private JsonSerializer() {
     // 工具类，防止实例化
   }
 
@@ -28,6 +28,7 @@ public class JsonUtils {
     return mapper;
   }
 
+  /** 对象序列化为 JSON 字符串 */
   public static String toJson(Object value) {
     if (value == null) {
       return "null";
@@ -39,6 +40,7 @@ public class JsonUtils {
     }
   }
 
+  /** JSON 字符串反序列化为对象 */
   public static <T> T fromJson(String json, Class<T> clazz) {
     if (json == null || json.trim().isEmpty()) {
       return null;
@@ -50,6 +52,7 @@ public class JsonUtils {
     }
   }
 
+  /** JSON 字符串反序列化为对象（支持泛型） */
   public static <T> T fromJson(String json, TypeReference<T> typeReference) {
     if (json == null || json.trim().isEmpty()) {
       return null;
@@ -61,6 +64,7 @@ public class JsonUtils {
     }
   }
 
+  /** 对象序列化为格式化的 JSON 字符串 */
   public static String toPrettyJson(Object value) {
     if (value == null) {
       return "null";
@@ -72,7 +76,8 @@ public class JsonUtils {
     }
   }
 
-  public static boolean isJson(String json) {
+  /** 检查字符串是否为有效的 JSON */
+  public static boolean isValidJson(String json) {
     if (json == null || json.trim().isEmpty()) {
       return false;
     }
@@ -84,6 +89,7 @@ public class JsonUtils {
     }
   }
 
+  /** 对象类型转换 */
   public static <T> T convertValue(Object from, Class<T> toType) {
     return OBJECT_MAPPER.convertValue(from, toType);
   }
