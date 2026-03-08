@@ -129,6 +129,16 @@ export function useCreateUser() {
 - **Write operations**: Place in `*Service` classes with `@Transactional`
 - **Never** mix read/write logic in the same class
 
+## Code Style Rules
+
+### Code Formatting
+
+- No semicolons (enforced)
+- Single quotes (enforced)
+- No unnecessary curly braces (enforced)
+- 2-space indentation
+- Import order: external → internal → types
+
 ## Code Style & Patterns
 
 ### Java Backend

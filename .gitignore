@@ -48,7 +48,6 @@ target/
 
 # Gradle
 .gradle/
-build/
 
 # Generated files
 **/generated/
@@ -70,7 +69,6 @@ app-web/node_modules/
 # Backend build artifacts
 app-boot/build/
 *.jar
-!gradle/wrapper/gradle-wrapper.jar
 
 # Native image
 **/native/
@@ -88,7 +86,6 @@ app-boot/build/
 !**/db/changelog/*.yaml
 
 # IDE specific
-.idea/
 *.swp
 *.swo
 
@@ -113,3 +110,5 @@ app-boot/build/
 
 # Claude Code (symlinks to skills)
 .claude/
+
+.specs/
