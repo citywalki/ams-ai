@@ -40,11 +40,13 @@ public class PermissionService {
 
   @Transactional
   public void revokePermissionFromRole(Long roleId, Long permissionId) {
-    rbacQuery.findRolePermissionByRoleIdAndPermissionId(roleId, permissionId)
-        .ifPresent(rolePermission -> {
-          rolePermission.delete();
-          LOG.infof("Revoked permission %d from role %d", permissionId, roleId);
-        });
+    rbacQuery
+        .findRolePermissionByRoleIdAndPermissionId(roleId, permissionId)
+        .ifPresent(
+            rolePermission -> {
+              rolePermission.delete();
+              LOG.infof("Revoked permission %d from role %d", permissionId, roleId);
+            });
   }
 
   @Transactional
@@ -69,11 +71,13 @@ public class PermissionService {
 
   @Transactional
   public void revokeRoleFromUser(Long userId, Long roleId) {
-    rbacQuery.findUserRoleByUserIdAndRoleId(userId, roleId)
-        .ifPresent(existing -> {
-          existing.delete();
-          LOG.infof("Revoked role %d from user %d", roleId, userId);
-        });
+    rbacQuery
+        .findUserRoleByUserIdAndRoleId(userId, roleId)
+        .ifPresent(
+            existing -> {
+              existing.delete();
+              LOG.infof("Revoked role %d from user %d", roleId, userId);
+            });
   }
 
   public boolean hasPermission(Long userId, String permissionCode) {

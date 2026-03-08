@@ -7,6 +7,7 @@ plugins {
 dependencies {
     implementation(project(":lib-common"))
     implementation(project(":lib-persistence"))
+    implementation(project(":feature-admin"))
 
     implementation(enforcedPlatform(libs.quarkus.bom))
 

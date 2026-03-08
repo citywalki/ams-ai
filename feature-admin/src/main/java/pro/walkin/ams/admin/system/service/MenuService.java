@@ -10,11 +10,11 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pro.walkin.ams.admin.system.query.MenuQuery;
 import pro.walkin.ams.common.dto.MenuDto;
 import pro.walkin.ams.common.dto.MenuResponseDto;
 import pro.walkin.ams.common.exception.NotFoundException;
 import pro.walkin.ams.common.exception.ValidationException;
-import pro.walkin.ams.admin.system.query.MenuQuery;
 import pro.walkin.ams.persistence.entity.system.Menu;
 
 import java.util.ArrayList;
@@ -175,8 +175,7 @@ public class MenuService {
 
   public List<MenuResponseDto> getFolders(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
-    List<Menu> folders =
-        menuQuery.listByMenuTypeAndTenant(Menu.MenuType.FOLDER, tenantId);
+    List<Menu> folders = menuQuery.listByMenuTypeAndTenant(Menu.MenuType.FOLDER, tenantId);
 
     // 过滤掉根目录菜单
     folders =
@@ -220,8 +219,7 @@ public class MenuService {
     List<Menu> menus;
     if (parentId == null) {
       // 获取根目录的子菜单
-      Menu rootMenu =
-          menuQuery.findByKeyAndTenant(ROOT_MENU_KEY, tenantId).orElse(null);
+      Menu rootMenu = menuQuery.findByKeyAndTenant(ROOT_MENU_KEY, tenantId).orElse(null);
       if (rootMenu != null) {
         menus = menuQuery.listByParentIdAndTenant(rootMenu.id, tenantId);
       } else {

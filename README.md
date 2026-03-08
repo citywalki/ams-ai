@@ -33,6 +33,7 @@ pnpm dev
 | Document | Purpose |
 |----------|---------|
 | [CLAUDE.md](./CLAUDE.md) | **Start here** - Project context, architecture rules, coding patterns |
+| [docs/onboarding.md](./docs/onboarding.md) | **New developers** - Onboarding guide with API protocol selection |
 | [docs/api-standards.md](./docs/api-standards.md) | API design standards (GraphQL + REST) |
 | [docs/backend-patterns.md](./docs/backend-patterns.md) | Backend coding patterns and conventions |
 | [docs/frontend-patterns.md](./docs/frontend-patterns.md) | Frontend architecture (FSD) patterns |

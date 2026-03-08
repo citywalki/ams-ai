@@ -1,5 +1,6 @@
 package pro.walkin.ams.graphql.entity.menu;
 
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -11,6 +12,10 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 import org.hibernate.Session;
+import pro.walkin.ams.admin.system.service.MenuService;
+import pro.walkin.ams.common.dto.MenuResponseDto;
+import pro.walkin.ams.common.security.TenantContext;
+import pro.walkin.ams.common.security.util.SecurityUtils;
 import pro.walkin.ams.graphql.connection.MenuConnection;
 import pro.walkin.ams.graphql.connection.OrderByInput;
 import pro.walkin.ams.persistence.entity.system.Menu;
@@ -25,6 +30,10 @@ import java.util.Map;
 public class MenuGraphQLApi {
 
   @Inject Session session;
+
+  @Inject MenuService menuService;
+
+  @Inject SecurityIdentity securityIdentity;
 
   @Query("menus")
   @Description("查询菜单列表，支持动态过滤")
@@ -45,6 +54,15 @@ public class MenuGraphQLApi {
     long total = session.createQuery(countQuery).getSingleResult();
 
     return new MenuConnection(menus, total, page, size);
+  }
+
+  @Query("userMenus")
+  @Description("获取当前用户的菜单列表（基于权限过滤）")
+  @Transactional
+  public List<MenuResponseDto> userMenus() {
+    Long userId = SecurityUtils.getUserIdFromSecurityIdentity(securityIdentity);
+    Long tenantId = TenantContext.getCurrentTenantId();
+    return menuService.getUserMenus(userId, tenantId);
   }
 
   @Transactional

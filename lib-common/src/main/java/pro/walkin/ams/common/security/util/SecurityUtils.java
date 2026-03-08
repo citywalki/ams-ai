@@ -1,10 +1,13 @@
 package pro.walkin.ams.common.security.util;
 
+import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.jwt.auth.principal.JWTCallerPrincipal;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.security.Principal;
 
 /** 安全相关工具类 */
 public final class SecurityUtils {
@@ -58,5 +61,50 @@ public final class SecurityUtils {
       }
     }
     throw new RuntimeException("Unable to extract user ID from security context");
+  }
+
+  /**
+   * 从 SecurityIdentity 中提取用户 ID
+   *
+   * @param securityIdentity Quarkus SecurityIdentity
+   * @return 用户 ID
+   * @throws RuntimeException 如果无法提取用户ID
+   */
+  public static Long getUserIdFromSecurityIdentity(SecurityIdentity securityIdentity) {
+    if (securityIdentity != null && securityIdentity.getPrincipal() != null) {
+      Principal principal = securityIdentity.getPrincipal();
+
+      if (principal instanceof JsonWebToken) {
+        JsonWebToken jwt = (JsonWebToken) principal;
+        Object userIdClaim = jwt.getClaim("user_id");
+        if (userIdClaim != null) {
+          try {
+            return Long.valueOf(userIdClaim.toString());
+          } catch (NumberFormatException e) {
+            LOG.error("Invalid user_id claim: {}", userIdClaim, e);
+          }
+        }
+        if (jwt.getSubject() != null) {
+          try {
+            return Long.parseLong(jwt.getSubject());
+          } catch (NumberFormatException e) {
+            LOG.error("Invalid subject as user ID: {}", jwt.getSubject(), e);
+          }
+        }
+      }
+
+      if (principal instanceof JWTCallerPrincipal) {
+        JWTCallerPrincipal jwtPrincipal = (JWTCallerPrincipal) principal;
+        Object userIdClaim = jwtPrincipal.getClaim("user_id");
+        if (userIdClaim != null) {
+          try {
+            return Long.valueOf(userIdClaim.toString());
+          } catch (NumberFormatException e) {
+            LOG.error("Invalid user_id claim: {}", userIdClaim, e);
+          }
+        }
+      }
+    }
+    throw new RuntimeException("Unable to extract user ID from security identity");
   }
 }

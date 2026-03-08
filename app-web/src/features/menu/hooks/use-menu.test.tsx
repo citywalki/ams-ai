@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useUserMenus, MENU_QUERY_KEY } from './use-menu';
 import { server } from '@/shared/test/msw/server';
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, graphql } from 'msw';
 
 describe('useUserMenus', () => {
   const createWrapper = () => {
@@ -26,6 +26,19 @@ describe('useUserMenus', () => {
   };
 
   it('应该成功获取用户菜单', async () => {
+    server.use(
+      graphql.query('GetUserMenus', () => {
+        return HttpResponse.json({
+          data: {
+            userMenus: [
+              { id: 1, key: 'dashboard', label: '仪表盘', route: '/', sortOrder: 1, isVisible: true, menuType: 'MENU', rolesAllowed: [], metadata: {}, tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
+              { id: 2, key: 'users', label: '用户管理', route: '/users', sortOrder: 2, isVisible: true, menuType: 'FOLDER', rolesAllowed: [], metadata: {}, tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
+            ],
+          },
+        });
+      })
+    );
+
     const { result } = renderHook(() => useUserMenus(), {
       wrapper: createWrapper(),
     });
@@ -47,36 +60,11 @@ describe('useUserMenus', () => {
     });
   });
 
-  it('API 返回包装格式时应该正确处理', async () => {
+  it('GraphQL 返回错误时应该抛出错误', async () => {
     server.use(
-      http.get('/api/system/menus/user', () => {
+      graphql.query('GetUserMenus', () => {
         return HttpResponse.json({
-          success: true,
-          data: [
-            { id: 3, key: 'settings', label: '设置', route: '/settings' },
-          ],
-        });
-      })
-    );
-
-    const { result } = renderHook(() => useUserMenus(), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true);
-    });
-
-    expect(result.current.data).toHaveLength(1);
-    expect(result.current.data?.[0].key).toBe('settings');
-  });
-
-  it('API 返回错误格式时应该抛出错误', async () => {
-    server.use(
-      http.get('/api/system/menus/user', () => {
-        return HttpResponse.json({
-          success: false,
-          message: '获取菜单失败',
+          errors: [{ message: '获取菜单失败' }],
         });
       })
     );
@@ -89,7 +77,7 @@ describe('useUserMenus', () => {
       expect(result.current.isError).toBe(true);
     });
 
-    expect(result.current.error?.message).toBe('获取菜单失败');
+    expect(result.current.error?.message).toContain('获取菜单失败');
   });
 
   it('应该使用正确的 query key', () => {
@@ -97,6 +85,19 @@ describe('useUserMenus', () => {
   });
 
   it('应该缓存查询结果', async () => {
+    server.use(
+      graphql.query('GetUserMenus', () => {
+        return HttpResponse.json({
+          data: {
+            userMenus: [
+              { id: 1, key: 'dashboard', label: '仪表盘', route: '/', sortOrder: 1, isVisible: true, menuType: 'MENU', rolesAllowed: [], metadata: {}, tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
+              { id: 2, key: 'users', label: '用户管理', route: '/users', sortOrder: 2, isVisible: true, menuType: 'FOLDER', rolesAllowed: [], metadata: {}, tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
+            ],
+          },
+        });
+      })
+    );
+
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: {

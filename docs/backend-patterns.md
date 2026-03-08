@@ -2,7 +2,7 @@
 
 ## 技术栈
 
-- **运行时**: Java 25, Quarkus 3.31.2, Gradle 多模块
+- **运行时**: Java 21, Quarkus 3.31.2, Gradle 多模块
 - **持久化**: Hibernate ORM + Panache Next (Repository pattern)
 - **数据库迁移**: Liquibase（YAML 格式）
 - **缓存/集群**: Hazelcast 5.4.0 分布式缓存

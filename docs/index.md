@@ -6,8 +6,9 @@ Documentation for the Alert Management System with AI Analysis.
 
 New to the project? Start here:
 
-1. **[Project Context](../CLAUDE.md)** - Architecture, tech stack, coding patterns, and rules
-2. **[Testing Guide](./testing-guide.md)** - How to run tests and testing strategies
+1. **[Onboarding Guide](./onboarding.md)** - API protocol selection, code examples, and troubleshooting
+2. **[Project Context](../CLAUDE.md)** - Architecture, tech stack, coding patterns, and rules
+3. **[Testing Guide](./testing-guide.md)** - How to run tests and testing strategies
 
 ## Development Guides
 

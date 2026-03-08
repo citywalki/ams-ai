@@ -6,15 +6,14 @@ import pro.walkin.ams.persistence.entity.system.*;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * RBAC权限查询类 所有角色权限相关的查询方法都放在这里
- */
+/** RBAC权限查询类 所有角色权限相关的查询方法都放在这里 */
 @ApplicationScoped
 public class RbacQuery {
 
   // ========== RolePermission 查询 ==========
 
-  public Optional<RolePermission> findRolePermissionByRoleIdAndPermissionId(Long roleId, Long permissionId) {
+  public Optional<RolePermission> findRolePermissionByRoleIdAndPermissionId(
+      Long roleId, Long permissionId) {
     return RolePermission_.managedBlocking()
         .find("roleId = ?1 and permissionId = ?2", roleId, permissionId)
         .firstResultOptional();

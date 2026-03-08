@@ -47,12 +47,76 @@ public class User extends BaseEntity {
 ```
 
 ### API Protocol Selection
+
 | Operation Type | Protocol | Rationale |
 |----------------|----------|-----------|
-| **Queries (Read)** | GraphQL | Flexible field selection, reduce round trips |
-| **Commands (Write)** | REST | Clear resource semantics, better caching for mutations |
+| **List/Detail Queries** | GraphQL | Flexible field selection, nested data fetching, single endpoint for multiple resources |
+| **Create/Update/Delete** | REST | Clear resource semantics (POST/PUT/PATCH/DELETE), optimal HTTP caching, idempotency support |
+| **Bulk Operations** | REST | Better handling of large payloads, standard HTTP batch patterns |
+| **File Upload** | REST | Native multipart/form-data support |
 
-**Anti-pattern**: Using GraphQL mutations for writes or REST GETs for complex queries.
+**Guideline**: Queries (Read) = GraphQL via urql, Commands (Write) = REST via axios
+
+#### Code Examples
+
+**GraphQL Query Pattern** (from `app-web/src/features/user/hooks/use-users.ts`):
+```typescript
+import { useQuery } from "@tanstack/react-query";
+import { graphql } from "@/shared/api/graphql";
+
+const USERS_QUERY = `
+  query GetUsers($where: UserFilter, $page: Int, $size: Int) {
+    users(where: $where, page: $page, size: $size) {
+      content { id username email }
+      totalElements
+    }
+  }
+`;
+
+export function useUsers(options: UseUsersOptions = {}) {
+  return useQuery<UserConnection, Error>({
+    queryKey: ["users", options],
+    queryFn: async () => {
+      const data = await graphql<UsersResponse>(USERS_QUERY, options);
+      return data.users;
+    },
+  });
+}
+```
+
+**REST Mutation Pattern** (from `app-web/src/features/user/hooks/use-user-mutations.ts`):
+```typescript
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { restClient } from "@/shared/api/rest-client";
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateUserInput) => {
+      const response = await restClient.post<User>("/system/users", input);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+```
+
+#### Anti-Patterns to Avoid
+
+**1. Using GraphQL mutations for writes**
+- **Why**: GraphQL mutations lack standard HTTP semantics (no 201 Created, 204 No Content status codes), making caching and error handling inconsistent
+- **Do this instead**: Use REST POST/PUT/PATCH/DELETE for all create, update, and delete operations
+
+**2. Using REST GET for complex data fetching**
+- **Why**: Multiple REST endpoints require multiple round trips; GraphQL allows fetching nested resources in a single request
+- **Do this instead**: Use GraphQL queries when you need related data (e.g., user with their roles and permissions)
+
+**3. Creating separate `api/` directories**
+- **Why**: Unnecessary abstraction layer that complicates feature organization
+- **Do this instead**: Call clients directly in hooks (see examples above)
 
 ### Caching Strategy
 - **feature-admin**: Queries exposed to frontend **must NOT use cache**

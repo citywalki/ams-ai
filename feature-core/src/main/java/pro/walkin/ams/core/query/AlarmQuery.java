@@ -21,7 +21,7 @@ public class AlarmQuery {
    * 查询待处理的告警
    *
    * @param offset 偏移量
-   * @param limit  限制数量
+   * @param limit 限制数量
    * @return 待处理告警列表
    */
   public List<Alarm> fetchPendingAlarms(int offset, int limit) {
