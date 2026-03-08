@@ -1,20 +1,175 @@
 {
   "version": 1,
   "skills": {
+    "code-review:review-local-changes": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "61e1bdeccd3c0d5182c62b0e92c9b25498a8d61f7f79e9e22fe474d9a11f106f"
+    },
+    "code-review:review-pr": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "ca4bf1d0959369feff5e4861c1147ffa09ac017b34f6037dfabdee7f1729b49e"
+    },
+    "context7": {
+      "source": "am-will/codex-skills",
+      "sourceType": "github",
+      "computedHash": "9cfc98a08e8de60c57e2413c27bfdeb94f1e5a07dba44d4cbf3460d7f537669a"
+    },
+    "docs:update-docs": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "e9c6dfe09d6429464f335bf7d62814726ceb234b2e51ff1a68d0b1b20ffd2aaa"
+    },
+    "docs:write-concisely": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "658c23f8db12c7fc71e87c1ce81c74295b7ab6dca5a3a92232ff43339c09abf3"
+    },
     "feature-arch": {
       "source": "pproenca/dot-skills",
       "sourceType": "github",
       "computedHash": "8891e09eeaac4e2d233b5286be05eab86874a00af01d2ba98fe7e22949474077"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "6412eb4eb3b91595ebab937f0c69501240e7ba761b3d82510b5cf506ec5c7adc"
+    },
+    "git:commit": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "7d52319ccb65ab604e3cab8de216b7866136d0618bc7f9aaf1480d35e7470925"
+    },
+    "git:compare-worktrees": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "a77f374439c5bc721f7c35d82dab6a3b499d43ea697cdaf1edb6af5e8de0d8cb"
+    },
+    "kaizen:root-cause-tracing": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "a7ffb110a65c8a2f5cae31ec4a8f5e0e2e44f8f032a24a6d59ceb7446ff1d2ac"
     },
     "quarkus": {
       "source": "mindrally/skills",
       "sourceType": "github",
       "computedHash": "961f41dc9be3918f1ed5113c5cf94ed05e0f2b3daab6a8c7db97b06c1db6878f"
     },
+    "reflexion:critique": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "cdf071f4aa71d478588af9c994acaaa357c574d1a8e858193321c5017cdbe22f"
+    },
+    "reflexion:memorize": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "046e7d9e55b80895e3241e8954f8ac412a053cca0c3d51f060971a9b46559c75"
+    },
+    "reflexion:reflect": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "350d39a25167a81378afe16708a2e454adf8649c40c2bdd6422e8c0b37308232"
+    },
+    "sadd:do-and-judge": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "476cf3a5e589392a4311b9c1b87cf4c17f6742b64184a030213c89771bd47603"
+    },
+    "sadd:do-competitively": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "e0e440733c377c2df9a450c63c1f8f05f42942874589ebe6a5ed7ae8a9aceffc"
+    },
+    "sadd:do-in-parallel": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "9228e28173065837cad8967542cc7a8f47f36417d5c57f63ca795b08bb564472"
+    },
+    "sadd:do-in-steps": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "6f110a4c325b17352c7cbfd6123001b35f40d9ff6480e18aded3a2e39d4839b5"
+    },
+    "sadd:judge": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "91a96a5058dc6e7375e10110c1af742c3545eddde404d1707f14941615a34cbe"
+    },
+    "sadd:judge-with-debate": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "3684bbc4864f97dffc997bf8d222dc58d8be4cad1c4bc9653d4e64dee97dd048"
+    },
+    "sadd:launch-sub-agent": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "a42c7025749edaa30f19d074c88139dec24af65d7bc9e9ecef8da8e594b7abfc"
+    },
+    "sadd:multi-agent-patterns": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "3cf5a4a6a95f3fff836a06e3b71ebb7e0ecee800891a44f8b991b89560c3f8e0"
+    },
+    "sadd:subagent-driven-development": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "5c508c6c0804607be90407748efba08976ae708b7db522a5de5ae99038c4fa56"
+    },
+    "sadd:tree-of-thoughts": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "1e775bd491472732e7d1983158ab6cb15f8c731aa89572811b9a6dca305cd55e"
+    },
+    "sdd:add-task": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "4b7f2ec756ff2b1111da06acde9d1d2263a70a379eb90f4031b8f70400ff982d"
+    },
+    "sdd:brainstorm": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "a2ccadfe836e499b723a31973f79c799260cf4b80769c64f1a96cc2adb947747"
+    },
+    "sdd:create-ideas": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "2eea4e11669be9c5d610015dfc0cc3c163a5b1ff4885797f38ff074aaa646a3d"
+    },
+    "sdd:implement": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "144cabc3ed4348fd9a10b013830855cfaae574755a9ef554c56727d1d0ecaabc"
+    },
+    "sdd:plan": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "e235141bc90a840092049c2c3f4e8764ef5b8e0360b09e2f8223def777141aab"
+    },
     "tanstack-query": {
       "source": "pproenca/dot-skills",
       "sourceType": "github",
       "computedHash": "e7d35b4fa0a3f167de1f465a31e25d7087ee553ab894083716894d61ca1091f9"
+    },
+    "tdd:fix-tests": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "7f0f0c253dcddd7fbb48e2ee7ac89488c06183cda0803f7dae12bbdfbb0881cf"
+    },
+    "tdd:test-driven-development": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "ad7a583061aebd9636aca2572c0a6582ececaa2c297492d31e7059331f71a06d"
+    },
+    "tdd:write-tests": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "52ad3f127e7043d768f0ad8cf86941fc11c44498892eb15c8d8ae1b5ec24b6ac"
+    },
+    "tech-stack:add-typescript-best-practices": {
+      "source": "NeoLabHQ/context-engineering-kit",
+      "sourceType": "github",
+      "computedHash": "62c8b0d0a675ee68dc85611e8b56607f90437d81c6574e9cf38991b55dcf81cf"
     },
     "ui-design": {
       "source": "pproenca/dot-skills",
