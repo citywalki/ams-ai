@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.admin.auth.service.TokenService;
 import pro.walkin.ams.admin.system.query.RbacQuery;
+import pro.walkin.ams.common.cache.CacheInvalidationBroadcaster;
 import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.persistence.entity.system.RolePermission;
 import pro.walkin.ams.persistence.entity.system.User;
@@ -33,6 +34,8 @@ public class RbacService implements pro.walkin.ams.common.security.service.RbacS
   @Inject TokenService tokenService;
 
   @Inject RbacQuery rbacQuery;
+
+  @Inject CacheInvalidationBroadcaster cacheInvalidationBroadcaster;
 
   public boolean hasPermission(Long userId, String permission) {
     Long tenantId = TenantContext.getCurrentTenantId();
@@ -214,13 +217,16 @@ public class RbacService implements pro.walkin.ams.common.security.service.RbacS
 
   public void invalidateUserPermissions(Long userId, Long tenantId) {
     String cacheKey = userId + ":" + tenantId;
-    cache.invalidate(cacheKey).await().indefinitely();
-    LOG.debug("Invalidated permissions cache for user {} in tenant {}", userId, tenantId);
+    // 广播失效事件，本地 Listener 和集群其他节点统一处理
+    cacheInvalidationBroadcaster.broadcast(USER_PERMISSIONS_CACHE, cacheKey);
+    LOG.debug(
+        "Broadcasted permissions cache invalidation for user {} in tenant {}", userId, tenantId);
   }
 
   public void invalidatePermissionsByRole(Long roleId) {
-    cache.invalidateAll().await().indefinitely();
-    LOG.debug("Invalidated all permissions cache due to role {} permission change", roleId);
+    // 广播失效事件（key 为 null 表示全部失效）
+    cacheInvalidationBroadcaster.broadcast(USER_PERMISSIONS_CACHE, null);
+    LOG.debug("Broadcasted all permissions cache invalidation due to role {} change", roleId);
   }
 
   private Long getTenantIdFromToken(String token) {

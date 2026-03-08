@@ -7,7 +7,7 @@ import pro.walkin.ams.persistence.entity.system.Menu_;
 import java.util.List;
 import java.util.Optional;
 
-/** 菜单查询类 所有菜单相关的查询方法都放在这里 */
+/** 菜单查询类 - 所有菜单相关的查询方法都放在这里 */
 @ApplicationScoped
 public class MenuQuery {
 

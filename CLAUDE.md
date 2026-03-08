@@ -2,7 +2,7 @@
 
 > Agentic Context Engineering (ACE) playbook for the AMS-AI project.
 > This file captures high-value insights, patterns, and constraints to improve future agent performance.
-> Last updated: 2026-03-08
+> Last updated: 2026-03-09
 
 ## Project Overview
 
@@ -16,7 +16,7 @@
 - **JDK**: 21
 - **Framework**: Quarkus 3.31.2
 - **Persistence**: Hibernate ORM + Panache Next
-- **Cache**: Hazelcast 5.4.0 (distributed only, no local memory cache)
+- **Cache**: Hazelcast 5.4.0 (cluster event bus), Quarkus Cache (local memory + cluster invalidation)
 - **Database Migration**: Liquibase (YAML format)
 
 ### Frontend
@@ -119,10 +119,52 @@ export function useCreateUser() {
 - **Do this instead**: Call clients directly in hooks (see examples above)
 
 ### Caching Strategy
-- **feature-admin**: Queries exposed to frontend **must NOT use cache**
-- **feature-core**: Only alarm-configuration queries **may use cache**
-- Cache invalidation via `cache-invalidate` topic (Hazelcast)
-- **Never** use local memory cache (cluster consistency risk)
+
+#### 集群缓存架构模式（强制）
+
+**正确模式**：本地缓存（Quarkus Cache）+ 集群事件失效
+```
+┌─────────────────────────────────────────────────────────┐
+│  Node 1                    Hazelcast Topic    Node 2    │
+│  ┌──────────┐            "cache-invalidate"   ┌──────────┐│
+│  │本地缓存   │◄───────────────────────────────►│本地缓存   ││
+│  └──────────┘                                └──────────┘│
+└─────────────────────────────────────────────────────────┘
+```
+
+**实现组件**：
+- `CacheInvalidationBroadcaster` - 广播缓存失效事件接口
+- `CacheInvalidationListener` - 监听 `cache-invalidate` Topic，失效本地缓存
+
+**示例代码**（`RbacService`）：
+```java
+@Inject @CacheName("user-permissions") Cache cache;
+@Inject CacheInvalidationBroadcaster broadcaster;
+
+public void invalidateUserPermissions(Long userId, Long tenantId) {
+    String cacheKey = userId + ":" + tenantId;
+    // 广播失效事件，本地 Listener 和集群其他节点统一处理
+    broadcaster.broadcast("user-permissions", cacheKey);
+}
+```
+
+**错误模式**：直接使用 Hazelcast IMap
+- 原因：每次读取都需要网络调用，性能差
+- 替代：使用本地缓存 + 事件失效，读取本地内存（快），仅在失效时广播
+
+#### 模块缓存规范
+
+| 模块 | 缓存策略 | 说明 |
+|------|---------|------|
+| **feature-admin** | 前端查询禁用缓存 | `getUserMenus()` 等前端接口不使用 `@CacheResult` |
+| **feature-admin** | 内部逻辑可用缓存 | 权限检查等可使用本地缓存 + 集群失效 |
+| **feature-core** | 告警配置可缓存 | 配置数据变化少，适合缓存 |
+
+#### 缓存失效流程
+1. Service 层修改数据
+2. 调用 `cache.invalidate()` 失效本地缓存
+3. 调用 `broadcaster.broadcast()` 发布事件到 `cache-invalidate` topic
+4. `CacheInvalidationListener` 接收事件，失效所有节点的本地缓存
 
 ### Layer Separation (Backend)
 - **Read operations**: Place in `*Query` classes (e.g., `UserQuery.java`)
@@ -353,8 +395,9 @@ npx shadcn add button dialog dropdown-menu
 ## Anti-Patterns to Avoid
 
 ### Backend
-1. **Local memory cache** - Use Hazelcast distributed cache only
-2. **Mixing read/write logic** - Keep Query and Service classes separate
+1. **Direct Hazelcast IMap for caching** - Use local cache + cluster invalidation events instead
+2. **Missing cluster cache invalidation** - Always broadcast via `CacheInvalidationBroadcaster`
+3. **Mixing read/write logic** - Keep Query and Service classes separate
 3. **Raw EntityManager** - Use Panache `managedBlocking()` instead
 4. **Hardcoded tenant IDs** - Always use `TenantContext`
 5. **Lombok** - Explicitly prohibited, use public fields
@@ -394,7 +437,8 @@ Before submitting changes, verify:
 - [ ] Queries filter by `TenantContext.getCurrentTenantId()`
 - [ ] Read operations in `*Query` classes, writes in `*Service` with `@Transactional`
 - [ ] No Lombok usage
-- [ ] No local memory cache
+- [ ] Caching uses local cache + cluster invalidation (NOT Hazelcast IMap directly)
+- [ ] Cache invalidation broadcasts to cluster via `CacheInvalidationBroadcaster`
 - [ ] Backend: `./gradlew spotlessApply` executed
 - [ ] Frontend: `pnpm lint` passes
 - [ ] No `src/entities/` directory created (frontend)
@@ -417,11 +461,6 @@ Before submitting changes, verify:
 - Tenant isolation at database level via Hibernate Filter
 - Permission annotations: `@RequirePermission`, `@RequirePermissions`
 
-### Caching Invalidation Flow
-1. Data changes in Service layer
-2. Publish `CacheInvalidationEvent` to `cache-invalidate` topic
-3. `CacheInvalidationListener` receives event
-4. Invalidates specific key or entire cache (if key is null)
 
 ## Confidence Levels
 

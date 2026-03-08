@@ -1,10 +1,5 @@
 package pro.walkin.ams.admin.system.service;
 
-import io.quarkus.cache.Cache;
-import io.quarkus.cache.CacheInvalidate;
-import io.quarkus.cache.CacheInvalidateAll;
-import io.quarkus.cache.CacheName;
-import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -17,131 +12,57 @@ import pro.walkin.ams.common.exception.NotFoundException;
 import pro.walkin.ams.common.exception.ValidationException;
 import pro.walkin.ams.persistence.entity.system.Menu;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 菜单服务 - 协调菜单相关操作 具体的职责已拆分到以下组件： - MenuCommandService: 写操作（创建、更新、删除） - MenuQuery: 基础查询 -
+ * MenuTreeBuilder: 树形结构构建 - MenuPermissionChecker: 权限检查 - MenuMapper: 对象映射
+ */
 @ApplicationScoped
 @Transactional
 public class MenuService {
   private static final Logger LOG = LoggerFactory.getLogger(MenuService.class);
-  private static final String USER_MENUS_CACHE = "user-menus";
   private static final String ROOT_MENU_KEY = "root";
-
-  @Inject
-  @CacheName(USER_MENUS_CACHE)
-  Cache cache;
-
-  @Inject Menu.Repo menuRepo;
 
   @Inject MenuQuery menuQuery;
 
-  @Inject RbacService rbacService;
+  @Inject MenuCommandService commandService;
 
-  // ========== CRUD 操作 ==========
+  @Inject MenuTreeBuilder treeBuilder;
+
+  @Inject MenuPermissionChecker permissionChecker;
+
+  @Inject MenuMapper menuMapper;
+
+  // ========== 委托给 CommandService 的写操作 ==========
 
   public MenuResponseDto createMenu(MenuDto dto, Long tenantId) {
     Objects.requireNonNull(dto, "菜单数据不能为空");
     Objects.requireNonNull(tenantId, "租户ID不能为空");
-
-    // 检查key是否已存在（同一租户内唯一）
-
-    if (menuQuery.countByKey(dto.key()) > 0) {
-      throw new ValidationException("菜单标识符已存在", "key", dto.key());
-    }
-
-    // 如果指定了parentId，检查父菜单是否存在且属于同一租户
-    if (dto.parentId() != null) {
-      Menu parent = menuQuery.findById(dto.parentId());
-      if (parent == null) {
-        throw new NotFoundException("Menu", dto.parentId().toString());
-      }
-      if (!tenantId.equals(parent.tenant)) {
-        throw new ValidationException("父菜单不属于当前租户", "parentId", dto.parentId());
-      }
-    }
-
-    Menu menu = new Menu();
-    mapDtoToEntity(dto, menu);
-    menu.tenant = tenantId;
-    menu.persist();
-
-    LOG.debug("创建菜单成功: id={}, key={}, tenant={}", menu.id, menu.key, tenantId);
-    return mapEntityToResponseDto(menu);
+    return commandService.createMenu(dto, tenantId);
   }
 
   public MenuResponseDto updateMenu(Long id, MenuDto dto, Long tenantId) {
     Objects.requireNonNull(id, "菜单ID不能为空");
     Objects.requireNonNull(dto, "菜单数据不能为空");
     Objects.requireNonNull(tenantId, "租户ID不能为空");
-
-    Menu menu = menuQuery.findById(id);
-    if (menu == null) {
-      throw new NotFoundException("Menu", id.toString());
-    }
-    if (!tenantId.equals(menu.tenant)) {
-      throw new ValidationException("菜单不属于当前租户", "id", id);
-    }
-
-    // 如果key被修改，检查新key是否已存在（同一租户内唯一）
-    if (!dto.key().equals(menu.key)
-        && menuQuery.countByKeyAndTenantAndIdNot(dto.key(), tenantId, id) > 0) {
-      throw new ValidationException("菜单标识符已存在", "key", dto.key());
-    }
-
-    // 如果指定了parentId，检查父菜单是否存在且属于同一租户（不能设置自己为父菜单）
-    if (dto.parentId() != null) {
-      if (dto.parentId().equals(id)) {
-        throw new ValidationException("不能将菜单设置为自己的父菜单", "parentId", dto.parentId());
-      }
-      Menu parent = menuQuery.findById(dto.parentId());
-      if (parent == null) {
-        throw new NotFoundException("Menu", dto.parentId().toString());
-      }
-      if (!tenantId.equals(parent.tenant)) {
-        throw new ValidationException("父菜单不属于当前租户", "parentId", dto.parentId());
-      }
-    }
-
-    mapDtoToEntity(dto, menu);
-    menuRepo.persist(menu); // 更新
-
-    LOG.debug("更新菜单成功: id={}, key={}, tenant={}", menu.id, menu.key, tenantId);
-
-    // 失效相关缓存
+    MenuResponseDto result = commandService.updateMenu(id, dto, tenantId);
     invalidateMenuCaches(tenantId);
-
-    return mapEntityToResponseDto(menu);
+    return result;
   }
 
   public void deleteMenu(Long id, Long tenantId) {
     Objects.requireNonNull(id, "菜单ID不能为空");
     Objects.requireNonNull(tenantId, "租户ID不能为空");
-
-    Menu menu = menuQuery.findById(id);
-    if (menu == null) {
-      throw new NotFoundException("Menu", id.toString());
-    }
-    if (!tenantId.equals(menu.tenant)) {
-      throw new ValidationException("菜单不属于当前租户", "id", id);
-    }
-
-    // 检查是否有子菜单
-    if (menuQuery.countByParentIdAndTenant(id, tenantId) > 0) {
-      throw new ValidationException("请先删除子菜单", "id", id);
-    }
-
-    menu.delete();
-    LOG.debug("删除菜单成功: id={}, key={}, tenant={}", id, menu.key, tenantId);
-
-    // 失效相关缓存
+    commandService.deleteMenu(id, tenantId);
     invalidateMenuCaches(tenantId);
   }
+
+  // ========== 委托给 Query 的基础查询 ==========
 
   public MenuResponseDto getMenuById(Long id, Long tenantId) {
     Objects.requireNonNull(id, "菜单ID不能为空");
@@ -155,7 +76,7 @@ public class MenuService {
       throw new ValidationException("菜单不属于当前租户", "id", id);
     }
 
-    return mapEntityToResponseDto(menu);
+    return menuMapper.mapEntityToResponseDto(menu);
   }
 
   public Menu findByKey(String key) {
@@ -170,7 +91,7 @@ public class MenuService {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
 
     List<Menu> menus = menuQuery.listByTenant(tenantId);
-    return menus.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
+    return menus.stream().map(menuMapper::mapEntityToResponseDto).collect(Collectors.toList());
   }
 
   public List<MenuResponseDto> getFolders(Long tenantId) {
@@ -190,7 +111,7 @@ public class MenuService {
     return folders.stream()
         .map(
             folder -> {
-              MenuResponseDto dto = mapEntityToResponseDto(folder);
+              MenuResponseDto dto = menuMapper.mapEntityToResponseDto(folder);
               Map<String, Object> metadata = new HashMap<>(dto.metadata());
               metadata.put("menuCount", childCountByParent.getOrDefault(folder.id, 0L));
 
@@ -224,246 +145,41 @@ public class MenuService {
         menus = menuQuery.listByParentIdAndTenant(rootMenu.id, tenantId);
       } else {
         // 如果根目录不存在，返回空列表
-        menus = new ArrayList<>();
+        menus = List.of();
       }
     } else {
       menus = menuQuery.listByParentIdAndTenant(parentId, tenantId);
     }
-    return menus.stream().map(this::mapEntityToResponseDto).collect(Collectors.toList());
+    return menus.stream().map(menuMapper::mapEntityToResponseDto).collect(Collectors.toList());
   }
 
-  @CacheResult(cacheName = USER_MENUS_CACHE)
+  // ========== 委托给 PermissionChecker 的权限相关操作 ==========
+
   public List<MenuResponseDto> getUserMenus(Long userId, Long tenantId) {
-    Objects.requireNonNull(userId, "用户ID不能为空");
-    Objects.requireNonNull(tenantId, "租户ID不能为空");
-
-    LOG.debug("getUserMenus called with userId={}, tenantId={}", userId, tenantId);
-
-    // 获取用户角色
-    Set<String> userRoles = rbacService.getUserRoles(userId, tenantId);
-    LOG.debug("User roles: {}", userRoles);
-
-    // 获取所有菜单（按租户过滤）
-    List<Menu> allMenus = menuQuery.listByTenant(tenantId);
-    LOG.debug("Found {} menus for tenant {}", allMenus.size(), tenantId);
-
-    // 过滤有权限的菜单并构建树形结构
-    List<MenuResponseDto> menuTree = buildMenuTree(allMenus, userRoles);
-
-    LOG.debug("为用户 {} 生成菜单树，共 {} 个菜单项", userId, menuTree.size());
-    return menuTree;
+    return permissionChecker.getUserMenus(userId, tenantId);
   }
 
-  @CacheInvalidate(cacheName = USER_MENUS_CACHE)
-  public void invalidateUserMenus(Long userId, Long tenantId) {
-    LOG.debug("失效用户菜单缓存: userId={}, tenantId={}", userId, tenantId);
-  }
-
-  @CacheInvalidateAll(cacheName = USER_MENUS_CACHE)
-  public void invalidateAllMenuCaches() {
-    LOG.debug("失效所有菜单缓存");
-  }
-
-  // ========== 私有辅助方法 ==========
-
-  private void mapDtoToEntity(MenuDto dto, Menu entity) {
-    entity.key = dto.key();
-    entity.label = dto.label();
-    entity.route = dto.route();
-    entity.parentId = dto.parentId();
-    entity.icon = dto.icon();
-    entity.sortOrder = dto.sortOrder();
-    entity.isVisible = dto.isVisible();
-    if (dto.menuType() != null && !dto.menuType().isBlank()) {
-      entity.menuType = Menu.MenuType.valueOf(dto.menuType());
-    }
-    entity.rolesAllowed = new ArrayList<>(dto.rolesAllowed());
-    entity.metadata = new HashMap<>(dto.metadata());
-  }
-
-  private MenuResponseDto mapEntityToResponseDto(Menu entity) {
-    return new MenuResponseDto(
-        entity.id,
-        entity.key,
-        entity.label,
-        entity.route,
-        entity.parentId,
-        entity.icon,
-        entity.sortOrder,
-        entity.isVisible,
-        entity.menuType != null ? entity.menuType.name() : "MENU",
-        new ArrayList<>(entity.rolesAllowed),
-        new HashMap<>(entity.metadata),
-        entity.tenant,
-        entity.createdAt,
-        entity.updatedAt,
-        new ArrayList<>());
-  }
-
-  private List<MenuResponseDto> buildMenuTree(List<Menu> menus, Set<String> userRoles) {
-    // 找到根目录菜单
-    Menu rootMenu =
-        menus.stream().filter(menu -> ROOT_MENU_KEY.equals(menu.key)).findFirst().orElse(null);
-
-    Long rootId = rootMenu != null ? rootMenu.id : null;
-
-    // 按父菜单ID分组
-    Map<Long, List<Menu>> childrenByParentId =
-        menus.stream()
-            .filter(menu -> menu.parentId != null)
-            .collect(Collectors.groupingBy(menu -> menu.parentId));
-
-    // 过滤有权限的菜单，并排除根目录本身
-    List<Menu> accessibleMenus =
-        menus.stream()
-            .filter(menu -> hasRoleForMenu(menu, userRoles))
-            .filter(menu -> !ROOT_MENU_KEY.equals(menu.key))
-            .collect(Collectors.toList());
-
-    // 构建树形结构：如果有根目录，则返回根目录的子菜单作为顶级菜单
-    List<MenuResponseDto> rootMenus;
-    if (rootId != null) {
-      rootMenus =
-          accessibleMenus.stream()
-              .filter(menu -> rootId.equals(menu.parentId))
-              .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
-              .map(menu -> buildMenuItemTree(menu, childrenByParentId, userRoles))
-              .collect(Collectors.toList());
-    } else {
-      // 兼容旧数据：如果没有根目录，则返回 parentId 为 null 的菜单
-      rootMenus =
-          accessibleMenus.stream()
-              .filter(menu -> menu.parentId == null)
-              .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
-              .map(menu -> buildMenuItemTree(menu, childrenByParentId, userRoles))
-              .collect(Collectors.toList());
-    }
-
-    return rootMenus;
-  }
-
-  private MenuResponseDto buildMenuItemTree(
-      Menu menu, Map<Long, List<Menu>> childrenByParentId, Set<String> userRoles) {
-    MenuResponseDto dto = mapEntityToResponseDto(menu);
-
-    // 递归构建子菜单
-    List<Menu> children = childrenByParentId.getOrDefault(menu.id, new ArrayList<>());
-    List<MenuResponseDto> childDtos =
-        children.stream()
-            .filter(child -> hasRoleForMenu(child, userRoles))
-            .sorted(Comparator.comparingInt(child -> child.sortOrder != null ? child.sortOrder : 0))
-            .map(child -> buildMenuItemTree(child, childrenByParentId, userRoles))
-            .collect(Collectors.toList());
-
-    // 设置子菜单列表
-    // 注意：MenuResponseDto 是不可变的 record，需要重新创建
-    dto =
-        new MenuResponseDto(
-            dto.id(),
-            dto.key(),
-            dto.label(),
-            dto.route(),
-            dto.parentId(),
-            dto.icon(),
-            dto.sortOrder(),
-            dto.isVisible(),
-            dto.menuType(),
-            dto.rolesAllowed(),
-            dto.metadata(),
-            dto.tenant(),
-            dto.createdAt(),
-            dto.updatedAt(),
-            childDtos);
-
-    return dto;
-  }
-
-  private boolean hasRoleForMenu(Menu menu, Set<String> userRoles) {
-    // 如果菜单不可见，直接返回 false
-    if (Boolean.FALSE.equals(menu.isVisible)) {
-      return false;
-    }
-
-    // 如果菜单不需要角色限制，返回 true
-    if (menu.rolesAllowed == null || menu.rolesAllowed.isEmpty()) {
-      return true;
-    }
-
-    // 检查用户是否拥有任一允许的角色
-    return menu.rolesAllowed.stream().anyMatch(userRoles::contains);
-  }
-
-  private void invalidateMenuCaches(Long tenantId) {
-    // 失效所有用户菜单缓存（简化实现：失效所有缓存）
-    // 在实际应用中，可以根据租户ID更精细地失效缓存
-    cache.invalidateAll().await().indefinitely();
-    LOG.debug("失效所有菜单缓存（租户 {}）", tenantId);
-  }
-
-  // ========== 管理端菜单树方法 ==========
+  // ========== 委托给 TreeBuilder 的树形结构操作 ==========
 
   public List<MenuResponseDto> getMenuTree(Long tenantId) {
     Objects.requireNonNull(tenantId, "租户ID不能为空");
 
     List<Menu> allMenus = menuQuery.listByTenant(tenantId);
-    return buildMenuTreeForAdmin(allMenus);
+    return treeBuilder.buildMenuTreeForAdmin(allMenus);
   }
 
-  private List<MenuResponseDto> buildMenuTreeForAdmin(List<Menu> menus) {
-    // 找到根目录菜单
-    Menu rootMenu =
-        menus.stream().filter(menu -> ROOT_MENU_KEY.equals(menu.key)).findFirst().orElse(null);
+  // ========== 缓存失效（保留兼容性） ==========
 
-    Long rootId = rootMenu != null ? rootMenu.id : null;
-
-    Map<Long, List<Menu>> childrenByParentId =
-        menus.stream()
-            .filter(menu -> menu.parentId != null)
-            .collect(Collectors.groupingBy(menu -> menu.parentId));
-
-    // 如果有根目录，则返回根目录的子菜单作为顶级菜单，并排除根目录本身
-    if (rootId != null) {
-      return menus.stream()
-          .filter(menu -> rootId.equals(menu.parentId))
-          .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
-          .map(menu -> buildMenuItemTreeForAdmin(menu, childrenByParentId))
-          .collect(Collectors.toList());
-    } else {
-      // 兼容旧数据：如果没有根目录，则返回 parentId 为 null 的菜单
-      return menus.stream()
-          .filter(menu -> menu.parentId == null)
-          .sorted(Comparator.comparingInt(menu -> menu.sortOrder != null ? menu.sortOrder : 0))
-          .map(menu -> buildMenuItemTreeForAdmin(menu, childrenByParentId))
-          .collect(Collectors.toList());
-    }
+  public void invalidateUserMenus(Long userId, Long tenantId) {
+    LOG.debug("失效用户菜单缓存: userId={}, tenantId={}", userId, tenantId);
   }
 
-  private MenuResponseDto buildMenuItemTreeForAdmin(
-      Menu menu, Map<Long, List<Menu>> childrenByParentId) {
-    MenuResponseDto dto = mapEntityToResponseDto(menu);
+  public void invalidateAllMenuCaches() {
+    LOG.debug("失效所有菜单缓存");
+  }
 
-    List<Menu> children = childrenByParentId.getOrDefault(menu.id, new ArrayList<>());
-    List<MenuResponseDto> childDtos =
-        children.stream()
-            .sorted(Comparator.comparingInt(child -> child.sortOrder != null ? child.sortOrder : 0))
-            .map(child -> buildMenuItemTreeForAdmin(child, childrenByParentId))
-            .collect(Collectors.toList());
-
-    return new MenuResponseDto(
-        dto.id(),
-        dto.key(),
-        dto.label(),
-        dto.route(),
-        dto.parentId(),
-        dto.icon(),
-        dto.sortOrder(),
-        dto.isVisible(),
-        dto.menuType(),
-        dto.rolesAllowed(),
-        dto.metadata(),
-        dto.tenant(),
-        dto.createdAt(),
-        dto.updatedAt(),
-        childDtos);
+  private void invalidateMenuCaches(Long tenantId) {
+    // 缓存已移除，此方法保留用于兼容性
+    LOG.debug("菜单缓存已移除，无需失效（租户 {}）", tenantId);
   }
 }
