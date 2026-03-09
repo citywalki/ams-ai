@@ -4,7 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pro.walkin.ams.admin.system.service.MenuMapper;
+import pro.walkin.ams.admin.system.mapper.MenuMapper;
 import pro.walkin.ams.common.dto.MenuResponseDto;
 import pro.walkin.ams.common.exception.NotFoundException;
 import pro.walkin.ams.persistence.entity.system.Menu;

@@ -110,5 +110,7 @@ app-boot/build/
 
 # Claude Code (symlinks to skills)
 .claude/
+.codemap/
 
 .specs/
+.specs/scratchpad/
