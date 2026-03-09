@@ -12,7 +12,7 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 import org.hibernate.Session;
-import pro.walkin.ams.admin.system.service.MenuService;
+import pro.walkin.ams.admin.system.query.MenuQuery;
 import pro.walkin.ams.common.dto.MenuResponseDto;
 import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.common.security.util.SecurityUtils;
@@ -31,7 +31,7 @@ public class MenuGraphQLApi {
 
   @Inject Session session;
 
-  @Inject MenuService menuService;
+  @Inject MenuQuery menuQuery;
 
   @Inject SecurityIdentity securityIdentity;
 
@@ -62,7 +62,7 @@ public class MenuGraphQLApi {
   public List<MenuResponseDto> userMenus() {
     Long userId = SecurityUtils.getUserIdFromSecurityIdentity(securityIdentity);
     Long tenantId = TenantContext.getCurrentTenantId();
-    return menuService.getUserMenus(userId, tenantId);
+    return menuQuery.getUserMenus(userId, tenantId);
   }
 
   @Transactional

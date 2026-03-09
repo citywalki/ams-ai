@@ -2,11 +2,15 @@ package pro.walkin.ams.admin.system.query;
 
 import io.quarkus.panache.common.Parameters;
 import jakarta.enterprise.context.ApplicationScoped;
+import pro.walkin.ams.common.dto.UserResponseDto;
+import pro.walkin.ams.common.exception.NotFoundException;
+import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.persistence.entity.system.User;
 import pro.walkin.ams.persistence.entity.system.User_;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /** 用户查询类 所有用户相关的查询方法都放在这里 */
 @ApplicationScoped
@@ -121,5 +125,63 @@ public class UserQuery {
       case "updatedAt" -> "updatedAt";
       default -> "createdAt";
     };
+  }
+
+  // ========== DTO 查询方法 ==========
+
+  public List<UserResponseDto> findAllAsDto(
+      String username,
+      String email,
+      String status,
+      String sortBy,
+      String sortOrder,
+      int page,
+      int size) {
+
+    Long tenantId = TenantContext.getCurrentTenantId();
+    if (tenantId == null) {
+      return List.of();
+    }
+
+    return findByFilters(tenantId, username, email, status, sortBy, sortOrder, page, size).stream()
+        .map(this::toResponseDto)
+        .collect(Collectors.toList());
+  }
+
+  public long count(String username, String email, String status) {
+    Long tenantId = TenantContext.getCurrentTenantId();
+    if (tenantId == null) {
+      return 0;
+    }
+    return countByFilters(tenantId, username, email, status);
+  }
+
+  public UserResponseDto findByIdAsDto(Long id) {
+    return findById(id).map(this::toResponseDto).orElseThrow(() -> new NotFoundException("用户不存在"));
+  }
+
+  private UserResponseDto toResponseDto(User user) {
+    UserResponseDto response = new UserResponseDto();
+    response.setId(user.id);
+    response.setUsername(user.username);
+    response.setEmail(user.email);
+    response.setStatus(user.status);
+    response.setCreatedAt(user.createdAt);
+    response.setUpdatedAt(user.updatedAt);
+
+    List<UserResponseDto.RoleInfo> roleInfos =
+        user.roles.stream()
+            .map(
+                role -> {
+                  UserResponseDto.RoleInfo info = new UserResponseDto.RoleInfo();
+                  info.setId(role.id);
+                  info.setCode(role.code);
+                  info.setName(role.name);
+                  return info;
+                })
+            .collect(Collectors.toList());
+    response.setRoles(roleInfos);
+
+    return response;
   }
 }

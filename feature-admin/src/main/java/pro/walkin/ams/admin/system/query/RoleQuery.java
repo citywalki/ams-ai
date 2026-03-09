@@ -1,12 +1,16 @@
 package pro.walkin.ams.admin.system.query;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import pro.walkin.ams.common.dto.RoleResponseDto;
+import pro.walkin.ams.common.exception.NotFoundException;
+import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.persistence.entity.system.Role;
 import pro.walkin.ams.persistence.entity.system.Role_;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /** 角色查询类 所有角色相关的查询方法都放在这里 */
 @ApplicationScoped
@@ -72,5 +76,52 @@ public class RoleQuery {
       case "updatedAt" -> "updatedAt";
       default -> "createdAt";
     };
+  }
+
+  // ========== DTO 查询方法 ==========
+
+  public List<RoleResponseDto> findAllAsDto(
+      String keyword, String sortBy, String sortOrder, int page, int size) {
+    Long tenantId = TenantContext.getCurrentTenantId();
+    if (tenantId == null) {
+      return List.of();
+    }
+    return listByTenantAndKeyword(tenantId, keyword, sortBy, sortOrder, page, size).stream()
+        .map(this::toResponseDto)
+        .collect(Collectors.toList());
+  }
+
+  public long count(String keyword) {
+    Long tenantId = TenantContext.getCurrentTenantId();
+    if (tenantId == null) {
+      return 0;
+    }
+    return countByTenantAndKeyword(tenantId, keyword);
+  }
+
+  public RoleResponseDto findByIdAsDto(Long id) {
+    return findById(id)
+        .map(this::toResponseDto)
+        .orElseThrow(() -> new NotFoundException("Role", id.toString()));
+  }
+
+  public Optional<RoleResponseDto> findByCodeAsDto(String code) {
+    return findByCode(code).map(this::toResponseDto);
+  }
+
+  private RoleResponseDto toResponseDto(Role role) {
+    RoleResponseDto dto = new RoleResponseDto();
+    dto.setId(role.id);
+    dto.setCode(role.code);
+    dto.setName(role.name);
+    dto.setDescription(role.description);
+    dto.setCreatedAt(role.createdAt);
+    dto.setUpdatedAt(role.updatedAt);
+
+    if (role.permissions != null) {
+      dto.setPermissionIds(role.permissions.stream().map(p -> p.id).collect(Collectors.toList()));
+    }
+
+    return dto;
   }
 }

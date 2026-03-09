@@ -15,11 +15,13 @@ import org.slf4j.LoggerFactory;
 import pro.walkin.ams.common.security.annotation.RequirePermission;
 import pro.walkin.ams.common.security.annotation.RequirePermissions;
 import pro.walkin.ams.common.security.annotation.RequireRole;
-import pro.walkin.ams.common.security.service.RbacService;
+import pro.walkin.ams.common.security.service.RbacChecker;
+import pro.walkin.ams.common.security.service.TokenPrincipalProvider;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * 授权过滤器
@@ -32,7 +34,9 @@ public class AuthorizationFilter implements ContainerRequestFilter {
 
   private static final Logger LOG = LoggerFactory.getLogger(AuthorizationFilter.class);
 
-  @Inject RbacService rbacService;
+  @Inject RbacChecker rbacChecker;
+
+  @Inject TokenPrincipalProvider tokenPrincipalProvider;
 
   @Context ResourceInfo resourceInfo;
 
@@ -54,10 +58,26 @@ public class AuthorizationFilter implements ContainerRequestFilter {
       return;
     }
 
+    // 从token提取用户信息
+    Optional<Long> userIdOpt = tokenPrincipalProvider.extractUserId(token);
+    Optional<Long> tenantIdOpt = tokenPrincipalProvider.extractTenantId(token);
+
+    if (userIdOpt.isEmpty() || tenantIdOpt.isEmpty()) {
+      LOG.warn("Cannot extract user or tenant from token");
+      requestContext.abortWith(
+          Response.status(Response.Status.UNAUTHORIZED)
+              .entity("{\"error\":\"Invalid token\"}")
+              .build());
+      return;
+    }
+
+    Long userId = userIdOpt.get();
+    Long tenantId = tenantIdOpt.get();
+
     // 检查@RequirePermission注解
     if (hasRequirePermissionAnnotation()) {
       RequirePermission annotation = getRequirePermissionAnnotation();
-      if (!rbacService.hasPermission(token, annotation.value())) {
+      if (!rbacChecker.hasPermission(userId, annotation.value(), tenantId)) {
         LOG.warn("Access denied: User does not have required permission: {}", annotation.value());
         requestContext.abortWith(
             Response.status(Response.Status.FORBIDDEN)
@@ -72,7 +92,8 @@ public class AuthorizationFilter implements ContainerRequestFilter {
       RequireRole annotation = getRequireRoleAnnotation();
       String[] requiredRoles = annotation.value();
       boolean hasRole =
-          Arrays.stream(requiredRoles).anyMatch(role -> rbacService.hasRole(token, role));
+          Arrays.stream(requiredRoles)
+              .anyMatch(role -> rbacChecker.hasRole(userId, role, tenantId));
 
       if (!hasRole) {
         LOG.warn(
@@ -90,8 +111,8 @@ public class AuthorizationFilter implements ContainerRequestFilter {
       RequirePermissions annotation = getRequirePermissionsAnnotation();
       boolean hasPermission =
           switch (annotation.operator()) {
-            case ALL -> rbacService.hasAllPermissions(token, annotation.value());
-            case ANY -> rbacService.hasAnyPermission(token, annotation.value());
+            case ALL -> rbacChecker.hasAllPermissions(userId, annotation.value(), tenantId);
+            case ANY -> rbacChecker.hasAnyPermission(userId, annotation.value(), tenantId);
           };
 
       if (!hasPermission) {
