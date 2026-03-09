@@ -2,9 +2,12 @@ dependencyResolutionManagement {
     // Use Maven Central as the default repository (where Gradle will download dependencies) in all subprojects.
     @Suppress("UnstableApiUsage")
     repositories {
+        // 本地 Maven 仓库（用于 tower-messaging 等本地模块）
+        mavenLocal()
         maven {
             url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
         }
+        maven("https://maven.aliyun.com/repository/central")
         mavenCentral()
 //        maven {
 //            url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")

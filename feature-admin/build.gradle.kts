@@ -9,10 +9,13 @@ dependencies {
     implementation(project(":lib-persistence"))
     implementation(project(":lib-cluster"))
 
+    implementation("io.iamcyw.tower:tower-quarkus:1.4.0-SNAPSHOT")
+
     implementation(enforcedPlatform(libs.quarkus.bom))
 
     implementation(libs.quarkus.arc)
     implementation("io.quarkus:quarkus-rest")
+    implementation("io.quarkus:quarkus-rest-jackson")
     implementation("io.quarkus:quarkus-cache")
     implementation("io.quarkus:quarkus-security-jpa")
     implementation("io.smallrye:smallrye-jwt")

@@ -6,7 +6,7 @@ spotless {
     java {
         target("**/*.java")
         targetExclude("**/bin/**")
-        googleJavaFormat("1.25.2")
+        googleJavaFormat("1.27.0")
         importOrder("", "javax", "java", "\\#")
         removeUnusedImports()
         trimTrailingWhitespace()
