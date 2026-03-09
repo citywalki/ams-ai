@@ -1,105 +1,121 @@
 package pro.walkin.ams.admin.system;
 
+import io.iamcyw.tower.messaging.gateway.MessageGateway;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import pro.walkin.ams.admin.system.service.MenuService;
-import pro.walkin.ams.admin.system.service.RbacService;
-import pro.walkin.ams.common.dto.*;
+import pro.walkin.ams.admin.system.command.permission.*;
+import pro.walkin.ams.admin.system.query.MenuQuery;
+import pro.walkin.ams.admin.system.query.PermissionQuery;
+import pro.walkin.ams.admin.system.query.RbacQuery;
+import pro.walkin.ams.common.dto.PermissionDto;
+import pro.walkin.ams.common.dto.PermissionResponseDto;
 import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.common.security.annotation.RequireRole;
 import pro.walkin.ams.common.security.util.SecurityUtils;
 import pro.walkin.ams.persistence.entity.system.Menu;
-import pro.walkin.ams.persistence.entity.system.Permission;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Path("/api/system/permissions")
 public class PermissionController {
 
-  @Inject PermissionService permissionService;
+  @Inject PermissionQuery permissionQuery;
 
-  @Inject RbacService rbacService;
+  @Inject MenuQuery menuQuery;
 
-  @Inject MenuService menuService;
+  @Inject MessageGateway messageGateway;
+
+  @Inject RbacQuery rbacQuery;
+
+  @GET
+  public Response list(
+      @QueryParam("sortBy") String sortBy,
+      @QueryParam("sortOrder") @DefaultValue("DESC") String sortOrder,
+      @QueryParam("page") @DefaultValue("0") int page,
+      @QueryParam("size") @DefaultValue("20") int size) {
+
+    var permissions = permissionQuery.findAllAsDto(sortBy, sortOrder, page, size);
+    long total = permissionQuery.count();
+
+    return Response.ok(
+            Map.of(
+                "content", permissions,
+                "totalElements", total,
+                "page", page,
+                "size", size))
+        .build();
+  }
+
+  @GET
+  @Path("/{id}")
+  public Response getById(@PathParam("id") Long id) {
+    return Response.ok(permissionQuery.findByIdAsDto(id)).build();
+  }
 
   @POST
   @RequireRole("ADMIN")
   public Response create(PermissionDto permissionDto) {
-    if (permissionService.findByCode(permissionDto.getCode()).isPresent()) {
+    if (permissionQuery.findByCodeAsDto(permissionDto.getCode()).isPresent()) {
       throw new WebApplicationException("Permission code already exists", Response.Status.CONFLICT);
     }
 
-    Permission permission = new Permission();
-    permission.code = permissionDto.getCode();
-    permission.name = permissionDto.getName();
-    permission.description = permissionDto.getDescription();
-    permission.sortOrder = permissionDto.getSortOrder() != null ? permissionDto.getSortOrder() : 0;
-    permission.buttonType =
-        permissionDto.getButtonType() != null ? permissionDto.getButtonType() : "DEFAULT";
-    permission.tenant = TenantContext.getCurrentTenantId();
+    messageGateway.send(
+        new CreatePermissionCommand(
+            permissionDto.getCode(),
+            permissionDto.getName(),
+            permissionDto.getDescription(),
+            permissionDto.getMenuId(),
+            permissionDto.getSortOrder() != null ? permissionDto.getSortOrder() : 0,
+            permissionDto.getButtonType() != null ? permissionDto.getButtonType() : "DEFAULT"));
 
-    if (permissionDto.getMenuId() != null) {
-      Menu menu = menuService.findById(permissionDto.getMenuId());
-      if (menu != null) {
-        permission.menu = menu;
-      }
-    }
+    // Query the created permission by code
+    PermissionResponseDto savedPermission =
+        permissionQuery
+            .findByCodeAsDto(permissionDto.getCode())
+            .orElseThrow(() -> new RuntimeException("Failed to create permission"));
 
-    Permission savedPermission = permissionService.createPermission(permission);
-
-    return Response.status(Response.Status.CREATED)
-        .entity(convertToResponseDto(savedPermission))
-        .build();
+    return Response.status(Response.Status.CREATED).entity(savedPermission).build();
   }
 
   @Path("/{id}")
   @PUT
   @RequireRole("ADMIN")
   public Response update(@PathParam("id") Long id, PermissionDto permissionDto) {
-    Permission permission = permissionService.findById(id).orElse(null);
-    if (permission == null) {
-      return Response.status(Response.Status.NOT_FOUND).build();
-    }
+    PermissionResponseDto existing = permissionQuery.findByIdAsDto(id);
 
-    if (!permission.code.equals(permissionDto.getCode())) {
-      if (permissionService.findByCode(permissionDto.getCode()).isPresent()) {
+    if (!existing.getCode().equals(permissionDto.getCode())) {
+      if (permissionQuery.findByCodeAsDto(permissionDto.getCode()).isPresent()) {
         throw new WebApplicationException(
             "Permission code already exists", Response.Status.CONFLICT);
       }
     }
 
-    permission.code = permissionDto.getCode();
-    permission.name = permissionDto.getName();
-    permission.description = permissionDto.getDescription();
-    permission.sortOrder = permissionDto.getSortOrder() != null ? permissionDto.getSortOrder() : 0;
-    permission.buttonType =
-        permissionDto.getButtonType() != null ? permissionDto.getButtonType() : "DEFAULT";
+    messageGateway.send(
+        new UpdatePermissionCommand(
+            id,
+            permissionDto.getCode(),
+            permissionDto.getName(),
+            permissionDto.getDescription(),
+            permissionDto.getMenuId(),
+            permissionDto.getSortOrder() != null ? permissionDto.getSortOrder() : 0,
+            permissionDto.getButtonType() != null ? permissionDto.getButtonType() : "DEFAULT"));
 
-    if (permissionDto.getMenuId() != null) {
-      Menu menu = menuService.findById(permissionDto.getMenuId());
-      if (menu != null) {
-        permission.menu = menu;
-      }
-    } else {
-      permission.menu = null;
-    }
-
-    Permission updatedPermission = permissionService.updatePermission(id, permission);
-    return Response.ok(convertToResponseDto(updatedPermission)).build();
+    return Response.ok(permissionQuery.findByIdAsDto(id)).build();
   }
 
   @Path("/{id}")
   @DELETE
   @RequireRole("ADMIN")
   public Response delete(@PathParam("id") Long id) {
-    permissionService.deletePermission(id);
+    messageGateway.send(new DeletePermissionCommand(id));
     return Response.noContent().build();
   }
 
@@ -108,7 +124,7 @@ public class PermissionController {
   public Response getUserPermissions(@Context SecurityContext securityContext) {
     Long userId = SecurityUtils.getUserIdFromSecurityContext(securityContext);
     Long tenantId = TenantContext.getCurrentTenantId();
-    Set<String> userPermissions = rbacService.getUserPermissions(userId, tenantId);
+    Set<String> userPermissions = rbacQuery.getUserPermissions(userId, tenantId);
     return Response.ok(userPermissions).build();
   }
 
@@ -119,16 +135,16 @@ public class PermissionController {
     Long userId = SecurityUtils.getUserIdFromSecurityContext(securityContext);
     Long tenantId = TenantContext.getCurrentTenantId();
 
-    Menu menu = menuService.findByKey(menuCode);
+    Menu menu = menuQuery.findByKey(menuCode);
     if (menu == null) {
       return Response.ok(Collections.emptyList()).build();
     }
 
-    Set<String> userRoles = rbacService.getUserRoles(userId, tenantId);
+    Set<String> userRoles = rbacQuery.getUserRoles(userId, tenantId);
     if (menu.rolesAllowed == null
         || menu.rolesAllowed.isEmpty()
         || menu.rolesAllowed.stream().anyMatch(userRoles::contains)) {
-      Set<String> userPermissions = rbacService.getUserPermissions(userId, tenantId);
+      Set<String> userPermissions = rbacQuery.getUserPermissions(userId, tenantId);
       List<String> menuButtons =
           menu.buttonPermissions.stream()
               .filter(perm -> userPermissions.contains(perm.code))
@@ -138,23 +154,5 @@ public class PermissionController {
     }
 
     return Response.ok(Collections.emptyList()).build();
-  }
-
-  private PermissionResponseDto convertToResponseDto(Permission permission) {
-    PermissionResponseDto dto = new PermissionResponseDto();
-    dto.setId(permission.id);
-    dto.setCode(permission.code);
-    dto.setName(permission.name);
-    dto.setDescription(permission.description);
-    dto.setSortOrder(permission.sortOrder);
-    dto.setButtonType(permission.buttonType);
-    if (permission.menu != null) {
-      dto.setMenuId(permission.menu.id);
-      dto.setMenuName(permission.menu.label);
-    }
-    dto.setCreatedAt(permission.createdAt);
-    dto.setUpdatedAt(permission.updatedAt);
-
-    return dto;
   }
 }

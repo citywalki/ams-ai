@@ -5,6 +5,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import pro.walkin.ams.admin.common.ResponseBuilder;
+import pro.walkin.ams.admin.system.query.DictCategoryQuery;
+import pro.walkin.ams.admin.system.query.DictItemQuery;
 import pro.walkin.ams.common.dto.DictCategoryResponse;
 import pro.walkin.ams.common.dto.DictItemResponse;
 import pro.walkin.ams.common.security.TenantContext;
@@ -15,9 +17,9 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 public class DictPublicController {
 
-  @Inject DictItemService itemService;
+  @Inject DictItemQuery itemQuery;
 
-  @Inject DictCategoryService categoryService;
+  @Inject DictCategoryQuery categoryQuery;
 
   @GET
   @Path("/{categoryCode}")
@@ -27,7 +29,7 @@ public class DictPublicController {
     if (category == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    List<DictItemResponse> items = itemService.getByCategoryId(category.id(), tenantId);
+    List<DictItemResponse> items = itemQuery.findByCategoryIdAsDto(category.id(), tenantId);
     return ResponseBuilder.of(items);
   }
 
@@ -39,7 +41,7 @@ public class DictPublicController {
     if (category == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    List<DictItemResponse> items = itemService.getTreeByCategoryId(category.id(), tenantId);
+    List<DictItemResponse> items = itemQuery.findTreeByCategoryIdAsDto(category.id(), tenantId);
     return ResponseBuilder.of(items);
   }
 
@@ -52,7 +54,7 @@ public class DictPublicController {
     if (category == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    List<DictItemResponse> items = itemService.getByCategoryId(category.id(), tenantId);
+    List<DictItemResponse> items = itemQuery.findByCategoryIdAsDto(category.id(), tenantId);
     DictItemResponse item =
         items.stream().filter(i -> i.code().equals(itemCode)).findFirst().orElse(null);
     if (item == null) {
@@ -62,7 +64,7 @@ public class DictPublicController {
   }
 
   private DictCategoryResponse findCategoryByCode(String code, Long tenantId) {
-    return categoryService.getAllCategories(tenantId).stream()
+    return categoryQuery.findAllAsDto(tenantId).stream()
         .filter(c -> c.code().equals(code))
         .findFirst()
         .orElse(null);

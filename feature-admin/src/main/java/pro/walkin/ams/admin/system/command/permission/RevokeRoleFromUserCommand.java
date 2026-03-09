@@ -1,0 +1,5 @@
+package pro.walkin.ams.admin.system.command.permission;
+
+import io.iamcyw.tower.messaging.Command;
+
+public record RevokeRoleFromUserCommand(Long userId, Long roleId) implements Command {}
