@@ -26,13 +26,21 @@
 ```
 app-web/src/
 ├── app/               # 应用层: providers, router, layout, store
-├── entities/          # 实体层: menu, user 等
-├── features/          # 特性层: auth, login-form 等
+├── features/          # 特性层: user, auth, dashboard 等
+│   └── user/
+│       ├── schema/    # TypeScript 类型定义
+│       ├── hooks/     # useUsers, useCreateUser 等
+│       └── components/# UserList, UserForm 等
 ├── pages/             # 页面层: Login, Dashboard 等
-├── widgets/           # 组件层: 复杂 UI 组合
 ├── components/        # 共享 UI 组件 (shadcn/ui)
 ├── shared/            # 共享层: api (axios, query-client), lib
+│   └── api/
+│       ├── command/   # Command API 客户端
+│       ├── graphql.ts # GraphQL 客户端
+│       └── rest-client.ts
 └── lib/               # 工具库: utils (cn)
+
+**注意**: 没有 `src/entities/` 目录。所有实体代码放在 `features/{feature}/` 中。
 ```
 
 ### 层级说明
@@ -137,18 +145,124 @@ export const useCounterStore = create<CounterState>((set) => ({
 
 ### 数据获取
 
-#### TanStack Query
-```typescript
-import { useQuery } from '@tanstack/react-query';
+#### GraphQL 查询 (Read)
 
-export function useUsers() {
+```typescript
+// features/user/hooks/use-users.ts
+import { useQuery } from '@tanstack/react-query';
+import { graphql } from '@/shared/api/graphql';
+
+const USERS_QUERY = `
+  query GetUsers($page: Int, $size: Int) {
+    users(page: $page, size: $size) {
+      content { id username email }
+      totalElements
+    }
+  }
+`;
+
+export function useUsers(options: { page?: number; size?: number } = {}) {
+  const { page = 0, size = 20 } = options;
+
   return useQuery({
-    queryKey: ['users'],
+    queryKey: ['users', { page, size }],
     queryFn: async () => {
-      const { data } = await api.get('/users');
-      return data;
+      const data = await graphql<UsersResponse>(USERS_QUERY, { page, size });
+      return data.users;
     },
   });
+}
+```
+
+#### Command API 模式 (Write)
+
+使用统一的 Command 端点处理所有写操作。
+
+**1. Command API 客户端** (`shared/api/command/index.ts`):
+
+```typescript
+export type CommandType =
+  | 'CreateUserCommand'
+  | 'UpdateUserCommand'
+  | 'DeleteUserCommand';
+
+export async function sendCommand<TResponse, TPayload>(
+  type: CommandType,
+  payload: TPayload
+): Promise<TResponse> {
+  const response = await restClient.post<TResponse>('/commands', { type, payload });
+  return response.data;
+}
+```
+
+**2. useCommand Hook** (`shared/hooks/use-command.ts`):
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+interface UseCommandOptions<TResponse, TError, TPayload> {
+  commandType: CommandType;
+  onSuccess?: (data: TResponse) => void;
+}
+
+export function useCommand<TResponse, TError, TPayload>(
+  options: UseCommandOptions<TResponse, TError, TPayload>
+) {
+  const { commandType, onSuccess } = options;
+
+  return useMutation<TResponse, TError, TPayload>({
+    mutationFn: (payload: TPayload) =>
+      sendCommand<TResponse, TPayload>(commandType, payload),
+    onSuccess,
+  });
+}
+```
+
+**3. Feature Hook** (`features/user/hooks/use-user-commands.ts`):
+
+```typescript
+import { useQueryClient } from '@tanstack/react-query';
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+
+  return useCommand<User, Error, CreateUserInput>({
+    commandType: 'CreateUserCommand',
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+}
+
+export function useUpdateUser() {
+  return useCommand<User, Error, UpdateUserInput>({
+    commandType: 'UpdateUserCommand',
+  });
+}
+```
+
+**4. 在组件中使用**:
+
+```typescript
+export function UserForm() {
+  const createUser = useCreateUser();
+
+  const handleSubmit = (data: CreateUserInput) => {
+    createUser.mutate(data, {
+      onSuccess: () => {
+        toast.success('用户创建成功');
+      },
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* form fields */}
+      <Button type="submit" disabled={createUser.isPending}>
+        创建
+      </Button>
+    </form>
+  );
 }
 ```
 

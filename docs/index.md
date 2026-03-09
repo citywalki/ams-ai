@@ -20,7 +20,7 @@ New to the project? Start here:
 - **[Backend Patterns](./backend-patterns.md)** - Java/Quarkus coding conventions
 - Multi-tenancy via `tenant_id` + Hibernate Filter
 - Panache Next repository pattern
-- Query/Service layer separation
+- CQRS: Query/Command Handler separation
 
 ### Frontend
 - **[Frontend Patterns](./frontend-patterns.md)** - FSD (Feature-Sliced Design) architecture

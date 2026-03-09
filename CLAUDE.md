@@ -1,8 +1,6 @@
-# AMS-AI Project Context
+# CLAUDE.md
 
-> Agentic Context Engineering (ACE) playbook for the AMS-AI project.
-> This file captures high-value insights, patterns, and constraints to improve future agent performance.
-> Last updated: 2026-03-09
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -16,6 +14,7 @@
 - **JDK**: 21
 - **Framework**: Quarkus 3.31.2
 - **Persistence**: Hibernate ORM + Panache Next
+- **Command Framework**: Tower 1.4.0-SNAPSHOT (CQRS pattern)
 - **Cache**: Hazelcast 5.4.0 (cluster event bus), Quarkus Cache (local memory + cluster invalidation)
 - **Database Migration**: Liquibase (YAML format)
 
@@ -26,7 +25,7 @@
 - **Architecture**: Feature-Sliced Design (FSD)
 - **UI Library**: shadcn/ui + Base UI + Tailwind CSS 4
 - **State**: Zustand 5
-- **Data Fetching**: GraphQL (urql) for queries, REST (axios) for mutations
+- **Data Fetching**: GraphQL (urql) for queries, REST Commands for mutations
 
 ## Critical Architecture Rules
 
@@ -37,7 +36,6 @@
 - Tenant context is ThreadLocal-based, set from JWT or Header
 
 ```java
-// Correct pattern - automatic filtering via Hibernate Filter
 @Entity
 @FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = Long.class))
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
@@ -46,142 +44,62 @@ public class User extends BaseEntity {
 }
 ```
 
+### CQRS Pattern: Command + Query Separation
+
+| Operation | Location | Pattern |
+|-----------|----------|---------|
+| **Write** | `command/` + `handler/` | Tower Command → Handler → Repository |
+| **Read** | `query/` | Query class → Repository |
+
+**Rules**:
+- Commands implement `io.iamcyw.tower.messaging.Command`
+- Handlers implement `CommandHandler<Command, Result>`
+- All commands sent to `POST /api/commands`
+- Handlers use `@Inject Query` for validation (NOT repository)
+- Handlers mark `handle()` with `@Transactional`
+
+See [backend-patterns.md](./docs/backend-patterns.md) for complete examples.
+
 ### API Protocol Selection
 
-| Operation Type | Protocol | Rationale |
-|----------------|----------|-----------|
-| **List/Detail Queries** | GraphQL | Flexible field selection, nested data fetching, single endpoint for multiple resources |
-| **Create/Update/Delete** | REST | Clear resource semantics (POST/PUT/PATCH/DELETE), optimal HTTP caching, idempotency support |
-| **Bulk Operations** | REST | Better handling of large payloads, standard HTTP batch patterns |
-| **File Upload** | REST | Native multipart/form-data support |
+| Operation Type | Protocol | Endpoint Pattern | Rationale |
+|----------------|----------|------------------|-----------|
+| **List/Detail Queries** | GraphQL | `/graphql` | Flexible field selection, nested data fetching |
+| **Commands (Write)** | REST | `POST /api/commands` | Unified command endpoint via Tower |
+| **File Upload** | REST | `/api/files/*` | Native multipart/form-data support |
 
-**Guideline**: Queries (Read) = GraphQL via urql, Commands (Write) = REST via axios
-
-#### Code Examples
-
-**GraphQL Query Pattern** (from `app-web/src/features/user/hooks/use-users.ts`):
-```typescript
-import { useQuery } from "@tanstack/react-query";
-import { graphql } from "@/shared/api/graphql";
-
-const USERS_QUERY = `
-  query GetUsers($where: UserFilter, $page: Int, $size: Int) {
-    users(where: $where, page: $page, size: $size) {
-      content { id username email }
-      totalElements
-    }
+**Command Request Format**:
+```json
+{
+  "type": "CreateUserCommand",
+  "payload": {
+    "username": "admin",
+    "email": "admin@example.com",
+    "password": "secret",
+    "status": "ACTIVE",
+    "tenantId": 1
   }
-`;
-
-export function useUsers(options: UseUsersOptions = {}) {
-  return useQuery<UserConnection, Error>({
-    queryKey: ["users", options],
-    queryFn: async () => {
-      const data = await graphql<UsersResponse>(USERS_QUERY, options);
-      return data.users;
-    },
-  });
 }
 ```
-
-**REST Mutation Pattern** (from `app-web/src/features/user/hooks/use-user-mutations.ts`):
-```typescript
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { restClient } from "@/shared/api/rest-client";
-
-export function useCreateUser() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (input: CreateUserInput) => {
-      const response = await restClient.post<User>("/system/users", input);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
-  });
-}
-```
-
-#### Anti-Patterns to Avoid
-
-**1. Using GraphQL mutations for writes**
-- **Why**: GraphQL mutations lack standard HTTP semantics (no 201 Created, 204 No Content status codes), making caching and error handling inconsistent
-- **Do this instead**: Use REST POST/PUT/PATCH/DELETE for all create, update, and delete operations
-
-**2. Using REST GET for complex data fetching**
-- **Why**: Multiple REST endpoints require multiple round trips; GraphQL allows fetching nested resources in a single request
-- **Do this instead**: Use GraphQL queries when you need related data (e.g., user with their roles and permissions)
-
-**3. Creating separate `api/` directories**
-- **Why**: Unnecessary abstraction layer that complicates feature organization
-- **Do this instead**: Call clients directly in hooks (see examples above)
 
 ### Caching Strategy
 
-#### 集群缓存架构模式（强制）
-
-**正确模式**：本地缓存（Quarkus Cache）+ 集群事件失效
+**集群缓存架构模式（强制）**:
 ```
-┌─────────────────────────────────────────────────────────┐
-│  Node 1                    Hazelcast Topic    Node 2    │
-│  ┌──────────┐            "cache-invalidate"   ┌──────────┐│
-│  │本地缓存   │◄───────────────────────────────►│本地缓存   ││
-│  └──────────┘                                └──────────┘│
-└─────────────────────────────────────────────────────────┘
+Node 1                    Hazelcast Topic    Node 2
+┌──────────┐            "cache-invalidate"   ┌──────────┐
+│本地缓存   │◄───────────────────────────────►│本地缓存   │
+└──────────┘                                └──────────┘
 ```
 
-**实现组件**：
-- `CacheInvalidationBroadcaster` - 广播缓存失效事件接口
-- `CacheInvalidationListener` - 监听 `cache-invalidate` Topic，失效本地缓存
+- **Correct**: Local cache (Quarkus Cache) + cluster invalidation events
+- **Wrong**: Direct Hazelcast IMap usage (network overhead)
 
-**示例代码**（`RbacService`）：
-```java
-@Inject @CacheName("user-permissions") Cache cache;
-@Inject CacheInvalidationBroadcaster broadcaster;
-
-public void invalidateUserPermissions(Long userId, Long tenantId) {
-    String cacheKey = userId + ":" + tenantId;
-    // 广播失效事件，本地 Listener 和集群其他节点统一处理
-    broadcaster.broadcast("user-permissions", cacheKey);
-}
-```
-
-**错误模式**：直接使用 Hazelcast IMap
-- 原因：每次读取都需要网络调用，性能差
-- 替代：使用本地缓存 + 事件失效，读取本地内存（快），仅在失效时广播
-
-#### 模块缓存规范
-
-| 模块 | 缓存策略 | 说明 |
-|------|---------|------|
-| **feature-admin** | 前端查询禁用缓存 | `getUserMenus()` 等前端接口不使用 `@CacheResult` |
-| **feature-admin** | 内部逻辑可用缓存 | 权限检查等可使用本地缓存 + 集群失效 |
-| **feature-core** | 告警配置可缓存 | 配置数据变化少，适合缓存 |
-
-#### 缓存失效流程
-1. Service 层修改数据
-2. 调用 `cache.invalidate()` 失效本地缓存
-3. 调用 `broadcaster.broadcast()` 发布事件到 `cache-invalidate` topic
-4. `CacheInvalidationListener` 接收事件，失效所有节点的本地缓存
-
-### Layer Separation (Backend)
-- **Read operations**: Place in `*Query` classes (e.g., `UserQuery.java`)
-- **Write operations**: Place in `*Service` classes with `@Transactional`
-- **Never** mix read/write logic in the same class
+**Components**:
+- `CacheInvalidationBroadcaster` - Broadcast cache invalidation events
+- `CacheInvalidationListener` - Listen to `cache-invalidate` topic
 
 ## Code Style Rules
-
-### Code Formatting
-
-- No semicolons (enforced)
-- Single quotes (enforced)
-- No unnecessary curly braces (enforced)
-- 2-space indentation
-- Import order: external → internal → types
-
-## Code Style & Patterns
 
 ### Java Backend
 
@@ -192,8 +110,8 @@ public void invalidateUserPermissions(Long userId, Long tenantId) {
 public class User extends BaseEntity {
     public String username;  // Public fields, NO Lombok
     public String email;
-    public Long tenantId;    // Mandatory for multi-tenancy
-    
+    public Long tenantId;
+
     // Nested repository definition
     public interface Repo extends PanacheRepository<User> {}
 }
@@ -202,38 +120,41 @@ public class User extends BaseEntity {
 ```
 
 **Critical Rules**:
-- All entities must extend `BaseEntity` (provides id, timestamps)
-- Use `public` fields (no getters/setters needed with Panache)
+- All entities must extend `BaseEntity`
+- Use `public` fields (no getters/setters with Panache)
 - **NO Lombok** - explicitly prohibited
 - Repository nested in entity: `public interface Repo extends PanacheRepository<Entity>`
 - Access via static methods: `Entity_.managedBlocking()` or `Entity_.managed()`
 
-#### Exception Handling Hierarchy
+#### Command Pattern Implementation
+
+**Directory Structure**:
 ```
-BaseException (code, message)
-├── BusinessException (BUSINESS_ERROR)
-├── ValidationException (field, value)
-├── NotFoundException (resourceType, resourceId)
-└── AuthException
-```
-
-**Usage Patterns**:
-```java
-// Resource not found
-throw new NotFoundException("User", userId.toString());
-
-// Validation with field info
-throw new ValidationException("邮箱格式不正确", "email", userValue);
-
-// Business logic error
-throw new BusinessException("订单金额不能为负数");
+feature-admin/src/main/java/pro/walkin/ams/admin/system/
+├── command/     # Command records
+├── handler/     # Command handlers
+└── query/       # Query classes
 ```
 
-**Never**:
-- Throw raw `RuntimeException`
-- Use empty catch blocks
-- Expose sensitive info in error messages
-- Hardcode error messages (use constants)
+**Rules**:
+1. Commands are records implementing `io.iamcyw.tower.messaging.Command`
+2. Handlers implement `CommandHandler<CommandType, ReturnType>`
+3. Handlers use `@Inject Query` for validation (NOT repository)
+4. Handlers mark `handle()` with `@Transactional`
+5. Queries go in `*Query` classes, never in handlers
+
+See [backend-patterns.md](./docs/backend-patterns.md) for complete examples.
+
+#### Exception Handling
+
+**Hierarchy**: `BaseException` → `BusinessException` | `ValidationException` | `NotFoundException` | `AuthException`
+
+**Usage**:
+- `NotFoundException(resourceType, resourceId)` - 资源不存在
+- `ValidationException(message, field, value)` - 字段校验失败
+- `BusinessException(message)` - 业务逻辑错误
+
+**Never**: Throw raw `RuntimeException`, use empty catch blocks, expose sensitive info.
 
 #### Imports Order (Mandatory)
 1. Third-party/project packages
@@ -254,86 +175,43 @@ src/
 ├── store/             # Zustand stores: store/{feature}-store.ts
 ├── components/        # Shared UI (shadcn/ui)
 ├── shared/            # API clients, utilities
+│   ├── api/
+│   │   ├── command/   # Command API client
+│   │   ├── graphql.ts
+│   │   └── rest-client.ts
+│   └── hooks/
+│       └── use-command.ts
 └── lib/               # Tool utilities
 ```
 
 **Hard Constraint**: No `src/entities/` directory. All entity code lives in `features/{feature}/`.
 
-#### Schema Layer Pattern
-```typescript
-// features/user/schema/user.ts
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  tenantId: number;  // Mandatory field
-}
+#### Command API Pattern (Frontend)
 
-export interface CreateUserRequest {
-  username: string;
-  email: string;
-}
-```
+**Files**:
+- `shared/api/command/index.ts` - Command API client
+- `shared/hooks/use-command.ts` - `useCommand` hook
+- `features/{feature}/hooks/use-{feature}-commands.ts` - Feature commands
 
-#### Hook Naming Conventions
+**Flow**: `useCommand` → `sendCommand` → `POST /api/commands`
+
+See [frontend-patterns.md](./docs/frontend-patterns.md) for complete examples.
+
+#### Schema & Hook Conventions
 - **Data hooks**: `use{Feature}{Action}` (e.g., `useUserMenus`, `useAlarmsList`)
+- **Command hooks**: `use{Action}{Entity}` (e.g., `useCreateUser`, `useUpdateRole`)
 - **Store hooks**: `use{Feature}Store` (e.g., `useAuthStore`)
 - **Query keys**: `["{entity}", "{action}"]` format
 
-#### API Calling Patterns
-```typescript
-// GraphQL Query (urql)
-export function useAlarms(status?: string) {
-  return useQuery({
-    query: ALARMS_QUERY,
-    variables: { status },
-  });
-}
+#### Component Organization
 
-// REST Mutation (axios) - REQUIRED for writes
-export function useUpdateAlarm() {
-  return useMutation({
-    mutationFn: async ({ id, status }: UpdateParams) => {
-      const response = await restClient.patch(`/alarms/${id}`, { status });
-      return response.data;
-    },
-  });
-}
-```
-
-**Anti-pattern**: Creating separate `features/**/api/` directories. Call clients directly in hooks.
-
-#### Component Organization (Pages Layer)
-Pages should only:
+**Pages** should only:
 1. Compose features from `features/`
-2. Prepare and pass data
+2. Pass data to features
 3. Define page-level layout
 
-**Wrong**:
-```typescript
-// pages/Dashboard.tsx - DON'T DO THIS
-export default function Dashboard() {
-  const statsData = [...]; // 20+ lines data
-  return (
-    <Card><CardHeader>...30 lines UI...</CardHeader></Card>
-  );
-}
-```
-
-**Correct**:
-```typescript
-// pages/Dashboard.tsx
-import { StatCards } from "@/features/dashboard/components/stat-cards";
-
-export default function Dashboard() {
-  return (
-    <div className="space-y-6">
-      <StatCards data={statsData} />
-      <AlarmTrendChart />
-    </div>
-  );
-}
-```
+**Don't**: Put business logic, data fetching, or state in pages.
+**Do**: Move business logic to `features/{feature}/components/`.
 
 ## Common Commands
 
@@ -343,7 +221,8 @@ export default function Dashboard() {
 ./gradlew :app-boot:quarkusDev       # Dev mode with hot reload
 ./gradlew build -x test              # Build without tests
 ./gradlew test                       # Run all tests
-./gradlew :app-boot:test --tests "UserServiceTest"  # Single test class
+./gradlew :app-boot:test --tests "UserQueryTest"  # Single test class
+./gradlew :app-boot:test --tests "UserQueryTest.shouldFindById"  # Single test method
 ```
 
 ### Frontend
@@ -356,6 +235,49 @@ pnpm test:run                        # Unit tests
 npx shadcn add <component>           # Add shadcn/ui component
 ```
 
+## Codemap CLI
+
+**Required Usage** - You MUST use `codemap --diff --ref main` to research changes different from main branch, and `git diff` + `git status` to research current working state.
+
+### Quick Start
+
+```bash
+codemap .                    # Project tree
+codemap --only java .        # Just Java files
+codemap --exclude .png .     # Hide assets
+codemap --depth 2 .          # Limit depth
+codemap --diff --ref main    # What changed vs main
+codemap --deps .             # Dependency flow
+```
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--depth, -d <n>` | Limit tree depth (0 = unlimited) |
+| `--only <exts>` | Only show files with these extensions |
+| `--exclude <patterns>` | Exclude files matching patterns |
+| `--diff` | Show files changed vs main branch |
+| `--ref <branch>` | Branch to compare against (with --diff) |
+| `--deps` | Dependency flow mode |
+| `--importers <file>` | Check who imports a file |
+| `--skyline` | City skyline visualization |
+| `--json` | Output JSON |
+
+**Smart pattern matching** - no quotes needed:
+- `.png` - any `.png` file
+| `Fonts` - any `/Fonts/` directory
+| `*Test*` - glob pattern
+
+### Diff Mode
+
+See what you're working on:
+
+```bash
+codemap --diff --ref main
+codemap --diff --ref origin/main
+```
+
 ## Key Files Reference
 
 | File | Purpose |
@@ -363,8 +285,11 @@ npx shadcn add <component>           # Add shadcn/ui component
 | `gradle/libs.versions.toml` | Dependency versions baseline |
 | `lib-common/src/.../TenantContext.java` | Multi-tenant context management |
 | `lib-common/src/.../GlobalExceptionHandler.java` | Unified error handling |
-| `lib-common/src/.../BaseException.java` | Exception hierarchy root |
-| `app-web/src/app/routes/` | Frontend routing configuration |
+| `lib-common/src/.../command/CommandRequest.java` | Command request wrapper |
+| `lib-common/src/.../command/CommandResponse.java` | Command response wrapper |
+| `feature-admin/src/.../command/CommandController.java` | Unified command endpoint |
+| `app-web/src/shared/api/command/index.ts` | Frontend command API |
+| `app-web/src/shared/hooks/use-command.ts` | useCommand hook |
 | `buildSrc/.../base-java-convention.gradle.kts` | JDK version config |
 
 ## Development Guidelines
@@ -374,17 +299,20 @@ npx shadcn add <component>           # Add shadcn/ui component
 | Scope | Convention | Example |
 |-------|-----------|---------|
 | Java packages | `pro.walkin.ams.{module}.{layer}` | `pro.walkin.ams.admin.system.query` |
-| Java classes | PascalCase | `UserService`, `UserQuery` |
-| Java methods | camelCase | `findById`, `createUser` |
+| Java classes | PascalCase | `UserQuery`, `CreateUserHandler` |
+| Command records | PascalCase + Command suffix | `CreateUserCommand` |
+| Handler classes | PascalCase + Handler suffix | `CreateUserHandler` |
+| Java methods | camelCase | `findById`, `handle` |
 | Java constants | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
 | DB columns | snake_case | `tenant_id`, `created_at` |
 | TS components | PascalCase | `LoginForm`, `DashboardPage` |
-| TS hooks | camelCase | `useUserMenus`, `useAuthStore` |
+| TS hooks | camelCase | `useUserMenus`, `useCreateUser` |
 
 ### State Management Rules
 - **Server state**: GraphQL (urql) or TanStack Query (REST)
+- **Commands**: useCommand hook with TanStack Query mutations
 - **Client global state**: Zustand in `src/store/{feature}-store.ts`
-- **Never** use `localStorage` directly in components (use Zustand persist)
+- **Never** use `localStorage` directly in components
 
 ### shadcn/ui Component Installation
 Always use CLI, never copy-paste:
@@ -395,20 +323,20 @@ npx shadcn add button dialog dropdown-menu
 ## Anti-Patterns to Avoid
 
 ### Backend
-1. **Direct Hazelcast IMap for caching** - Use local cache + cluster invalidation events instead
+1. **Direct Hazelcast IMap for caching** - Use local cache + cluster invalidation
 2. **Missing cluster cache invalidation** - Always broadcast via `CacheInvalidationBroadcaster`
-3. **Mixing read/write logic** - Keep Query and Service classes separate
-3. **Raw EntityManager** - Use Panache `managedBlocking()` instead
-4. **Hardcoded tenant IDs** - Always use `TenantContext`
-5. **Lombok** - Explicitly prohibited, use public fields
-6. **System.out/err** - Use SLF4J parameterized logging
+3. **Service layer for writes** - Use CommandHandler pattern instead
+4. **Mixing read/write logic** - Keep Query and Handler classes separate
+5. **Raw EntityManager** - Use Panache `managedBlocking()` instead
+6. **Hardcoded tenant IDs** - Always use `TenantContext`
+7. **Lombok** - Explicitly prohibited, use public fields
+8. **System.out/err** - Use SLF4J parameterized logging
 
 ### Frontend
 1. **Creating `src/entities/`** - Put all entity code in `features/`
-2. **Separate API layers** - Call clients directly in hooks
+2. **Separate API layers** - Call command client directly in hooks
 3. **Business logic in pages** - Move to `features/{feature}/components/`
-4. **GraphQL mutations** - Use REST for all write operations
-5. **Manual component code** - Use `npx shadcn add` for UI components
+4. **Manual component code** - Use `npx shadcn add` for UI components
 
 ## Testing Guidelines
 
@@ -416,9 +344,8 @@ npx shadcn add button dialog dropdown-menu
 ```bash
 ./gradlew test                                        # All tests
 ./gradlew :app-boot:test --tests "*Test"              # Pattern match
-./gradlew :app-boot:test --tests "UserServiceTest.shouldCreateUser"  # Method
+./gradlew :app-boot:test --tests "UserQueryTest.shouldFindById"  # Method
 ./gradlew :app-boot:test -PrunIntegrationTests        # Integration tests (needs Docker)
-./gradlew :app-boot:test --tests "*PactProviderTest"  # Contract tests
 ```
 
 ### Frontend Test Commands
@@ -435,15 +362,15 @@ Before submitting changes, verify:
 
 - [ ] All new entities have `tenant_id` field
 - [ ] Queries filter by `TenantContext.getCurrentTenantId()`
-- [ ] Read operations in `*Query` classes, writes in `*Service` with `@Transactional`
+- [ ] Write operations use Command pattern (Command class + Handler)
+- [ ] Handlers inject Query for validation (not direct repository calls)
 - [ ] No Lombok usage
-- [ ] Caching uses local cache + cluster invalidation (NOT Hazelcast IMap directly)
-- [ ] Cache invalidation broadcasts to cluster via `CacheInvalidationBroadcaster`
+- [ ] Caching uses local cache + cluster invalidation
 - [ ] Backend: `./gradlew spotlessApply` executed
 - [ ] Frontend: `pnpm lint` passes
 - [ ] No `src/entities/` directory created (frontend)
-- [ ] GraphQL only for queries, REST for mutations
 - [ ] shadcn components installed via CLI
+- [ ] Command types added to `CommandType` union in frontend
 
 ## Domain-Specific Knowledge
 
@@ -461,9 +388,33 @@ Before submitting changes, verify:
 - Tenant isolation at database level via Hibernate Filter
 - Permission annotations: `@RequirePermission`, `@RequirePermissions`
 
+## Context7 MCP Documentation
 
-## Confidence Levels
+Context7 MCP is configured to fetch up-to-date library documentation.
 
-- **High**: Multi-tenancy rules, API protocol selection, FSD structure
-- **Medium**: Specific component patterns (may evolve with UI library updates)
-- **Source**: AGENTS.md, docs/*.md, actual codebase patterns (2026-03-08)
+### Recommended Library IDs
+
+| Library | Context7 ID | Usage |
+|---------|-------------|-------|
+| Quarkus | `quarkusio/quarkus` | Backend framework |
+| Hibernate ORM | `hibernate/hibernate-orm` | JPA implementation |
+| JUnit 5 | `junit-team/junit5` | Testing framework |
+| React | `facebook/react` | Frontend framework |
+| TypeScript | `microsoft/typescript` | Language |
+| TanStack Query | `tanstack/query` | Data fetching |
+
+### Usage Patterns
+
+Query documentation using:
+- "use context7 for [topic]" - Fetch documentation
+- "check context7 for [library]" - Verify library usage
+- "look up in context7" - General documentation query
+
+Example:
+```
+How to use Hibernate second-level cache? Use context7.
+```
+
+---
+
+**Last Updated**: 2026-03-09

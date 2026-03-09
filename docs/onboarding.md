@@ -273,12 +273,12 @@ return useMutation({
 
 ## Backend Quick Reference
 
-### Layer Separation
+### Layer Separation (CQRS)
 
 | Layer | Purpose | Example |
 |-------|---------|---------|
 | `*Query` classes | Read operations | `UserQuery.findByCriteria()` |
-| `*Service` classes | Write operations | `UserService.create()` |
+| Command / Handler | Write operations | `CreateUserCommand` + `CreateUserHandler.handle()` |
 
 ### Multi-Tenancy
 

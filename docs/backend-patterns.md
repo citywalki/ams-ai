@@ -36,7 +36,27 @@ app-boot/           # Quarkus 聚合启动模块
 
 ### 分层约定
 - **读操作**: 放在 `*Query`（例如 `feature-admin/.../query/UserQuery.java`）
-- **写操作**: 放在 `*Service`，且必须 `@Transactional`
+- **写操作**: 放在 Command Handler（`handler/*Handler.java`），且必须 `@Transactional`
+
+### CQRS 架构
+
+本项目采用 CQRS（命令查询职责分离）模式：
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Command   │────▶│   Handler   │────▶│  Repository │
+│  (写入操作)  │     │  (业务逻辑)  │     │  (数据访问)  │
+└─────────────┘     └─────────────┘     └─────────────┘
+
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│    Query    │────▶│   Query类   │────▶│  Repository │
+│  (读取操作)  │     │  (查询逻辑)  │     │  (数据访问)  │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+- **Command**: 记录类，实现 `io.iamcyw.tower.messaging.Command`
+- **Handler**: 处理 Command，实现 `CommandHandler<Command, Result>`
+- **Query**: 封装查询逻辑，供 Controller 和 Handler 使用
 
 ## 缓存策略
 
@@ -123,6 +143,129 @@ System.out.println("Processing user " + userId);
 - **方法/变量**: `camelCase`
 - **常量**: `UPPER_SNAKE_CASE`
 - **DB**: `snake_case` 列名（例：`tenant_id`）
+
+## CQRS 完整示例
+
+### 目录结构
+
+```
+feature-admin/src/main/java/pro/walkin/ams/admin/system/
+├── command/              # Command 定义
+│   └── role/
+│       ├── CreateRoleCommand.java
+│       ├── UpdateRoleCommand.java
+│       └── DeleteRoleCommand.java
+├── handler/              # Command 处理器
+│   ├── CreateRoleHandler.java
+│   ├── UpdateRoleHandler.java
+│   └── DeleteRoleHandler.java
+└── query/
+    └── RoleQuery.java    # 查询逻辑
+```
+
+### 1. Command 定义
+
+```java
+package pro.walkin.ams.admin.system.command.role;
+
+import io.iamcyw.tower.messaging.Command;
+
+public record CreateRoleCommand(
+    String code,
+    String name,
+    String description,
+    Long tenantId
+) implements Command {}
+```
+
+### 2. Command Handler
+
+```java
+package pro.walkin.ams.admin.system.handler;
+
+import io.iamcyw.tower.messaging.CommandHandler;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import pro.walkin.ams.admin.system.command.role.CreateRoleCommand;
+import pro.walkin.ams.admin.system.query.RoleQuery;
+import pro.walkin.ams.common.exception.BusinessException;
+import pro.walkin.ams.persistence.entity.system.Role;
+
+@ApplicationScoped
+public class CreateRoleHandler implements CommandHandler<CreateRoleCommand, Role> {
+
+    @Inject Role.Repo roleRepo;
+    @Inject RoleQuery roleQuery;
+
+    @Override
+    @Transactional
+    public Role handle(CreateRoleCommand cmd) {
+        // 1. 使用 Query 验证
+        if (roleQuery.findByCode(cmd.code()).isPresent()) {
+            throw new BusinessException("Role code already exists");
+        }
+
+        // 2. 创建实体
+        Role role = new Role();
+        role.code = cmd.code();
+        role.name = cmd.name();
+        role.description = cmd.description();
+        role.tenant = cmd.tenantId();
+
+        // 3. 持久化
+        roleRepo.persist(role);
+
+        // 4. 返回结果
+        return role;
+    }
+}
+```
+
+### 3. Query 类
+
+```java
+package pro.walkin.ams.admin.system.query;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import pro.walkin.ams.common.security.TenantContext;
+import pro.walkin.ams.persistence.entity.system.Role;
+
+import java.util.List;
+import java.util.Optional;
+
+@ApplicationScoped
+public class RoleQuery {
+
+    @Inject Role.Repo roleRepo;
+
+    public Optional<Role> findById(Long id) {
+        return roleRepo.findByIdOptional(id);
+    }
+
+    public Optional<Role> findByCode(String code) {
+        return roleRepo.find("code", code).firstResultOptional();
+    }
+
+    public List<Role> listByTenant(Long tenantId, int page, int size) {
+        return roleRepo.find("tenant", tenantId)
+            .page(page, size)
+            .list();
+    }
+
+    public long countByTenant(Long tenantId) {
+        return roleRepo.count("tenant", tenantId);
+    }
+}
+```
+
+### 关键规则
+
+1. **Handler 使用 Query 验证** - 不要直接调用 Repository 查询方法（除了 `findById`）
+2. **Handler 标记 `@Transactional`** - 确保写操作在事务中
+3. **Query 类不标记 `@Transactional`** - 只读操作不需要事务
+4. **返回实体** - Handler 返回操作后的实体供前端使用
 
 ## 参考文件
 
