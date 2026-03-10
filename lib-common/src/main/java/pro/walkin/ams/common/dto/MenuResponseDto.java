@@ -1,5 +1,8 @@
 package pro.walkin.ams.common.dto;
 
+import org.eclipse.microprofile.graphql.Ignore;
+import org.eclipse.microprofile.graphql.Name;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +49,7 @@ public record MenuResponseDto(
     /*
      * 是否可见
      */
-    Boolean isVisible,
+    @Name("isVisible") Boolean isVisible,
 
     /*
      * 菜单类型
@@ -61,7 +64,7 @@ public record MenuResponseDto(
     /*
      * 元数据
      */
-    Map<String, Object> metadata,
+    @Ignore Map<String, Object> metadata,
 
     /*
      * 租户ID

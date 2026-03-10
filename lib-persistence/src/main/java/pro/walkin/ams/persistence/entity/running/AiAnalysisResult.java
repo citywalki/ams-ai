@@ -1,6 +1,7 @@
 package pro.walkin.ams.persistence.entity.running;
 
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -38,6 +39,7 @@ public class AiAnalysisResult extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "result")
+  @Ignore
   Map<String, Object> result;
 
   /*

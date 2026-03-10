@@ -25,6 +25,9 @@ dependencies {
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.datatype.jsr310)
 
+    // GraphQL annotations (@Ignore for fields not exposed via GraphQL)
+    compileOnly("org.eclipse.microprofile.graphql:microprofile-graphql-api:2.0")
+
     // 工具类
     implementation(libs.jakarta.inject.api)
     implementation(libs.jakarta.annotation.api)

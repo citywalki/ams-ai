@@ -1,6 +1,7 @@
 package pro.walkin.ams.persistence.entity.running;
 
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -76,5 +77,6 @@ public class FabEquipment extends BaseEntity {
    */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "metadata")
+  @Ignore
   Map<String, Object> metadata;
 }

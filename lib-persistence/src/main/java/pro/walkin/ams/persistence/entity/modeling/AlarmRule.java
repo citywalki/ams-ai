@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.modeling;
 
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
+import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -39,11 +40,13 @@ public class AlarmRule extends BaseEntity {
   /** 规则条件（JSON格式） */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "conditions")
+  @Ignore
   public Map<String, Object> conditions;
 
   /** 规则动作（JSON格式） */
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "actions")
+  @Ignore
   public Map<String, Object> actions;
 
   /** 优先级 */
