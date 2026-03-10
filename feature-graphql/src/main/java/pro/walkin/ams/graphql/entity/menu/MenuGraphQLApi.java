@@ -18,6 +18,7 @@ import pro.walkin.ams.common.security.TenantContext;
 import pro.walkin.ams.common.security.util.SecurityUtils;
 import pro.walkin.ams.graphql.connection.MenuConnection;
 import pro.walkin.ams.graphql.connection.OrderByInput;
+import pro.walkin.ams.graphql.security.TenantAware;
 import pro.walkin.ams.persistence.entity.system.Menu;
 import pro.walkin.ams.persistence.entity.system.Permission;
 
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @GraphQLApi
+@TenantAware
 public class MenuGraphQLApi {
 
   @Inject Session session;

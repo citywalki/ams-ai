@@ -13,6 +13,7 @@ import org.eclipse.microprofile.graphql.Source;
 import org.hibernate.Session;
 import pro.walkin.ams.graphql.connection.OrderByInput;
 import pro.walkin.ams.graphql.connection.RoleConnection;
+import pro.walkin.ams.graphql.security.TenantAware;
 import pro.walkin.ams.persistence.entity.system.Permission;
 import pro.walkin.ams.persistence.entity.system.Role;
 
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 @GraphQLApi
+@TenantAware
 public class RoleGraphQLApi {
 
   @Inject Session session;

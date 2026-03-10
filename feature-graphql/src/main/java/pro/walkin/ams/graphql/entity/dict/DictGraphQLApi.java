@@ -13,12 +13,14 @@ import org.hibernate.Session;
 import pro.walkin.ams.graphql.connection.DictCategoryConnection;
 import pro.walkin.ams.graphql.connection.DictItemConnection;
 import pro.walkin.ams.graphql.connection.OrderByInput;
+import pro.walkin.ams.graphql.security.TenantAware;
 import pro.walkin.ams.persistence.entity.system.DictCategory;
 import pro.walkin.ams.persistence.entity.system.DictItem;
 
 import java.util.List;
 
 @GraphQLApi
+@TenantAware
 public class DictGraphQLApi {
 
   @Inject Session session;

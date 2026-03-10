@@ -12,11 +12,13 @@ import org.eclipse.microprofile.graphql.Query;
 import org.hibernate.Session;
 import pro.walkin.ams.graphql.connection.AlarmConnection;
 import pro.walkin.ams.graphql.connection.OrderByInput;
+import pro.walkin.ams.graphql.security.TenantAware;
 import pro.walkin.ams.persistence.entity.running.Alarm;
 
 import java.util.List;
 
 @GraphQLApi
+@TenantAware
 public class AlarmGraphQLApi {
 
   @Inject Session session;

@@ -13,6 +13,7 @@ import org.eclipse.microprofile.graphql.Source;
 import org.hibernate.Session;
 import pro.walkin.ams.graphql.connection.OrderByInput;
 import pro.walkin.ams.graphql.connection.PermissionConnection;
+import pro.walkin.ams.graphql.security.TenantAware;
 import pro.walkin.ams.persistence.entity.system.Menu;
 import pro.walkin.ams.persistence.entity.system.Permission;
 
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @GraphQLApi
+@TenantAware
 public class PermissionGraphQLApi {
 
   @Inject Session session;
