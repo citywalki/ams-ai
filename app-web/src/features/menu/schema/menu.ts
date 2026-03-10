@@ -9,7 +9,6 @@ export interface Menu {
   isVisible: boolean;
   menuType: "FOLDER" | "MENU";
   rolesAllowed: string[];
-  metadata: Record<string, unknown>;
   tenant: number;
   createdAt: string;
   updatedAt: string;

@@ -31,8 +31,8 @@ describe('useUserMenus', () => {
         return HttpResponse.json({
           data: {
             userMenus: [
-              { id: 1, key: 'dashboard', label: '仪表盘', route: '/', sortOrder: 1, isVisible: true, menuType: 'MENU', rolesAllowed: [], metadata: {}, tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
-              { id: 2, key: 'users', label: '用户管理', route: '/users', sortOrder: 2, isVisible: true, menuType: 'FOLDER', rolesAllowed: [], metadata: {}, tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
+              { id: 1, key: 'dashboard', label: '仪表盘', route: '/', sortOrder: 1, isVisible: true, menuType: 'MENU', rolesAllowed: [], tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
+              { id: 2, key: 'users', label: '用户管理', route: '/users', sortOrder: 2, isVisible: true, menuType: 'FOLDER', rolesAllowed: [], tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
             ],
           },
         });
@@ -90,8 +90,8 @@ describe('useUserMenus', () => {
         return HttpResponse.json({
           data: {
             userMenus: [
-              { id: 1, key: 'dashboard', label: '仪表盘', route: '/', sortOrder: 1, isVisible: true, menuType: 'MENU', rolesAllowed: [], metadata: {}, tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
-              { id: 2, key: 'users', label: '用户管理', route: '/users', sortOrder: 2, isVisible: true, menuType: 'FOLDER', rolesAllowed: [], metadata: {}, tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
+              { id: 1, key: 'dashboard', label: '仪表盘', route: '/', sortOrder: 1, isVisible: true, menuType: 'MENU', rolesAllowed: [], tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
+              { id: 2, key: 'users', label: '用户管理', route: '/users', sortOrder: 2, isVisible: true, menuType: 'FOLDER', rolesAllowed: [], tenant: 1, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z', children: [] },
             ],
           },
         });

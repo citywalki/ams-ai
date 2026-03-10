@@ -17,7 +17,6 @@ const USER_MENUS_QUERY = `
       isVisible
       menuType
       rolesAllowed
-      metadata
       tenant
       createdAt
       updatedAt
@@ -32,7 +31,6 @@ const USER_MENUS_QUERY = `
         isVisible
         menuType
         rolesAllowed
-        metadata
         tenant
         createdAt
         updatedAt
@@ -47,7 +45,6 @@ const USER_MENUS_QUERY = `
           isVisible
           menuType
           rolesAllowed
-          metadata
           tenant
           createdAt
           updatedAt

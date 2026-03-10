@@ -197,16 +197,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   useEffect(() => {
     if (!menus) return;
 
-    // 找出根菜单
-    const menuIds = new Set(menus.map((m) => m.id));
-    const rootMenus = menus.filter((menu) => {
-      if (!menu.parentId) return true;
-      return !menuIds.has(menu.parentId);
-    });
-
+    // 后端已返回树形结构，直接使用 menus 作为根菜单
     // 找到需要展开的父菜单ID
     const parentIdsToExpand = findParentIdsByPath(
-      rootMenus,
+      menus,
       location.pathname
     );
 
@@ -319,14 +313,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     );
   }
 
-  // 找出根菜单：parentId 为 null/undefined，或者在当前菜单列表中找不到父菜单的
-  const menuIds = new Set(menus?.map((m) => m.id) ?? []);
-  const rootMenus = menus?.filter((menu) => {
-    // 如果没有 parentId，是根菜单
-    if (!menu.parentId) return true;
-    // 如果 parentId 存在但在当前列表中找不到对应的菜单，也视为根菜单
-    return !menuIds.has(menu.parentId);
-  }) ?? [];
+  // 后端 getUserMenus 已经返回构建好的树形结构（根菜单列表），直接使用即可
+  // 不需要再根据 parentId 进行过滤
+  const rootMenus = menus ?? [];
 
   const sidebarContent = (
     <>
