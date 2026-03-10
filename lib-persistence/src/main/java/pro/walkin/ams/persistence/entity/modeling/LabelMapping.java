@@ -3,6 +3,7 @@ package pro.walkin.ams.persistence.entity.modeling;
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "label_mapping")
+@Filter(name = "tenant-filter")
 public class LabelMapping extends BaseEntity {
 
   /*

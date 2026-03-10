@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.modeling;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 import pro.walkin.ams.persistence.entity.BaseEntity;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "alert_source")
+@Filter(name = "tenant-filter")
 public class AlertSource extends BaseEntity {
 
   @Column(name = "created_at")

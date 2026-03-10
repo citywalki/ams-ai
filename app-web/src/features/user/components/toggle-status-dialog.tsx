@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { User } from "../schema/user";
-import { useUpdateUserStatus } from "../hooks/use-user-mutations";
+import { useUpdateUserStatus } from "../hooks/use-user-commands";
 
 interface ToggleStatusDialogProps {
   user: User | null;

@@ -3,6 +3,7 @@ package pro.walkin.ams.persistence.entity.system;
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
 import pro.walkin.ams.persistence.entity.BaseEntity;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "dict_item")
+@Filter(name = "tenant-filter")
 public class DictItem extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import type { User } from "../schema/user";
 import { USER_STATUSES } from "../schema/user";
-import { useCreateUser, useUpdateUser } from "../hooks/use-user-mutations";
+import { useCreateUser, useUpdateUser } from "../hooks/use-user-commands";
 
 const userSchema = z.object({
   username: z.string().min(2, "用户名至少2个字符").max(50, "用户名最多50个字符"),
@@ -79,11 +79,9 @@ export function UserForm({
       if (isEditing && user) {
         await updateUser.mutateAsync({
           id: user.id,
-          input: {
-            username: data.username,
-            email: data.email,
-            status: data.status,
-          },
+          username: data.username,
+          email: data.email,
+          status: data.status,
         });
         toast.success("用户更新成功");
       } else {

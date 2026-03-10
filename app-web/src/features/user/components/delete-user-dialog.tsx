@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { User } from "../schema/user";
-import { useDeleteUser } from "../hooks/use-user-mutations";
+import { useDeleteUser } from "../hooks/use-user-commands";
 
 interface DeleteUserDialogProps {
   user: User | null;
@@ -31,7 +31,7 @@ export function DeleteUserDialog({
   const handleConfirm = async () => {
     if (!user) return;
     try {
-      await deleteUser.mutateAsync(user.id);
+      await deleteUser.mutateAsync({ id: user.id });
       toast.success("用户删除成功");
       onOpenChange(false);
       onSuccess?.();

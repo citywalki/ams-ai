@@ -1,6 +1,7 @@
 package pro.walkin.ams.core.status;
 
-import com.hazelcast.core.HazelcastInstance;
+import io.quarkus.cache.Cache;
+import io.quarkus.cache.CacheName;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
@@ -8,6 +9,7 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.walkin.ams.common.Constants;
+import pro.walkin.ams.common.cache.CacheInvalidationBroadcaster;
 import pro.walkin.ams.core.event.AlarmStatusChangedEvent;
 import pro.walkin.ams.core.metrics.CoreMetrics;
 import pro.walkin.ams.persistence.entity.running.Alarm;
@@ -18,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 告警状态管理器
  *
- * <p>管理告警的生命周期状态 使用 Hazelcast 分布式锁保证状态变更的原子性 支持状态变更审计
+ * <p>管理告警的生命周期状态，使用本地缓存 + 集群失效广播保证缓存一致性，支持状态变更审计
  */
 @ApplicationScoped
 @Transactional
@@ -26,20 +28,21 @@ public class AlarmStatusManager {
 
   private static final Logger log = LoggerFactory.getLogger(AlarmStatusManager.class);
 
-  private static final String LOCK_PREFIX = "alarm:status:lock:";
   private static final String CACHE_PREFIX = "alarm:status:";
 
-  private final HazelcastInstance hazelcastInstance;
   private final Event<AlarmStatusChangedEvent> alarmStatusChangedEvent;
   private final CoreMetrics metrics;
+
+  @Inject
+  @CacheName("alarm-status")
+  Cache alarmStatusCache;
+
+  @Inject CacheInvalidationBroadcaster broadcaster;
 
   @Inject Alarm.Repo alarmRepo;
 
   public AlarmStatusManager(
-      HazelcastInstance hazelcastInstance,
-      Event<AlarmStatusChangedEvent> alarmStatusChangedEvent,
-      CoreMetrics metrics) {
-    this.hazelcastInstance = hazelcastInstance;
+      Event<AlarmStatusChangedEvent> alarmStatusChangedEvent, CoreMetrics metrics) {
     this.alarmStatusChangedEvent = alarmStatusChangedEvent;
     this.metrics = metrics;
   }
@@ -268,41 +271,44 @@ public class AlarmStatusManager {
   }
 
   /**
-   * 获取告警状态（带缓存）
+   * 获取告警状态（带本地缓存）
+   *
+   * <p>使用 Quarkus Cache (Caffeine) 本地缓存，缓存未命中时从数据库加载
    *
    * @param alarmId 告警ID
-   * @return 告警状态
+   * @return 告警状态，告警不存在时返回 null
    */
   public Constants.Alarm.Status getAlarmStatus(Long alarmId) {
     String cacheKey = CACHE_PREFIX + alarmId;
-    com.hazelcast.map.IMap<String, String> cache = hazelcastInstance.getMap("alarmStatus");
 
-    String cachedStatus = cache.get(cacheKey);
+    String cachedStatus =
+        alarmStatusCache
+            .get(
+                cacheKey,
+                key -> {
+                  metrics.getCacheMissTotal().increment();
+                  Alarm alarm = alarmRepo.findByIdOptional(alarmId).orElse(null);
+                  return alarm != null ? alarm.status.name() : null;
+                })
+            .await()
+            .indefinitely();
+
     if (cachedStatus != null) {
       metrics.getCacheHitTotal().increment();
       return Constants.Alarm.Status.valueOf(cachedStatus);
     }
-
-    metrics.getCacheMissTotal().increment();
-
-    Alarm alarm = alarmRepo.findByIdOptional(alarmId).orElse(null);
-    if (alarm == null) {
-      return null;
-    }
-
-    cache.put(cacheKey, alarm.status.name(), 5, TimeUnit.MINUTES);
-    return alarm.status;
+    return null;
   }
 
   /**
-   * 清除告警状态缓存
+   * 清除告警状态缓存并广播失效到集群其他节点
    *
    * @param alarmId 告警ID
    */
   public void clearCache(Long alarmId) {
     String cacheKey = CACHE_PREFIX + alarmId;
-    com.hazelcast.map.IMap<String, String> cache = hazelcastInstance.getMap("alarmStatus");
-    cache.remove(cacheKey);
+    alarmStatusCache.invalidate(cacheKey).await().indefinitely();
+    broadcaster.broadcast("alarm-status", cacheKey);
 
     log.debug("Alarm status cache cleared: id={}", alarmId);
   }

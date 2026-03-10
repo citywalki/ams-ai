@@ -3,6 +3,7 @@ package pro.walkin.ams.persistence.entity.modeling;
 import jakarta.persistence.*;
 import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
@@ -18,6 +19,7 @@ import java.util.Map;
  */
 @Entity
 @Table(name = "alarm_policies")
+@Filter(name = "tenant-filter")
 public class AlarmPolicy extends BaseEntity {
 
   /*

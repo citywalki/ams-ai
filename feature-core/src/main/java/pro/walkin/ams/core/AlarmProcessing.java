@@ -237,18 +237,11 @@ public class AlarmProcessing {
     // 步骤1：从租户上下文获取当前租户代码
     String tenantCode = TenantContext.getCurrentTenant();
 
-    // 步骤2：查询所有租户并验证当前租户存在性
-    List<Tenant> tenants = Tenant_.managedBlocking().listAll();
-
-    if (tenants.isEmpty()) {
+    // 步骤2：按租户代码直接查询（索引查找，替代全量加载）
+    Tenant tenant = Tenant_.managedBlocking().findByCode(tenantCode);
+    if (tenant == null) {
       throw new IllegalArgumentException("Tenant not found: " + tenantCode);
     }
-
-    Tenant tenant =
-        tenants.stream()
-            .filter(t -> t.code.equalsIgnoreCase(tenantCode))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantCode));
 
     // 步骤3：创建 Alarm 对象并填充字段
     Alarm alarm = new Alarm();

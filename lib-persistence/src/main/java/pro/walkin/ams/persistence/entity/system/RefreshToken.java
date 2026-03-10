@@ -2,12 +2,14 @@ package pro.walkin.ams.persistence.entity.system;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import pro.walkin.ams.persistence.entity.BaseEntity;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "refresh_tokens")
+@Filter(name = "tenant-filter")
 public class RefreshToken extends BaseEntity {
 
   @Column(name = "token", nullable = false, unique = true)

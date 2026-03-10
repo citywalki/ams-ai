@@ -4,6 +4,7 @@ import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
 import org.eclipse.microprofile.graphql.Ignore;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -29,6 +30,7 @@ import java.util.Map;
           name = "uk_processor_tenant")
     })
 @FilterDef(name = "enabled", defaultCondition = "enabled = true")
+@Filter(name = "tenant-filter")
 public class ProcessorConfig extends BaseEntity {
 
   /** 处理器名称（对应 AlarmProcessor.getName()） */

@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.system;
 
 import jakarta.persistence.*;
 import org.eclipse.microprofile.graphql.Ignore;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pro.walkin.ams.persistence.entity.BaseEntity;
@@ -16,6 +17,7 @@ import java.util.Map;
  */
 @Entity
 @Table(name = "audit_logs")
+@Filter(name = "tenant-filter")
 public class AuditLog extends BaseEntity {
 
   /*

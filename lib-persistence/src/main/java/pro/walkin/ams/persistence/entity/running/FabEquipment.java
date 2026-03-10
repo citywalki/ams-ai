@@ -2,6 +2,7 @@ package pro.walkin.ams.persistence.entity.running;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
@@ -17,6 +18,7 @@ import java.util.Map;
  */
 @Entity
 @Table(name = "fab_equipments")
+@Filter(name = "tenant-filter")
 public class FabEquipment extends BaseEntity {
 
   /*

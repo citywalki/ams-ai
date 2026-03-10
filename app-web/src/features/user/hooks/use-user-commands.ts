@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCommand } from "@/shared/hooks/use-command";
 import type { CreateUserInput, UpdateUserInput, User } from "../schema/user";
 import { USERS_QUERY_KEY } from "./use-users";
@@ -49,7 +49,7 @@ export function useDeleteUser() {
  * 重置密码 - 使用通用 useCommand
  */
 export function useResetPassword() {
-  return useCommand<void, Error, { id: number; password: string }>({
+  return useCommand<void, Error, { id: number; newPassword: string }>({
     commandType: "ResetPasswordCommand",
   });
 }

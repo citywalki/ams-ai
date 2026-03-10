@@ -17,6 +17,7 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-cdi:7.6.0")
 
     implementation(libs.hazelcast)
+    implementation("io.quarkus:quarkus-cache")
 
     implementation(libs.quarkus.micrometer)
     implementation(libs.micrometer.core)

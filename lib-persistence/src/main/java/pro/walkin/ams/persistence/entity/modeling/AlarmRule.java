@@ -3,6 +3,7 @@ package pro.walkin.ams.persistence.entity.modeling;
 import io.quarkus.hibernate.panache.PanacheRepository;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.processing.Find;
@@ -20,6 +21,7 @@ import java.util.Map;
  */
 @Entity
 @Table(name = "alarm_rules")
+@Filter(name = "tenant-filter")
 public class AlarmRule extends BaseEntity {
 
   /** 规则名称 */

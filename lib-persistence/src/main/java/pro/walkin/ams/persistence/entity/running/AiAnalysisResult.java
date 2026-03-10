@@ -1,6 +1,7 @@
 package pro.walkin.ams.persistence.entity.running;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pro.walkin.ams.persistence.entity.BaseEntity;
@@ -16,6 +17,7 @@ import java.util.Map;
  */
 @Entity
 @Table(name = "ai_analysis_results")
+@Filter(name = "tenant-filter")
 public class AiAnalysisResult extends BaseEntity {
 
   /*

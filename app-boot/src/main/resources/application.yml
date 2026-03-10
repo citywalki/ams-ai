@@ -37,6 +37,13 @@ quarkus:
         enabled: true
         path: /metrics
 
+  # 缓存配置
+  cache:
+    caffeine:
+      "alarm-status":
+        expire-after-write: 5M
+        maximum-size: 10000
+
 mp:
   jwt:
     verify:
