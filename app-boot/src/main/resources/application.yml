@@ -3,6 +3,13 @@
     console:
       color: true
 
+# 生产环境配置：禁用 GraphQL UI
+"%prod":
+  quarkus:
+    smallrye-graphql:
+      ui:
+        enabled: false
+
 quarkus:
   application:
     name: ams-ai
