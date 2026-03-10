@@ -26,11 +26,8 @@ Use this table to determine which protocol to use:
 | Operation Type | Protocol | Example | Rationale |
 |----------------|----------|---------|-----------|
 | **List/Detail Queries** | GraphQL | `users`, `userById`, `alarms` | Flexible field selection, nested data fetching, single endpoint for multiple resources |
-| **Create** | REST | `POST /system/users` | Standard HTTP 201 Created, Location header, clear resource semantics |
-| **Update** | REST | `PUT /system/users/:id` | Standard HTTP 200/204, PATCH for partial updates |
-| **Delete** | REST | `DELETE /system/users/:id` | Standard HTTP 204 No Content, clear resource lifecycle |
-| **Bulk Operations** | REST | `POST /system/users/batch` | Better handling of large payloads, standard HTTP batch patterns |
-| **File Upload** | REST | `POST /system/files/upload` | Native multipart/form-data support |
+| **Create/Update/Delete** | REST (Command) | `POST /api/commands` | 统一 Command 端点，通过 `type` 路由到 Handler |
+| **File Upload** | REST | `POST /api/files/upload` | Native multipart/form-data support |
 
 ### Quick Decision Flowchart
 
@@ -38,10 +35,10 @@ Use this table to determine which protocol to use:
 Is this a READ operation?
 ├── YES → Use GraphQL (query)
 │   └── Examples: Get user list, fetch alert details, search with filters
-└── NO → Use REST (mutation)
-    ├── Is it CREATE? → POST /resource
-    ├── Is it UPDATE? → PUT/PATCH /resource/:id
-    └── Is it DELETE? → DELETE /resource/:id
+├── NO → Is it a file upload?
+│   ├── YES → REST POST /api/files/upload
+│   └── NO → Use Command (POST /api/commands)
+│       └── Examples: CreateUserCommand, UpdateRoleCommand, DeleteMenuCommand
 ```
 
 ## Code Examples
@@ -102,66 +99,59 @@ export function useUsers(options: UseUsersOptions = {}) {
 - Supports filtering, pagination, and sorting
 - Nested `roles` data fetched in single request
 
-### Example 2: REST Mutation Hook (Create)
+### Example 2: Command Hook (Create)
 
-**File**: `app-web/src/features/user/hooks/use-user-mutations.ts`
+**File**: `app-web/src/features/user/hooks/use-user-commands.ts`
 
 ```typescript
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { restClient } from "@/shared/api/rest-client";
-import { USERS_QUERY_KEY } from "./use-users";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCommand } from "@/shared/hooks/use-command";
 
 export function useCreateUser() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (input: CreateUserInput) => {
-      const response = await restClient.post<User>("/system/users", input);
-      return response.data;
-    },
+  return useCommand<User, Error, CreateUserInput>({
+    commandType: "CreateUserCommand",
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 }
 ```
 
 **Key Points**:
-- Uses `axios` REST client via `@/shared/api/rest-client`
-- POST request to `/system/users` returns HTTP 201
+- Uses `useCommand` hook sending to unified `POST /api/commands`
+- `commandType` 对应后端的 Command 类名
 - Invalidates cache to refresh user list
 
-### Example 3: REST Mutation Hook (Update)
+### Example 3: Command Hook (Update)
 
-**File**: `app-web/src/features/user/hooks/use-user-mutations.ts`
+**File**: `app-web/src/features/user/hooks/use-user-commands.ts`
 
 ```typescript
 export function useUpdateUser() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({ id, input }: { id: number; input: UpdateUserInput }) => {
-      const response = await restClient.put<User>(`/system/users/${id}`, input);
-      return response.data;
-    },
+  return useCommand<User, Error, UpdateUserInput>({
+    commandType: "UpdateUserCommand",
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 }
 ```
 
 **Key Points**:
-- PUT request for full updates
-- PATCH available for partial updates
-- RESTful URL pattern: `/system/users/:id`
+- 所有写操作都通过 `useCommand` 发送到 `POST /api/commands`
+- 不再使用 `restClient.put/post/delete` 直接调用资源端点
+- Command 类型由 `CommandType` union type 约束
 
 ## Common Patterns
 
 ### Hook Naming Conventions
 
 - **Query hooks**: `use{Feature}{Action}` (e.g., `useUsers`, `useAlarms`)
-- **Mutation hooks**: `use{Action}{Feature}` or `use{Feature}Mutations` (e.g., `useCreateUser`, `useUpdateUser`)
+- **Command hooks**: `use{Action}{Feature}` (e.g., `useCreateUser`, `useUpdateUser`) in `use-{feature}-commands.ts`
 - **Query keys**: `["{entity}", {filters}]` format for caching
 
 ### Frontend Architecture (FSD)
@@ -172,11 +162,15 @@ src/
 │   ├── schema/user.ts       # TypeScript interfaces
 │   ├── hooks/
 │   │   ├── use-users.ts     # GraphQL query
-│   │   └── use-user-mutations.ts  # REST mutations
+│   │   └── use-user-commands.ts  # Command mutations
 │   └── components/          # Feature components
-├── shared/api/
-│   ├── graphql.ts           # urql client
-│   └── rest-client.ts       # axios client
+├── shared/
+│   ├── api/
+│   │   ├── command/index.ts # Command API client (sendCommand)
+│   │   ├── graphql.ts       # GraphQL client
+│   │   └── rest-client.ts   # axios client
+│   └── hooks/
+│       └── use-command.ts   # useCommand hook
 ```
 
 **Important**: No `src/entities/` directory. All entity code lives in `features/{feature}/`.
@@ -201,24 +195,25 @@ const response = await restClient.get("/system/users");
 const data = await graphql<UsersResponse>(USERS_QUERY, variables);
 ```
 
-#### Mistake 2: Using GraphQL for Mutations
+#### Mistake 2: Using Individual REST Endpoints for Mutations
 
-**Problem**: Using GraphQL mutations instead of REST for writes.
+**Problem**: Creating separate REST endpoints for each resource instead of using unified Command endpoint.
 
 ```typescript
 // DON'T DO THIS
-const MUTATION = `
-  mutation CreateUser($input: CreateUserInput!) {
-    createUser(input: $input) { id }
-  }
-`;
+const response = await restClient.post("/system/users", input);
+const response = await restClient.put(`/system/users/${id}`, input);
+const response = await restClient.delete(`/system/users/${id}`);
 ```
 
-**Solution**: Use REST endpoints for mutations to leverage HTTP caching and clear semantics.
+**Solution**: Use `useCommand` hook sending to `POST /api/commands`.
 
 ```typescript
 // CORRECT
-const response = await restClient.post("/system/users", input);
+const createUser = useCommand<User, Error, CreateUserInput>({
+  commandType: "CreateUserCommand",
+});
+createUser.mutate({ username: "admin", email: "admin@example.com" });
 ```
 
 #### Mistake 3: Creating Separate API Directories
@@ -249,10 +244,8 @@ export function useUsers() {
 
 ```typescript
 // DON'T DO THIS
-return useMutation({
-  mutationFn: async (input) => {
-    return restClient.post("/system/users", input);
-  },
+return useCommand<User, Error, CreateUserInput>({
+  commandType: "CreateUserCommand",
   // Missing onSuccess!
 });
 ```
@@ -261,12 +254,10 @@ return useMutation({
 
 ```typescript
 // CORRECT
-return useMutation({
-  mutationFn: async (input) => {
-    return restClient.post("/system/users", input);
-  },
+return useCommand<User, Error, CreateUserInput>({
+  commandType: "CreateUserCommand",
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: ["users"] });
   },
 });
 ```

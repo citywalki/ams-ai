@@ -118,103 +118,70 @@ query ListUsers($first: Int = 20, $after: String) {
 }
 ```
 
-## REST 规范（命令）
+## REST 规范（命令 — 统一 Command 端点）
 
 ### 使用场景
-- 资源创建、更新、删除
-- 文件上传/下载
-- 批量操作
+- 所有写操作（创建、更新、删除）通过统一 Command 端点
+- 文件上传/下载使用独立 REST 端点
 
-### URL 设计
+### 统一 Command 端点
 
-#### 资源命名
-- 使用复数名词: `/users`, `/alarms`, `/configurations`
-- 避免动词，使用 HTTP 方法表达动作
-- 层级关系用 `/` 分隔: `/users/{id}/roles`
+所有写操作发送到单一端点 `POST /api/commands`，通过 `type` 字段路由到对应的 Handler。
 
-#### HTTP 方法
-
-| 方法 | 用途 | 示例 |
-|------|------|------|
-| `GET` | 获取资源 | `GET /users/{id}` |
-| `POST` | 创建资源 | `POST /users` |
-| `PUT` | 完整更新 | `PUT /users/{id}` |
-| `PATCH` | 部分更新 | `PATCH /users/{id}` |
-| `DELETE` | 删除资源 | `DELETE /users/{id}` |
+**不再**为每个资源创建独立的 REST Controller（如 `/api/v1/users`、`/api/v1/roles`）。
 
 ### 请求/响应规范
 
+#### Command 请求格式
+
+```json
+POST /api/commands
+Content-Type: application/json
+
+{
+  "type": "CreateUserCommand",
+  "payload": {
+    "username": "john",
+    "email": "john@example.com",
+    "password": "secret",
+    "status": "ACTIVE",
+    "tenantId": 1
+  }
+}
+```
+
+- **type**: Command 类名（简名或全限定名），如 `CreateUserCommand`
+- **payload**: Command 的具体数据，将反序列化为对应的 Command record
+
 #### 成功响应
 
-**创建成功 (201)**
 ```json
-POST /api/v1/users
+// Handler 返回结果时 → 200 OK
 {
-  "username": "john",
-  "email": "john@example.com"
-}
-
-Response: 201 Created
-{
-  "id": "123",
+  "id": 123,
   "username": "john",
   "email": "john@example.com",
   "createdAt": "2024-01-15T10:30:00Z"
 }
-```
 
-**查询成功 (200)**
-```json
-GET /api/v1/users/123
-
-Response: 200 OK
-{
-  "id": "123",
-  "username": "john",
-  "email": "john@example.com",
-  "createdAt": "2024-01-15T10:30:00Z"
-}
-```
-
-**列表查询 (200)**
-```json
-GET /api/v1/users?page=0&size=20&sort=createdAt,desc
-
-Response: 200 OK
-{
-  "content": [
-    { "id": "123", "username": "john" },
-    { "id": "124", "username": "jane" }
-  ],
-  "pageable": {
-    "pageNumber": 0,
-    "pageSize": 20
-  },
-  "totalElements": 100,
-  "totalPages": 5
-}
+// Handler 返回 null 时 → 204 No Content
 ```
 
 #### 错误响应
 
-统一错误格式：
-
 ```json
+// 缺少 type 或未知 Command → 400 Bad Request
 {
-  "code": "VALIDATION_ERROR",
-  "message": "请求参数验证失败",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "path": "/api/v1/users",
-  "details": [
-    {
-      "field": "email",
-      "message": "邮箱格式不正确"
-    },
-    {
-      "field": "password",
-      "message": "密码长度不能少于8位"
-    }
-  ]
+  "success": false,
+  "errorCode": null,
+  "errorMessage": "Unknown command type: FooCommand"
+}
+
+// Handler 执行失败 → 500 Internal Server Error
+{
+  "success": false,
+  "errorCode": "COMMAND_EXECUTION_FAILED",
+  "errorMessage": "Role code already exists"
 }
 ```
 
@@ -222,16 +189,12 @@ Response: 200 OK
 
 | 状态码 | 场景 | 说明 |
 |--------|------|------|
-| `200 OK` | 成功 | 通用成功 |
-| `201 Created` | 创建成功 | 资源创建成功 |
-| `204 No Content` | 成功无返回 | 删除成功 |
-| `400 Bad Request` | 请求错误 | 参数校验失败 |
+| `200 OK` | Command 执行成功 | Handler 返回了结果 |
+| `204 No Content` | Command 执行成功 | Handler 返回 null（如删除操作） |
+| `400 Bad Request` | 请求错误 | 缺少 type、未知 Command、payload 反序列化失败 |
 | `401 Unauthorized` | 未认证 | 需要登录 |
 | `403 Forbidden` | 无权限 | 权限不足 |
-| `404 Not Found` | 不存在 | 资源未找到 |
-| `409 Conflict` | 冲突 | 资源已存在 |
-| `422 Unprocessable` | 业务错误 | 业务规则验证失败 |
-| `500 Internal Error` | 服务器错误 | 系统异常 |
+| `500 Internal Error` | 执行失败 | Handler 抛出异常 |
 
 ### 多租户支持
 
@@ -240,15 +203,6 @@ Response: 200 OK
 - **Header 方式**: `X-Tenant-Id: tenant-001`
 - **JWT Claim 方式**: 从 Token 中解析 `tenant_id`
 - **后端处理**: 使用 `TenantContext.getCurrentTenantId()` 自动过滤
-
-### 版本控制
-
-API 版本通过 URL 路径管理：
-
-```
-/api/v1/users
-/api/v2/users
-```
 
 ## 后端实现规范
 
@@ -272,39 +226,56 @@ public class UserGraphQLResource {
 }
 ```
 
-### REST 端点
+### REST 端点（统一 Command 调度）
 
 ```java
-@Path("/api/v1/users")
-@ApplicationScoped
-public class UserResource {
-    
-    @GET
-    @Path("/{id}")
-    public Uni<User> getUser(@PathParam("id") String id) {
-        return userQuery.findById(id);
-    }
-    
+@Path("/api/commands")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class CommandController {
+
+    @Inject MessageGateway messageGateway;
+    @Inject HandlerRegistry handlerRegistry;
+    @Inject ObjectMapper objectMapper;
+
     @POST
-    @Transactional
-    public Uni<Response> createUser(CreateUserRequest request) {
-        return userService.create(request)
-            .map(user -> Response.status(201).entity(user).build());
+    public CompletionStage<Response> execute(@Valid CommandRequest request) {
+        // 1. 解析 Command 类型（通过 HandlerRegistry 路由）
+        Class<? extends Command> commandClass = handlerRegistry.getCommandClass(request.type());
+
+        // 2. 反序列化 payload 为 Command 对象
+        Command command = objectMapper.treeToValue(request.payload(), commandClass);
+
+        // 3. 通过 Tower MessageGateway 发送到对应 Handler
+        return messageGateway.sendAsync(command, Object.class)
+            .thenApply(result -> result == null
+                ? Response.noContent().build()
+                : Response.ok(result).build());
     }
-    
-    @PUT
-    @Path("/{id}")
+}
+```
+
+每个 Handler 独立定义，由 Tower 框架自动注册和路由：
+
+```java
+@ApplicationScoped
+public class CreateUserHandler implements CommandHandler<CreateUserCommand, User> {
+
+    @Inject User.Repo userRepo;
+    @Inject UserQuery userQuery;
+
+    @Override
     @Transactional
-    public Uni<User> updateUser(@PathParam("id") String id, UpdateUserRequest request) {
-        return userService.update(id, request);
-    }
-    
-    @DELETE
-    @Path("/{id}")
-    @Transactional
-    public Uni<Response> deleteUser(@PathParam("id") String id) {
-        return userService.delete(id)
-            .map(v -> Response.noContent().build());
+    public User handle(CreateUserCommand cmd) {
+        if (userQuery.findByUsername(cmd.username()).isPresent()) {
+            throw new BusinessException("Username already exists");
+        }
+        User user = new User();
+        user.username = cmd.username();
+        user.email = cmd.email();
+        user.tenantId = cmd.tenantId();
+        userRepo.persist(user);
+        return user;
     }
 }
 ```
