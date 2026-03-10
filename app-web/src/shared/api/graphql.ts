@@ -38,11 +38,17 @@ export async function graphql<T = unknown>(
     .toPromise();
 
   if (result.error) {
-    // 401 错误由 rest-client 的拦截器统一处理，这里不显示 toast
     const isUnauthorized = result.error.response?.status === 401 ||
       result.error.message?.includes('Unauthorized');
-    
-    if (!isUnauthorized) {
+
+    if (isUnauthorized) {
+      // 401 错误：清除登录状态并跳转到登录页
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      useAuthStore.getState().logout();
+      toast.error('登录已过期，请重新登录');
+      window.location.href = '/login';
+    } else {
       toast.error(`请求失败: ${result.error.message}`);
     }
     throw new Error(result.error.message);
